@@ -1,7 +1,7 @@
 # Phase 5 Workspace Core タスクリスト
 
 > 作成日: 2026-08-10
-> ステータス: 検証完了・PR準備中
+> ステータス: PR #12 作成済み・merge待ち
 
 - [x] Issue #11 / `codex/phase-5-workspace-core`branchを準備する。
 - [x] Workspace snapshot / projection / SourceMap DTOを定義する。
@@ -14,7 +14,8 @@
 - [x] selection / replacement / download testを追加する。
 - [x] typecheck / lint / 全test / build / E2Eを成功させる。
 - [x] 初回実装tasklistを更新する。
-- [ ] commit / push / PR / mergeを完了する。
+- [x] commit / push / PRを完了する。
+- [ ] PRをmainへmergeする。
 - [ ] clean main / Issue close / branch削除を確認する。
 
 ## 完了条件
