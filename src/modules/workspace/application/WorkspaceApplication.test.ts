@@ -259,6 +259,46 @@ describe('Workspace Application', () => {
     })
   })
 
+  it('tracks project download success and failure without losing later edits', async () => {
+    const workspace = createWorkspaceApplication({
+      graphLayout: immediateLayoutPort(),
+      name: 'lifecycle',
+      source: '[node] Initial',
+    })
+    await workspace.updateWorkspaceSource('[node] Downloaded revision')
+
+    const started = workspace.beginProjectDownload()
+    expect(started.input).toMatchObject({
+      format: 'granvas',
+      revision: 1,
+      source: '[node] Downloaded revision',
+    })
+    expect(started.snapshot.document.status).toMatchObject({
+      type: 'exporting',
+      revision: 1,
+    })
+
+    await workspace.updateWorkspaceSource('[node] Edited during download')
+    const completed = workspace.markProjectDownloaded(started.ticket)
+    expect(completed.document).toMatchObject({
+      revision: 2,
+      cleanBaselineRevision: 1,
+      status: { type: 'dirty' },
+    })
+
+    const failedStart = workspace.beginProjectDownload()
+    const failed = workspace.markProjectDownloadFailed(
+      failedStart.ticket,
+      'browser rejected',
+    )
+    expect(failed.document.status).toEqual({
+      type: 'error',
+      message: 'browser rejected',
+      dirty: true,
+    })
+    expect(failed.document.source).toBe('[node] Edited during download')
+  })
+
   it('preserves current source and diagnostics when layout fails', async () => {
     const workspace = createWorkspaceApplication({
       graphLayout: {

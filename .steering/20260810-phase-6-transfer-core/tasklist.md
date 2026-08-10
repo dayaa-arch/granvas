@@ -1,7 +1,7 @@
 # Phase 6 Transfer Core タスクリスト
 
 > 作成日: 2026-08-10
-> ステータス: PR #14 作成済み・merge待ち
+> ステータス: 完了
 
 - [x] Issue #13 / `codex/phase-6-transfer-core` branchを準備する。
 - [x] Download format / file name / MIME Domain policyを実装する。
@@ -15,11 +15,11 @@
 - [x] typecheck / lint / 全test / build / E2Eを成功させる。
 - [x] 初回実装tasklistを更新する。
 - [x] commit / push / PRを完了する。
-- [ ] PRをmainへmergeする。
-- [ ] clean main / Issue close / branch削除を確認する。
+- [x] PRをmainへmergeする。
+- [x] clean main / Issue close / branch削除を確認する。
 
 ## 完了条件
 
 - [x] Transfer Core published APIが全受け入れ条件を満たす。
 - [x] 全quality gateがgreen。
-- [ ] PR経由でmainへmerge済み。
+- [x] PR経由でmainへmerge済み。

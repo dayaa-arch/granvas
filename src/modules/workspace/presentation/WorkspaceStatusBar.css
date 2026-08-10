@@ -1,0 +1,40 @@
+.workspace-status {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-0);
+  color: var(--ink-400);
+  font-size: 11px;
+  font-weight: 620;
+  letter-spacing: 0.018em;
+  white-space: nowrap;
+}
+
+.workspace-status__group {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.workspace-status__save-state {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink-600);
+  gap: 7px;
+}
+
+.workspace-status__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #36a177;
+  box-shadow: 0 0 0 3px rgba(54, 161, 119, 0.12);
+}
+
+.workspace-status__save-state.is-dirty .workspace-status__dot {
+  background: #d28a35;
+  box-shadow: 0 0 0 3px rgba(210, 138, 53, 0.12);
+}

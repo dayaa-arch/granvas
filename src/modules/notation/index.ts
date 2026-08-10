@@ -12,3 +12,8 @@ export {
   type ParsedRelationDto,
   type SourceRangeDto,
 } from '@/modules/notation/application/ParseNotation'
+export {
+  GranvasEditor,
+  type EditorCursorDto,
+  type GranvasEditorProps,
+} from '@/modules/notation/presentation/GranvasEditor'

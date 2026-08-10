@@ -58,8 +58,8 @@
 - [x] 決定的なoccurrence keyを実装する。
 - [x] canonical、invalid、Group、forward referenceのfixtureを追加する。
 - [x] emoji、CRLF、BOMのtestを追加する。
-- [ ] CodeMirrorのsyntax highlightを追加する。
-- [ ] diagnostic gutter、underline、accessible detailを追加する。
+- [x] CodeMirrorのsyntax highlightを追加する。
+- [x] diagnostic gutter、underline、accessible detailを追加する。
 
 完了条件:
 
@@ -103,21 +103,21 @@
 
 ## 6. プレゼンテーション
 
-- [ ] starter UIをGranvas shellへ置き換える。
-- [ ] Top BarとImport / Download actionを実装する。
-- [ ] 比率を変更できるSplitPaneを実装する。
-- [ ] `GranvasEditor`を実装する。
-- [ ] read-onlyの`ReactFlowGraphView`を実装する。
-- [ ] Node、Edge、Groupのvisual styleを実装する。
-- [ ] Pan / Zoom / Fit Viewを実装する。
-- [ ] 通常のsource update中はviewportを維持する。
-- [ ] 初回表示とImport後にFit Viewを実行する。
-- [ ] dirty、revision、要素数、diagnosticsを表示するStatusBarを実装する。
-- [ ] Graph clickからText selectionへの移動を実装する。
-- [ ] Text cursorからGraph highlightへの連携を実装する。
-- [ ] Graph Nodeのkeyboard activationを実装する。
-- [ ] IME composition中の動作を実装する。
-- [ ] component testとaccessibility testを追加する。
+- [x] starter UIをGranvas shellへ置き換える。
+- [x] Top BarとImport / Download actionを実装する。
+- [x] 比率を変更できるSplitPaneを実装する。
+- [x] `GranvasEditor`を実装する。
+- [x] read-onlyの`ReactFlowGraphView`を実装する。
+- [x] Node、Edge、Groupのvisual styleを実装する。
+- [x] Pan / Zoom / Fit Viewを実装する。
+- [x] 通常のsource update中はviewportを維持する。
+- [x] 初回表示とImport後にFit Viewを実行する。
+- [x] dirty、revision、要素数、diagnosticsを表示するStatusBarを実装する。
+- [x] Graph clickからText selectionへの移動を実装する。
+- [x] Text cursorからGraph highlightへの連携を実装する。
+- [x] Graph Nodeのkeyboard activationを実装する。
+- [x] IME composition中の動作を実装する。
+- [x] component testとaccessibility testを追加する。
 
 ## 7. Transferコンテキスト
 
@@ -130,10 +130,10 @@
 - [ ] Canvas PNG exporterと8192px上限を実装する。
 - [ ] PDF生成library選定のADRを作成する。
 - [ ] single-page PDF exporterを実装する。
-- [ ] Download dialogとerror stateを実装する。
+- [x] Download dialogとerror stateを実装する。
 - [ ] SVG / PNG / PDFのDownload後もdirtyを維持する。
-- [ ] `.granvas`のdownload開始成功後にcleanへ変更する。
-- [ ] `beforeunload`と破壊的操作の警告を実装する。
+- [x] `.granvas`のdownload開始成功後にcleanへ変更する。
+- [x] `beforeunload`と破壊的操作の警告を実装する。
 - [x] Import / Downloadのcontract testとXSS fixtureを追加する。
 
 ## 8. 性能・アクセシビリティ・セキュリティ
@@ -148,12 +148,12 @@
 
 ## 9. E2Eテスト
 
-- [ ] Text → Graph → click → Textを検証する。
-- [ ] `.granvas` Download → Import → 編集再開を検証する。
-- [ ] incomplete notationがあっても他のcurrent valid Graphを維持することを検証する。
+- [x] Text → Graph → click → Textを検証する。
+- [x] `.granvas` Download → Import → 編集再開を検証する。
+- [x] incomplete notationがあっても他のcurrent valid Graphを維持することを検証する。
 - [ ] SVG / PNG / PDFにfull Graphが含まれることを検証する。
 - [ ] 古いlayoutが最新projectionを上書きしないことを検証する。
-- [ ] keyboardによるGraph Node → Text移動を検証する。
+- [x] keyboardによるGraph Node → Text移動を検証する。
 - [ ] 全scenarioをChromium、Firefox、WebKitで実行する。
 
 ## 10. OSS・リリース

@@ -45,3 +45,8 @@ export {
   type TransferPolicyErrorCode,
   type VisualDownloadFormat,
 } from '@/modules/transfer/domain/TransferPolicy'
+export {
+  DownloadDialog,
+  type DownloadDialogProps,
+  type DownloadDialogSubmitDto,
+} from '@/modules/transfer/presentation/DownloadDialog'
