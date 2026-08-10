@@ -1,0 +1,244 @@
+# Granvas 技術仕様書
+
+> Status: Draft / Approval Candidate  
+> Target: v0.1  
+> Updated: 2026-08-10
+
+## 1. Architecture Summary
+
+Granvas v0.1は、Vercelで配信するclient-onlyのReact SPAである。Domain-Driven Design、Layered Architecture、Modular Monolithを採用し、TextからGraphへのprojectionとユーザー所有fileによる永続化をbrowser内で完結させる。
+
+```mermaid
+flowchart TD
+    Browser["Browser"] --> App["React SPA"]
+    App --> Modules["Document / Notation / Graph / Transfer / Workspace"]
+    Modules --> Worker["Dagre Web Worker"]
+    App --> Files["User-owned .granvas / SVG / PNG / PDF"]
+    Vercel["Vercel Static Hosting"] --> Browser
+```
+
+## 2. Technology Stack
+
+| Area | Technology | Policy |
+| --- | --- | --- |
+| Language | TypeScript 6 | strict modeを維持する |
+| UI | React 19 | presentation内に限定する |
+| Build | Vite 8 | static SPAを生成する |
+| Package manager | Bun 1.3系 | `bun.lock`をcommitする |
+| Editor | CodeMirror 6 | Notation presentationで隔離する |
+| Graph rendering | `@xyflow/react` 12 | Graph presentationで隔離する |
+| Layout | `@dagrejs/dagre` 3 | Graph infrastructureのWorker adapterで隔離する |
+| Unit / Component test | Vitest 4 / React Testing Library | domain・application・presentationを分離してtestする |
+| E2E | Playwright | Chromium / Firefox / WebKitを対象にする |
+| Hosting | Vercel | static deployment、server functionなし |
+
+PDF生成libraryは未選定である。導入前に、browser support、vector text、bundle size、license、CSP compatibilityを比較したADRを作成する。
+
+## 3. Runtime / Deployment
+
+- production artifactはViteの静的buildとする。
+- Vercelはasset配信とsecurity header設定だけを担当する。
+- API Route、Serverless Function、Edge Function、database connectionを作成しない。
+- SPAのdirect access / reloadがindex entryへ解決されるようVercel routingを設定する。
+- production asset load後のoutbound requestは0とする。
+- secretを必要とするruntime機能はv0.1に存在しない。
+
+## 4. Bounded Context
+
+| Context | Responsibility | Depends on other context internals |
+| --- | --- | --- |
+| Document | active source、revision、dirty lifecycle | No |
+| Notation | parser、diagnostics、SourceRange | No |
+| Graph | semantic graph、layout、export scene | No |
+| Transfer | Import / Download、format生成 | No |
+| Workspace | published application APIの協調 | Public contracts only |
+
+App / Composition Rootが具象adapterとpublic presentation componentを結線する。
+
+## 5. Layered Architecture
+
+各Contextは必要な範囲で以下を持つ。
+
+```text
+presentation → application → domain
+                     ↑
+infrastructure ──────┘
+```
+
+### 5.1 Domain
+
+- Granvas固有の不変条件、value、pure functionを所有する。
+- React、DOM、browser API、CodeMirror、React Flow、Dagreをimportしない。
+- 他Contextのdomainをimportしない。
+
+### 5.2 Application
+
+- use case、port、immutable DTO、transaction境界を所有する。
+- infrastructure具象をimportしない。
+- Workspaceだけが他Contextのpublished application contractを利用できる。
+- browser固有型やSDK型をpublic signatureへ出さない。
+
+### 5.3 Infrastructure
+
+- application portを実装する。
+- Browser File API、Blob、Canvas、Worker、Dagre、PDF libraryなどの具象を閉じ込める。
+- 外部型をmodule DTOへ変換して返す。
+
+### 5.4 Presentation
+
+- UI framework、event、ViewModel変換を所有する。
+- domain entityを直接描画しない。
+- 他moduleのpresentation内部をimportしない。
+- Appだけが各moduleのpublic presentation APIを合成する。
+
+## 6. Architecture Principles
+
+### 6.1 Domain Boundary
+
+- `src/modules/<context>/index.ts`だけをcontext外へ公開する。
+- deep importをESLint `no-restricted-imports`で禁止する。
+- `shared`はcontext-independentなUI・結果型・基盤だけに限定する。
+- `SourceRange`はNotationが所有し、Graph Domainへ入れない。
+
+### 6.2 Single Responsibility
+
+- Documentはfile I/Oを行わない。
+- TransferはDocumentやGraphのlifecycleを管理しない。
+- GraphはText位置を管理しない。
+- Workspaceはsyntaxやlayout algorithmを実装しない。
+
+### 6.3 One-way Dependency
+
+- domainからapplication / infrastructure / presentationへの逆流を禁止する。
+- applicationからinfrastructure具象への依存を禁止する。
+- Workspace以外のcontext間依存を禁止する。
+- Appは結線だけを行い、domain ruleを持たない。
+
+### 6.4 Loose Coupling
+
+- Context間ではDTO / facadeだけを渡す。
+- React Flow Node、Dagre Graph、EditorView、FileSystemHandle、AbortSignal、Supabase型をpublic contractに出さない。
+- ExportはDOM snapshotではなく`GraphExportSceneDto`を入力とする。
+
+### 6.5 Dependency Inversion
+
+| Port | Defined in | Implemented in |
+| --- | --- | --- |
+| `GraphLayoutPort` | `graph/application/ports` | `graph/infrastructure` |
+| `ProjectFilePickerPort` | `transfer/application/ports` | `transfer/infrastructure` |
+| `FileDownloadPort` | `transfer/application/ports` | `transfer/infrastructure` |
+| `GraphExportPort` | `transfer/application/ports` | `transfer/infrastructure` |
+
+具象は`src/app/bootstrap/createApplication.ts`で生成し、constructorまたはfactory argumentで注入する。
+
+## 7. Projection Concurrency
+
+- `documentRevision`はsource更新ごとに単調増加する。
+- ParseResult、ThoughtGraph、PositionedGraph、SourceMap、Diagnosticsはrevisionを持つ。
+- new revision開始時にold layoutをframework-neutralな`CancellationSignal`でcancelする。
+- adapterは内部で`AbortController`やWorker messageへ変換してよい。
+- completion後もcurrent revisionと一致しない結果を破棄する。
+- Graph / SourceMap / Diagnosticsを異なるrevisionから合成しない。
+
+## 8. Layout Architecture
+
+- Semantic Graphは座標を持たない。
+- Node layout boundsはv0.1で240 × 88 CSS pixels。
+- Dagre input orderはoccurrence key順へ正規化する。
+- DagreはWeb Worker内で実行する。
+- outputの`x/y`はNode左上座標。
+- Group boundsはmember配置後に24px paddingで計算する。
+- 複数Group所属は重なり可能なoverlayとして表示し、React Flow `parentId`を使用しない。
+
+## 9. File Architecture
+
+### 9.1 `.granvas`
+
+- UTF-8 plain text。
+- active source以外を含めない。
+- BOMはDownload時に付与しない。
+- Import時は先頭BOMを除去し、改行を保持する。
+- hard limitは5 MiB。
+
+### 9.2 Visual Formats
+
+- SVG / PNG / PDFはcurrent valid projectionの派生成果物。
+- full graph boundsと24px paddingを使用する。
+- untrusted textを各formatのsinkでescapeする。
+- PNGは2xを基本とし8192 × 8192を上限とする。
+- PDFはsingle-page、graph boundsに合わせたpage sizeとする。
+
+## 10. Security / Privacy
+
+- production asset load後のoutbound requestは0。
+- telemetry、remote API、cloud storageなし。
+- notationを実行しない。`eval`とdynamic code executionを禁止する。
+- source由来文字列に`dangerouslySetInnerHTML`を使用しない。
+- file nameはpath separator、control character、予約文字を除去する。
+- Vercel responseへCSPを設定する。
+- dependency追加時はlicense、supply-chain、bundle sizeをreviewする。
+
+最低限のproduction CSP:
+
+```text
+object-src 'none'
+base-uri 'none'
+frame-ancestors 'none'
+connect-src 'none'
+```
+
+完全なdirectiveはViteのasset形式とWorker動作を確認して`vercel.json`へ定義する。
+
+## 11. Performance
+
+基準fixture: 500 lines、200 nodes、300 edges、10 groups、label 200 UTF-16 code units以下。
+
+| Metric | Target |
+| --- | --- |
+| input → next paint | p95 ≤ 50ms |
+| Parser | p95 ≤ 50ms |
+| Layout Worker round trip | p95 ≤ 200ms |
+| debounce end → Graph paint | p95 ≤ 350ms |
+| pan / zoom long task | 100ms超なし |
+
+projection rebuildの既定debounceは120ms。基準を満たせない場合はParserもWorkerへ移す。
+
+## 12. Browser / Accessibility
+
+- PlaywrightのChromium / Firefox / WebKitで主要E2Eを実行する。
+- minimum viewportは960px、recommendedは1280px以上。
+- WCAG 2.2 AAを適合目標とする。
+- keyboard-only navigationとfocus managementをrelease gateにする。
+
+## 13. Future Authentication
+
+将来の認証providerは **Supabase Auth** に決定済みである。実装時は`identity` Contextを新設し、provider portをapplication、Supabase adapterをinfrastructureへ置く。
+
+v0.1では以下を禁止する。
+
+- Supabase SDK dependency。
+- Supabase URL / keyなどの環境変数。
+- sign-in / sign-up UI。
+- session persistence。
+- protected route。
+- Supabase database / storage / realtimeの暗黙採用。
+
+## 14. Development Commands
+
+```bash
+bun install
+bun run dev
+bunx tsc -b
+bunx eslint .
+bun run test:run
+bunx playwright test
+bun run build
+```
+
+## 15. Required ADR
+
+- PDF generation library selection。
+- 既定Node sizeまたはmeasure-first layoutの変更。
+- ParserをWeb Workerへ移す判断。
+- State management library導入。
+- Supabase Auth実装開始時のidentity boundaryとsession policy。
