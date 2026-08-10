@@ -159,7 +159,7 @@
 ## 10. OSS・リリース
 
 - [ ] canonical `.granvas` exampleを追加する。
-- [ ] READMEへローカル起動方法とProject file workflowを記載する。
+- [x] READMEへローカル起動方法とProject file workflowを記載する。
 - [ ] CONTRIBUTINGを追加する。
 - [ ] SECURITYを追加する。
 - [ ] OSSライセンスを決定し、LICENSEを追加する。
