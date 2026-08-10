@@ -69,23 +69,23 @@
 
 ## 4. Graphコンテキスト
 
-- [ ] Semantic Graphの`ThoughtGraph` modelを実装する。
-- [ ] Parsed DTOからGraphへのmappingを実装する。
-- [ ] duplicate explicit IDとparallel Edgeを処理する。
-- [ ] Nodeの複数Group所属を実装する。
-- [ ] 240 × 88固定Node boundsを実装する。
-- [ ] `GraphLayoutPort`と`CancellationSignal`を実装する。
-- [ ] Dagre Web Worker adapterを実装する。
-- [ ] occurrence key順にlayout inputを正規化する。
-- [ ] 24px paddingのGroup overlay boundsを実装する。
-- [ ] `GraphExportSceneDto`を実装する。
-- [ ] Graph、layout、cancellationのcontract testを追加する。
+- [x] Semantic Graphの`ThoughtGraph` modelを実装する。
+- [x] Parsed DTOからGraphへのmappingを実装する。
+- [x] duplicate explicit IDとparallel Edgeを処理する。
+- [x] Nodeの複数Group所属を実装する。
+- [x] 240 × 88固定Node boundsを実装する。
+- [x] `GraphLayoutPort`と`CancellationSignal`を実装する。
+- [x] Dagre Web Worker adapterを実装する。
+- [x] occurrence key順にlayout inputを正規化する。
+- [x] 24px paddingのGroup overlay boundsを実装する。
+- [x] `GraphExportSceneDto`を実装する。
+- [x] Graph、layout、cancellationのcontract testを追加する。
 
 完了条件:
 
-- [ ] Graph Domainに`SourceRange`やframework固有型が含まれない。
-- [ ] 同じinputから決定的なGraphとlayoutを生成する。
-- [ ] 基準fixtureに対するlayout workerのp95が200ms以下になる。
+- [x] Graph Domainに`SourceRange`やframework固有型が含まれない。
+- [x] 同じinputから決定的なGraphとlayoutを生成する。
+- [x] 基準fixtureに対するlayout workerのp95が200ms以下になる。
 
 ## 5. Workspaceコンテキスト
 
