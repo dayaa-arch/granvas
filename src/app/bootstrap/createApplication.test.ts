@@ -12,6 +12,13 @@ describe('createApplication', () => {
     expect(createApplication().graphLayout).toBeInstanceOf(
       DagreGraphLayoutWorkerAdapter,
     )
+    expect(createApplication().transfer).toEqual(
+      expect.objectContaining({
+        importProjectFile: expect.any(Function),
+        downloadProject: expect.any(Function),
+        downloadGraph: expect.any(Function),
+      }),
+    )
     expect(createApplication().workspace.getSnapshot().status).toEqual({ type: 'idle' })
   })
 
