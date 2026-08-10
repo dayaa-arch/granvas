@@ -89,7 +89,7 @@
 
 ## 5. Workspaceコンテキスト
 
-- [ ] 全Contextのpublic facadeを実装する。
+- [x] 全Contextのpublic facadeを実装する。
 - [x] source updateのorchestrationを実装する。
 - [x] revisionの伝播を実装する。
 - [x] cancellationとlatest-winsのcommit guardを実装する。
@@ -121,12 +121,12 @@
 
 ## 7. Transferコンテキスト
 
-- [ ] `DownloadFormat`とfile name policyを実装する。
-- [ ] `.granvas` file picker adapterを実装する。
-- [ ] extension、5 MiB上限、厳密なUTF-8、BOMを検証する。
-- [ ] Browser Blob download adapterを実装する。
-- [ ] `.granvas` Downloadを実装する。
-- [ ] SVG exporterを実装する。
+- [x] `DownloadFormat`とfile name policyを実装する。
+- [x] `.granvas` file picker adapterを実装する。
+- [x] extension、5 MiB上限、厳密なUTF-8、BOMを検証する。
+- [x] Browser Blob download adapterを実装する。
+- [x] `.granvas` Downloadを実装する。
+- [x] SVG exporterを実装する。
 - [ ] Canvas PNG exporterと8192px上限を実装する。
 - [ ] PDF生成library選定のADRを作成する。
 - [ ] single-page PDF exporterを実装する。
@@ -134,7 +134,7 @@
 - [ ] SVG / PNG / PDFのDownload後もdirtyを維持する。
 - [ ] `.granvas`のdownload開始成功後にcleanへ変更する。
 - [ ] `beforeunload`と破壊的操作の警告を実装する。
-- [ ] Import / Downloadのcontract testとXSS fixtureを追加する。
+- [x] Import / Downloadのcontract testとXSS fixtureを追加する。
 
 ## 8. 性能・アクセシビリティ・セキュリティ
 
