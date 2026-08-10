@@ -46,26 +46,26 @@
 
 ## 3. Notationコンテキスト
 
-- [ ] LF / CRLFのoffsetを保持するline scannerを実装する。
-- [ ] Notation candidate classifierを実装する。
-- [ ] Node Declaration parserを実装する。
-- [ ] Nested Relationのparent stackを実装する。
-- [ ] Cross Relation parserとdocument全体のreference resolverを実装する。
-- [ ] Group scopeとmembership parserを実装する。
-- [ ] Layout Directive parserを実装する。
-- [ ] すべてのdiagnostic codeとrecovery ruleを実装する。
-- [ ] UTF-16準拠の`SourceRangeDto`を実装する。
-- [ ] 決定的なoccurrence keyを実装する。
-- [ ] canonical、invalid、Group、forward referenceのfixtureを追加する。
-- [ ] emoji、CRLF、BOMのtestを追加する。
+- [x] LF / CRLFのoffsetを保持するline scannerを実装する。
+- [x] Notation candidate classifierを実装する。
+- [x] Node Declaration parserを実装する。
+- [x] Nested Relationのparent stackを実装する。
+- [x] Cross Relation parserとdocument全体のreference resolverを実装する。
+- [x] Group scopeとmembership parserを実装する。
+- [x] Layout Directive parserを実装する。
+- [x] すべてのdiagnostic codeとrecovery ruleを実装する。
+- [x] UTF-16準拠の`SourceRangeDto`を実装する。
+- [x] 決定的なoccurrence keyを実装する。
+- [x] canonical、invalid、Group、forward referenceのfixtureを追加する。
+- [x] emoji、CRLF、BOMのtestを追加する。
 - [ ] CodeMirrorのsyntax highlightを追加する。
 - [ ] diagnostic gutter、underline、accessible detailを追加する。
 
 完了条件:
 
-- [ ] 統合仕様書第4章をexecutable testとして網羅する。
-- [ ] Parserが前revisionのデータを混在させない。
-- [ ] Parserの公開contractにUI固有型が含まれない。
+- [x] 統合仕様書第4章をexecutable testとして網羅する。
+- [x] Parserが前revisionのデータを混在させない。
+- [x] Parserの公開contractにUI固有型が含まれない。
 
 ## 4. Graphコンテキスト
 
