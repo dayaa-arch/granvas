@@ -6,7 +6,7 @@
 Granvas is a public, work-in-progress visual thinking editor intended for an open-source v0.1 release. It lets you describe ideas and relationships in plain text, then projects the current text into a read-only graph.
 
 > [!IMPORTANT]
-> **Early development:** Phase 1 (project foundation) is complete. The current web app still shows a bootstrap interface; the Granvas editor, graph projection, Import, and Download flows are not implemented yet. This repository is not an end-user release.
+> **Early development:** Phase 7 (Presentation Shell) is complete. The current web app supports text editing, live graph projection, Text/Graph navigation, `.granvas` Import/Download, and SVG Download. PNG/PDF export and release hardening remain incomplete, so this repository is not yet an end-user v0.1 release.
 
 ## Why Granvas?
 
@@ -66,7 +66,7 @@ Write thoughts. See structure.
   @interview
 ```
 
-When the Notation and Graph phases are implemented, this source will produce five nodes, three relations, one group, and a top-to-bottom layout. Lines that are not valid Notation remain ordinary text.
+This source produces five nodes, three relations, one group, and a top-to-bottom layout. Lines that are not valid Notation remain ordinary text.
 
 See the [Granvas v0.1 specification](docs/GRANVAS_SPEC_v0.1.md) for the complete grammar, diagnostics, recovery rules, and canonical output.
 
@@ -81,12 +81,12 @@ Granvas follows a browser workflow similar to the web version of draw.io: persis
 | PNG | Raster full-graph artifact | No |
 | PDF | Single-page full-graph artifact for sharing and printing | No |
 
-The planned v0.1 flow is:
+The v0.1 file workflow is:
 
 1. Write or edit a project in the browser.
 2. Choose **Download → `.granvas`** to save the editable source locally.
 3. Import that `.granvas` file later to continue from the saved text.
-4. Choose SVG, PNG, or PDF when a read-only visual artifact is needed.
+4. Choose SVG, PNG, or PDF when a read-only visual artifact is needed. SVG is implemented; PNG and PDF are scheduled for Phase 8.
 
 Granvas v0.1 will not automatically persist projects to `localStorage` or IndexedDB. Users must download `.granvas` files to retain their work.
 
@@ -143,7 +143,7 @@ bun install
 bun run dev
 ```
 
-Open the local URL printed by Vite. At the current project stage, a bootstrap screen is expected.
+Open the local URL printed by Vite. The current app displays the Granvas split editor with a live read-only graph.
 
 ### Available commands
 
@@ -211,12 +211,15 @@ License selection and the addition of `LICENSE` are required before the public v
 
 ## Roadmap
 
-- [x] Phase 0 — Documentation baseline.
-- [x] Phase 1 — Project foundation and architecture guardrails.
-- [ ] Phase 2 — Granvas Notation core and executable parser specification.
-- [ ] Phase 3 — Semantic Graph and deterministic layout.
-- [ ] Phase 4 — Workspace, editor, graph presentation, and Text/Graph navigation.
-- [ ] Phase 5 — `.granvas` Import/Download and SVG/PNG/PDF export.
-- [ ] Phase 6 — Accessibility, performance, security, OSS, CI, and Vercel release hardening.
+- [x] Phase 0 — Documentation Baseline.
+- [x] Phase 1 — Foundation.
+- [x] Phase 2 — Document Context.
+- [x] Phase 3 — Notation Core.
+- [x] Phase 4 — Graph Core.
+- [x] Phase 5 — Workspace Core.
+- [x] Phase 6 — Transfer Core.
+- [x] Phase 7 — Presentation Shell.
+- [ ] Phase 8 — Visual Export: PNG/PDF and full-graph format verification.
+- [ ] Phase 9 — Release Hardening: performance, accessibility, security, OSS, CI, and Vercel production.
 
-Follow the [development roadmap](docs/development-roadmap.md) for milestone details and exit criteria.
+The [development roadmap](docs/development-roadmap.md) is the source of truth for Phase names, status, history, milestone mapping, and exit criteria.

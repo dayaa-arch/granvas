@@ -1,9 +1,13 @@
-# 初回実装タスクリスト
+# Granvas v0.1 初回実装タスクリスト
 
-> 作成日: 2026-08-10  
-> ステータス: 承認済み
+> 作成日: 2026-08-10
+> 最終整理日: 2026-08-11
+> ステータス: Phase 7完了・Phase 8未着手
+> Phase正本: `docs/development-roadmap.md`
 
-## 0. ドキュメント基準の整備
+この文書はPhaseごとの実装進捗を追跡する。Phase名称と番号は開発ロードマップに合わせ、完了済みのsteering / Issue / PRはロードマップの履歴対応表から参照する。
+
+## Phase 0: Documentation Baseline
 
 - [x] `docs/ideas/initial-requirements.md`を作成する。
 - [x] `docs/GRANVAS_SPEC_v0.1.md`をレビューし、改訂する。
@@ -12,168 +16,134 @@
 - [x] 初回実装用のステアリングファイルを作成する。
 - [x] 統合仕様書、永続的ドキュメント、`AGENTS.md`のユーザー承認を得る。
 - [x] 本タスクリストのユーザー承認を得る。
-- [ ] リリース工程までにOSSライセンスを決定する。
-
-## 1. プロジェクト基盤とアーキテクチャ制約
-
-- [x] 必要に応じて`src/modules/{document,notation,graph,transfer,workspace}`構造を追加する。
-- [x] 必要に応じて`src/shared/{domain,infrastructure,presentation}`構造を追加する（Phase 1では空のshared構造は不要と判断）。
-- [x] `src/app/bootstrap/createApplication.ts`を追加する。
-- [x] `@/*`パスエイリアスを設定する。
-- [x] Context間・Layer間の境界を守るESLintルールを追加する。
-- [x] `typecheck`、`lint`、`e2e`のpackage scriptを追加する。
-- [x] PlaywrightをChromium、Firefox、WebKit向けに設定する。
-- [x] Vercelの静的SPA設定を追加する。
-- [x] production CSP headerと検証testを追加する。
 
 完了条件:
 
-- [x] `bunx tsc -b`が成功する。
-- [x] `bunx eslint .`が成功する。
-- [x] `bun run test:run`が成功する。
-- [x] `bun run build`が成功する。
+- [x] Product scope、persistence、hosting、future auth方針が文書間で一致する。
+- [x] Context、Layer、Port、SourceRange、revision、Group contractが定義済みである。
 
-## 2. Documentコンテキスト
+## Phase 1: Foundation
+
+- [x] `src/modules/{document,notation,graph,transfer,workspace}`の境界を準備する。
+- [x] `src/app/bootstrap/createApplication.ts`を追加する。
+- [x] `@/*`path aliasを設定する。
+- [x] Context間・Layer間の境界を守るESLint ruleとtestを追加する。
+- [x] typecheck、lint、test、build、e2e scriptを整備する。
+- [x] PlaywrightをChromium、Firefox、WebKit向けに設定する。
+- [x] Vercelのstatic SPA、fallback、production CSP contractを追加する。
+- [x] typecheck / lint / test / build / 3-browser E2Eを成功させる。
+
+## Phase 2: Document Context
 
 - [x] `GranvasDocument`と`DocumentRevision`を実装する。
-- [x] `clean / dirty / exporting / error`の状態遷移を実装する。
-- [x] `CreateDocument`を実装する。
-- [x] `UpdateDocumentSource`を実装する。
-- [x] `ReplaceDocumentSource`を実装する。
-- [x] `MarkProjectDownloaded`を実装する。
-- [x] すべての状態遷移にunit testを追加する。
+- [x] clean / dirty / exporting / errorの状態遷移を実装する。
+- [x] Create / Update / Replace Documentを実装する。
+- [x] project Download開始・成功・失敗のrevision ticket lifecycleを実装する。
+- [x] stale completionを含む全状態遷移へunit / application testを追加する。
 - [x] Documentにstorage / browser依存が存在しないことを確認する。
 
-## 3. Notationコンテキスト
+## Phase 3: Notation Core
 
 - [x] LF / CRLFのoffsetを保持するline scannerを実装する。
-- [x] Notation candidate classifierを実装する。
-- [x] Node Declaration parserを実装する。
-- [x] Nested Relationのparent stackを実装する。
-- [x] Cross Relation parserとdocument全体のreference resolverを実装する。
-- [x] Group scopeとmembership parserを実装する。
-- [x] Layout Directive parserを実装する。
-- [x] すべてのdiagnostic codeとrecovery ruleを実装する。
-- [x] UTF-16準拠の`SourceRangeDto`を実装する。
-- [x] 決定的なoccurrence keyを実装する。
-- [x] canonical、invalid、Group、forward referenceのfixtureを追加する。
-- [x] emoji、CRLF、BOMのtestを追加する。
-- [x] CodeMirrorのsyntax highlightを追加する。
-- [x] diagnostic gutter、underline、accessible detailを追加する。
+- [x] candidate classifier、Node、Nested / Cross Relation parserを実装する。
+- [x] parent stack、document-wide reference resolver、Group scope / membershipを実装する。
+- [x] Layout Directiveと全diagnostic code / recovery ruleを実装する。
+- [x] UTF-16 `SourceRangeDto`とdeterministic occurrence keyを実装する。
+- [x] canonical、invalid、Group、forward reference、emoji、CRLF、BOM fixtureを追加する。
+- [x] 仕様書第4章をexecutable testとして網羅する。
+- [x] Parserが前revisionの構造やUI固有型を公開しないことを確認する。
+
+## Phase 4: Graph Core
+
+- [x] `ThoughtGraph` / Node / Edge / Group modelとParsed DTO mappingを実装する。
+- [x] duplicate explicit ID、parallel Edge、multiple Group membershipを処理する。
+- [x] 240 × 88 Node boundsとoccurrence key順layout inputを実装する。
+- [x] `GraphLayoutPort` / `CancellationSignal` / Dagre Web Worker adapterを実装する。
+- [x] 24px Group overlay boundsと`GraphExportSceneDto`を実装する。
+- [x] Graph、layout、cancellation、determinismのcontract testを追加する。
+- [x] 基準fixtureに対するlayout worker p95 200ms以下を確認する。
+- [x] Graph Domainに`SourceRange`やframework固有型がないことを確認する。
+
+## Phase 5: Workspace Core
+
+- [x] 全Contextのpublished application APIを統合する。
+- [x] Document → Notation → Graph → Layout pipelineを実装する。
+- [x] revision propagation、cancellation、latest-wins guardを実装する。
+- [x] `ProjectionSourceMapDto`とprojection revision整合性checkを実装する。
+- [x] Graph → Text / Text → Graph selection mappingを実装する。
+- [x] dirty confirmation付きProject replacementを実装する。
+- [x] project / visual Download input assemblyを実装する。
+- [x] failure、partial、遅い旧requestと速い新requestのtestを追加する。
+
+## Phase 6: Transfer Core
+
+- [x] `DownloadFormat`、file name、MIME、PNG scale / 8192px policyを実装する。
+- [x] `.granvas` pickerとextension / 5 MiB / strict UTF-8 / BOM validationを実装する。
+- [x] Application portsとImport / Project Download / Graph Download use caseを実装する。
+- [x] Browser picker / Blob download adapterを実装する。
+- [x] BOM-free `.granvas` DownloadとImport round-tripを実装する。
+- [x] SVG exporter、full bounds、XML escapingを実装する。
+- [x] Transfer contract、failure path、XSS fixtureのtestを追加する。
 
 完了条件:
 
-- [x] 統合仕様書第4章をexecutable testとして網羅する。
-- [x] Parserが前revisionのデータを混在させない。
-- [x] Parserの公開contractにUI固有型が含まれない。
+- [x] Transfer Coreのframework-neutral portとpublished contractが利用できる。
+- [x] `.granvas`とSVGの生成、validation、browser download contractがgreenである。
+- [x] Canvas PNG生成とPDF生成がPhase 8のscopeとして分離されている。
 
-## 4. Graphコンテキスト
-
-- [x] Semantic Graphの`ThoughtGraph` modelを実装する。
-- [x] Parsed DTOからGraphへのmappingを実装する。
-- [x] duplicate explicit IDとparallel Edgeを処理する。
-- [x] Nodeの複数Group所属を実装する。
-- [x] 240 × 88固定Node boundsを実装する。
-- [x] `GraphLayoutPort`と`CancellationSignal`を実装する。
-- [x] Dagre Web Worker adapterを実装する。
-- [x] occurrence key順にlayout inputを正規化する。
-- [x] 24px paddingのGroup overlay boundsを実装する。
-- [x] `GraphExportSceneDto`を実装する。
-- [x] Graph、layout、cancellationのcontract testを追加する。
-
-完了条件:
-
-- [x] Graph Domainに`SourceRange`やframework固有型が含まれない。
-- [x] 同じinputから決定的なGraphとlayoutを生成する。
-- [x] 基準fixtureに対するlayout workerのp95が200ms以下になる。
-
-## 5. Workspaceコンテキスト
-
-- [x] 全Contextのpublic facadeを実装する。
-- [x] source updateのorchestrationを実装する。
-- [x] revisionの伝播を実装する。
-- [x] cancellationとlatest-winsのcommit guardを実装する。
-- [x] `ProjectionSourceMapDto`を実装する。
-- [x] `WorkspaceProjectionDto`のrevision整合性checkを実装する。
-- [x] GraphからTextへのselection effectを実装する。
-- [x] TextからGraphへのselection mappingを実装する。
-- [x] Import確認とProject置換のorchestrationを実装する。
-- [x] Download inputのassemblyを実装する。
-- [x] 遅い旧requestと速い新requestを再現する非同期testを追加する。
-
-## 6. プレゼンテーション
+## Phase 7: Presentation Shell
 
 - [x] starter UIをGranvas shellへ置き換える。
-- [x] Top BarとImport / Download actionを実装する。
-- [x] 比率を変更できるSplitPaneを実装する。
-- [x] `GranvasEditor`を実装する。
-- [x] read-onlyの`ReactFlowGraphView`を実装する。
-- [x] Node、Edge、Groupのvisual styleを実装する。
-- [x] Pan / Zoom / Fit Viewを実装する。
-- [x] 通常のsource update中はviewportを維持する。
-- [x] 初回表示とImport後にFit Viewを実行する。
-- [x] dirty、revision、要素数、diagnosticsを表示するStatusBarを実装する。
-- [x] Graph clickからText selectionへの移動を実装する。
-- [x] Text cursorからGraph highlightへの連携を実装する。
-- [x] Graph Nodeのkeyboard activationを実装する。
-- [x] IME composition中の動作を実装する。
-- [x] component testとaccessibility testを追加する。
+- [x] Top Bar、Import / Download action、可変SplitPane、StatusBarを実装する。
+- [x] CodeMirror `GranvasEditor`とsyntax / diagnostic gutter / accessible detailを実装する。
+- [x] read-only `ReactFlowGraphView`、Node / Edge / Group style、Pan / Zoom / Fit Viewを実装する。
+- [x] 初回 / Import後だけFit Viewし、通常update中のviewportを維持する。
+- [x] Graph click / keyboard → TextとText cursor → Graph highlightを実装する。
+- [x] IME compositionを実装する。
+- [x] Download Dialog、error state、Graph空時のvisual format disableを実装する。
+- [x] `.granvas`成功時だけcleanへ変更するlifecycleを結線する。
+- [x] `beforeunload`とdirty Project置換警告を実装する。
+- [x] component / accessibility testとText ↔ Graph / Import round-trip E2Eを追加する。
+- [x] 現行E2EをChromium、Firefox、WebKitで成功させる。
 
-## 7. Transferコンテキスト
+## Phase 8: Visual Export
 
-- [x] `DownloadFormat`とfile name policyを実装する。
-- [x] `.granvas` file picker adapterを実装する。
-- [x] extension、5 MiB上限、厳密なUTF-8、BOMを検証する。
-- [x] Browser Blob download adapterを実装する。
-- [x] `.granvas` Downloadを実装する。
-- [x] SVG exporterを実装する。
-- [ ] Canvas PNG exporterと8192px上限を実装する。
-- [ ] PDF生成library選定のADRを作成する。
-- [ ] single-page PDF exporterを実装する。
-- [x] Download dialogとerror stateを実装する。
-- [ ] SVG / PNG / PDFのDownload後もdirtyを維持する。
-- [x] `.granvas`のdownload開始成功後にcleanへ変更する。
-- [x] `beforeunload`と破壊的操作の警告を実装する。
-- [x] Import / Downloadのcontract testとXSS fixtureを追加する。
+- [ ] Canvas PNG exporterを実装する。
+- [ ] 2x scaleと8192 × 8192px上限、縮小通知を実装する。
+- [ ] PDF generation libraryを比較しADRを作成する。
+- [ ] single-page、white background、graph bounds page sizeのPDF exporterを実装する。
+- [ ] SVG / PNG / PDFを選択するexport adapter compositionを実装する。
+- [ ] SVG / PNG / PDFにfull GraphのNode / Edge / Group / relation labelが含まれることを検証する。
+- [ ] visual Download成功・失敗後もdirty stateとcurrent sourceを維持することを検証する。
+- [ ] SVG / PNG / PDF full-graph Download E2Eを追加する。
 
-## 8. 性能・アクセシビリティ・セキュリティ
+## Phase 9: Release Hardening
 
 - [ ] 500 lines / 200 nodes / 300 edges / 10 groupsのperformance fixtureを追加する。
 - [ ] input paint、Parser、layout worker、Graph paintのp95を計測する。
-- [ ] keyboard-only E2Eを追加する。
-- [ ] WCAG 2.2 AAの自動検査を追加する。
-- [ ] productionのoutbound request監視testを追加する。
-- [ ] Vercel preview / productionでCSPを検証する。
+- [ ] stale layoutがlatest projectionを上書きしないE2Eを追加する。
+- [ ] keyboard-only E2EとWCAG 2.2 AA自動検査を追加する。
+- [ ] production outbound request監視testを追加する。
+- [ ] Vercel preview / productionでCSP、direct access、reloadを検証する。
 - [ ] Supabase SDK、credential、telemetry、remote APIがbundleに含まれないことを確認する。
-
-## 9. E2Eテスト
-
-- [x] Text → Graph → click → Textを検証する。
-- [x] `.granvas` Download → Import → 編集再開を検証する。
-- [x] incomplete notationがあっても他のcurrent valid Graphを維持することを検証する。
-- [ ] SVG / PNG / PDFにfull Graphが含まれることを検証する。
-- [ ] 古いlayoutが最新projectionを上書きしないことを検証する。
-- [x] keyboardによるGraph Node → Text移動を検証する。
-- [ ] 全scenarioをChromium、Firefox、WebKitで実行する。
-
-## 10. OSS・リリース
-
 - [ ] canonical `.granvas` exampleを追加する。
 - [x] READMEへローカル起動方法とProject file workflowを記載する。
+- [x] READMEへ現在の実装状態とPhase 0〜9を反映する。
 - [ ] CONTRIBUTINGを追加する。
 - [ ] SECURITYを追加する。
-- [ ] OSSライセンスを決定し、LICENSEを追加する。
-- [ ] typecheck / lint / test / build / E2E用のGitHub Actionsを追加する。
+- [ ] OSS licenseを決定し、LICENSEを追加する。
+- [ ] typecheck / lint / test / build / E2E用GitHub Actionsを追加する（ユーザー指示により後回し）。
+- [ ] 全主要6scenarioをChromium、Firefox、WebKitで成功させる。
 - [ ] Vercel productionへdeployする。
-- [ ] direct access / reloadを検証する。
 - [ ] `docs/GRANVAS_SPEC_v0.1.md`のDefinition of Doneを完了する。
 
-## 11. 最終品質確認コマンド
+## 最終品質確認コマンド
 
 ```bash
-bunx tsc -b
-bunx eslint .
+bun run typecheck
+bun run lint
 bun run test:run
-bunx playwright test
+bun run test:graph-performance
 bun run build
+bun run e2e
 ```

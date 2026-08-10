@@ -9,7 +9,7 @@
 - Frontend: React + TypeScript + Vite
 - Hosting: Vercel
 - Persistence: User-managed Import / Download
-- Date: 2026-08-10
+- Date: 2026-08-11
 
 ---
 
@@ -2474,86 +2474,104 @@ AbortSignal
 
 
 
-# 22. Initial Implementation Order
+# 22. Initial Implementation Phases
 
+Phaseの名称、順序、進捗、履歴対応は`docs/development-roadmap.md`を正本とする。Milestoneは複数Phaseを束ねるrelease checkpointであり、Phase番号とは別に管理する。
 
+## Phase 0: Documentation Baseline
 
-## Phase 1: Project Bootstrap
+Status: Complete
 
-- Vite + React + TypeScript
-- ESLint / formatter
-- path aliases
-- module boundary rule
-- Vitest
-- directory skeleton
+- initial requirements / integrated specification
+- permanent development documents
+- Context / Layer / Port decisions
+- initial implementation steering
 
+## Phase 1: Foundation
 
+Status: Complete — Issue #1 / PR #2
 
-## Phase 2: Notation Core
+- Vite + React + TypeScript + Bun
+- composition root / path aliases / module boundary rule
+- Vitest / Playwright / three-browser setup
+- Vercel static SPA / CSP contract
 
-- Notation domain model
-- `SourceRange`
-- diagnostics
-- parser
-- parser unit tests
-- full example fixture
+## Phase 2: Document Context
 
+Status: Complete — Issue #5 / PR #6
 
+- active source / revision / clean baseline
+- clean / dirty / exporting / error lifecycle
+- Create / Update / Replace / project Download use cases
+- framework-neutral contract and transition tests
 
-## Phase 3: Graph Core
+## Phase 3: Notation Core
 
-- Graph domain model
-- notation DTO → thought graph mapping
-- layout port
-- Dagre Web Worker adapter
-- Group overlay bounds
-- layout tests
+Status: Complete — Issue #7 / PR #8
 
+- scanner / candidate classifier / parser / resolver
+- `SourceRange` / diagnostics / recovery
+- deterministic occurrence key
+- canonical / invalid / Unicode fixtures
 
+## Phase 4: Graph Core
 
-## Phase 4: Workspace
+Status: Complete — Issue #9 / PR #10
 
-- update source use case
+- Graph domain model / notation DTO mapping
+- layout port / Dagre Web Worker adapter
+- Group overlay / export scene bounds
+- determinism / cancellation / performance tests
+
+## Phase 5: Workspace Core
+
+Status: Complete — Issue #11 / PR #12
+
 - parse → graph → layout pipeline
-- documentRevision / latest-wins / abort
-- selection mapping
-- source-range lookup
+- documentRevision / latest-wins / cancellation
+- source map / Text ↔ Graph selection
+- Project replacement / Download input assembly
 
+## Phase 6: Transfer Core
 
+Status: Complete — Issue #13 / PR #14
 
-## Phase 5: Presentation
+- file name / MIME / PNG size policies
+- `.granvas` validation / Import / Download
+- browser picker / Blob download adapters
+- SVG exporter / escaping / transfer ports
 
-- split layout
-- CodeMirror
-- React Flow
-- Graph → Text navigation
-- Text → Graph highlight
-- status bar
-- keyboard navigation / accessibility
+Canvas PNG生成とPDF生成はPhase 8へ分離する。
 
+## Phase 7: Presentation Shell
 
+Status: Complete — Issue #15 / PR #16
 
-## Phase 6: File Transfer
+- split layout / CodeMirror / React Flow
+- syntax / diagnostics / IME
+- Graph ↔ Text navigation / keyboard activation
+- Download dialog / Import / `.granvas` and SVG Download
+- status / dirty warning / component and E2E tests
 
-- dirty / clean state
-- `.granvas` Import / Download
-- SVG / PNG / PDF Download
-- dirty confirmation / beforeunload
-- file validation / error handling
+## Phase 8: Visual Export
 
+Status: Not Started
 
+- Canvas PNG exporter / 2x scale / 8192px limit
+- PDF library ADR / single-page PDF exporter
+- full Graph SVG / PNG / PDF verification
+- visual Download dirty-state and failure-path verification
 
-## Phase 7: Release Hardening
+## Phase 9: Release Hardening
 
-- E2E
-- README
-- examples
-- CONTRIBUTING
-- SECURITY
-- license decision
-- GitHub Actions
-- Vercel production deployment / CSP headers
-- performance / accessibility gate
+Status: Not Started
+
+- performance / accessibility / security gates
+- six-scenario three-browser E2E
+- examples / CONTRIBUTING / SECURITY / OSS license
+- GitHub Actions（ユーザー指示により後回し）
+- Vercel production deployment / CSP / direct access
+- v0.1 Definition of Done audit
 
 ---
 

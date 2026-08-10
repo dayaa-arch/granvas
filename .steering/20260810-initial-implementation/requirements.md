@@ -88,7 +88,7 @@ Textを正本とするGranvas Notation editorを実装し、read-only Graph proj
 - AI、plugin、collaboration、mobile / desktop app。
 - 完全なMarkdown互換。
 
-## 8. Open Decision Before Phase 5
+## 8. Open Decision Before Phase 8
 
 - PDF generation library。ADRでbundle size、vector output、license、browser support、CSP compatibilityを比較して決定する。
 
