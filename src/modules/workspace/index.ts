@@ -1,0 +1,18 @@
+export {
+  WorkspaceApplicationError,
+  createWorkspaceApplication,
+  type CreateWorkspaceApplicationInput,
+  type ProjectionSourceMapDto,
+  type ReplaceWorkspaceProjectInput,
+  type ReplaceWorkspaceProjectResult,
+  type SourceSelectionEffectDto,
+  type WorkspaceApplication,
+  type WorkspaceApplicationErrorCode,
+  type WorkspaceDownloadFormat,
+  type WorkspaceDownloadInputDto,
+  type WorkspaceProjectDownloadInputDto,
+  type WorkspaceProjectionDto,
+  type WorkspaceSnapshotDto,
+  type WorkspaceStatusDto,
+  type WorkspaceVisualDownloadInputDto,
+} from '@/modules/workspace/application/WorkspaceApplication'
