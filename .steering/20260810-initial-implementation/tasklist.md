@@ -90,16 +90,16 @@
 ## 5. Workspaceコンテキスト
 
 - [ ] 全Contextのpublic facadeを実装する。
-- [ ] source updateのorchestrationを実装する。
-- [ ] revisionの伝播を実装する。
-- [ ] cancellationとlatest-winsのcommit guardを実装する。
-- [ ] `ProjectionSourceMapDto`を実装する。
-- [ ] `WorkspaceProjectionDto`のrevision整合性checkを実装する。
-- [ ] GraphからTextへのselection effectを実装する。
-- [ ] TextからGraphへのselection mappingを実装する。
-- [ ] Import確認とProject置換のorchestrationを実装する。
-- [ ] Download inputのassemblyを実装する。
-- [ ] 遅い旧requestと速い新requestを再現する非同期testを追加する。
+- [x] source updateのorchestrationを実装する。
+- [x] revisionの伝播を実装する。
+- [x] cancellationとlatest-winsのcommit guardを実装する。
+- [x] `ProjectionSourceMapDto`を実装する。
+- [x] `WorkspaceProjectionDto`のrevision整合性checkを実装する。
+- [x] GraphからTextへのselection effectを実装する。
+- [x] TextからGraphへのselection mappingを実装する。
+- [x] Import確認とProject置換のorchestrationを実装する。
+- [x] Download inputのassemblyを実装する。
+- [x] 遅い旧requestと速い新requestを再現する非同期testを追加する。
 
 ## 6. プレゼンテーション
 

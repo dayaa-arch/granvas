@@ -12,6 +12,7 @@ describe('createApplication', () => {
     expect(createApplication().graphLayout).toBeInstanceOf(
       DagreGraphLayoutWorkerAdapter,
     )
+    expect(createApplication().workspace.getSnapshot().status).toEqual({ type: 'idle' })
   })
 
   it('prevents the composition result from being mutated', () => {
