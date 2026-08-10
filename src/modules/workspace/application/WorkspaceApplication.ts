@@ -1,8 +1,12 @@
 import {
+  beginProjectDownload,
   createDocument,
+  markProjectDownloadFailed,
+  markProjectDownloaded,
   replaceDocumentSource,
   updateDocumentSource,
   type GranvasDocumentDto,
+  type ProjectDownloadTicketDto,
 } from '@/modules/document'
 import {
   GraphApplicationError,
@@ -93,6 +97,12 @@ export type WorkspaceDownloadInputDto =
   | WorkspaceProjectDownloadInputDto
   | WorkspaceVisualDownloadInputDto
 
+export type WorkspaceProjectDownloadRequestDto = Readonly<{
+  input: WorkspaceProjectDownloadInputDto
+  ticket: ProjectDownloadTicketDto
+  snapshot: WorkspaceSnapshotDto
+}>
+
 export type WorkspaceApplicationErrorCode =
   | 'invalid-source-offset'
   | 'projection-revision-mismatch'
@@ -125,6 +135,12 @@ export interface WorkspaceApplication {
   selectGraphNode(graphNodeId: string): SourceSelectionEffectDto
   selectSourceOffset(offset: number): SourceSelectionEffectDto
   createDownloadInput(format: WorkspaceDownloadFormat): WorkspaceDownloadInputDto
+  beginProjectDownload(): WorkspaceProjectDownloadRequestDto
+  markProjectDownloaded(ticket: ProjectDownloadTicketDto): WorkspaceSnapshotDto
+  markProjectDownloadFailed(
+    ticket: ProjectDownloadTicketDto,
+    message: string,
+  ): WorkspaceSnapshotDto
   cancelProjection(): void
 }
 
@@ -395,6 +411,28 @@ export function createWorkspaceApplication(
         scene: createGraphExportScene(projection.graph),
         diagnosticsCount: projection.diagnostics.length,
       })
+    },
+    beginProjectDownload() {
+      const started = beginProjectDownload(document)
+      document = started.document
+      return Object.freeze({
+        input: Object.freeze({
+          format: 'granvas',
+          revision: document.revision,
+          name: document.name,
+          source: document.source,
+        }),
+        ticket: started.ticket,
+        snapshot: getSnapshot(),
+      })
+    },
+    markProjectDownloaded(ticket: ProjectDownloadTicketDto) {
+      document = markProjectDownloaded(document, ticket)
+      return getSnapshot()
+    },
+    markProjectDownloadFailed(ticket: ProjectDownloadTicketDto, message: string) {
+      document = markProjectDownloadFailed(document, ticket, message)
+      return getSnapshot()
     },
     cancelProjection() {
       activeCancellation?.cancel()

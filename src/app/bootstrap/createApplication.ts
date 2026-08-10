@@ -5,6 +5,7 @@ import { BrowserFileDownloadAdapter } from '@/modules/transfer/infrastructure/br
 import { BrowserProjectFilePickerAdapter } from '@/modules/transfer/infrastructure/browser/BrowserProjectFilePickerAdapter'
 import { SvgGraphExportAdapter } from '@/modules/transfer/infrastructure/svg/SvgGraphExportAdapter'
 import { createWorkspaceApplication, type WorkspaceApplication } from '@/modules/workspace'
+import { DEFAULT_PROJECT_SOURCE } from '@/app/defaultProject'
 
 export type GranvasApplication = Readonly<{
   productName: 'Granvas'
@@ -28,6 +29,9 @@ export function createApplication(): GranvasApplication {
       fileDownload,
       graphExport,
     }),
-    workspace: createWorkspaceApplication({ graphLayout }),
+    workspace: createWorkspaceApplication({
+      graphLayout,
+      source: DEFAULT_PROJECT_SOURCE,
+    }),
   })
 }

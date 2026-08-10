@@ -30,3 +30,7 @@ export {
   type ThoughtGraphGroupDto,
   type ThoughtGraphNodeDto,
 } from '@/modules/graph/application/GraphApplication'
+export {
+  ReactFlowGraphView,
+  type ReactFlowGraphViewProps,
+} from '@/modules/graph/presentation/ReactFlowGraphView'

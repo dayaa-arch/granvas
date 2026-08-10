@@ -1,0 +1,82 @@
+.granvas-editor {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background:
+    linear-gradient(90deg, rgba(88, 72, 169, 0.025) 1px, transparent 1px) 0 0 / 24px 24px,
+    var(--surface-0);
+}
+
+.cm-gnv-notation-line {
+  box-shadow: inset 2px 0 color-mix(in srgb, var(--accent-400) 46%, transparent);
+}
+
+.cm-gnv-type {
+  color: #b34b63;
+  font-weight: 700;
+}
+
+.cm-gnv-id {
+  color: #6351bd;
+  font-weight: 650;
+}
+
+.cm-gnv-arrow {
+  color: #158174;
+  font-weight: 800;
+}
+
+.cm-gnv-group {
+  color: #a05c16;
+  font-weight: 700;
+}
+
+.cm-gnv-layout {
+  color: #376cad;
+  font-weight: 700;
+}
+
+.cm-gnv-relation-label {
+  color: var(--ink-500);
+  font-style: italic;
+}
+
+.cm-gnv-diagnostic {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-underline-offset: 3px;
+}
+
+.cm-gnv-diagnostic--info {
+  text-decoration-color: #6690ba;
+}
+
+.cm-gnv-diagnostic--warning {
+  text-decoration-color: #d0922f;
+}
+
+.cm-gnv-diagnostic--error {
+  text-decoration-color: #c64d60;
+}
+
+.cm-gnv-diagnostic-gutter {
+  width: 12px;
+}
+
+.cm-gnv-gutter-marker {
+  display: grid;
+  width: 10px;
+  height: 20px;
+  place-items: center;
+  color: #6690ba;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.cm-gnv-gutter-marker--warning {
+  color: #d0922f;
+}
+
+.cm-gnv-gutter-marker--error {
+  color: #c64d60;
+}
