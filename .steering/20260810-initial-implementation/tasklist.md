@@ -35,14 +35,14 @@
 
 ## 2. Documentコンテキスト
 
-- [ ] `GranvasDocument`と`DocumentRevision`を実装する。
-- [ ] `clean / dirty / exporting / error`の状態遷移を実装する。
-- [ ] `CreateDocument`を実装する。
-- [ ] `UpdateDocumentSource`を実装する。
-- [ ] `ReplaceDocumentSource`を実装する。
-- [ ] `MarkProjectDownloaded`を実装する。
-- [ ] すべての状態遷移にunit testを追加する。
-- [ ] Documentにstorage / browser依存が存在しないことを確認する。
+- [x] `GranvasDocument`と`DocumentRevision`を実装する。
+- [x] `clean / dirty / exporting / error`の状態遷移を実装する。
+- [x] `CreateDocument`を実装する。
+- [x] `UpdateDocumentSource`を実装する。
+- [x] `ReplaceDocumentSource`を実装する。
+- [x] `MarkProjectDownloaded`を実装する。
+- [x] すべての状態遷移にunit testを追加する。
+- [x] Documentにstorage / browser依存が存在しないことを確認する。
 
 ## 3. Notationコンテキスト
 
