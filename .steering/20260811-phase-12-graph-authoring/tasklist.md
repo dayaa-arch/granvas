@@ -1,7 +1,7 @@
 # Phase 12 Graph Authoring タスクリスト
 
 > 作成日: 2026-08-11
-> ステータス: PR #24 merge準備中
+> ステータス: 完了
 > Issue: [#23](https://github.com/dayaa-arch/granvas/issues/23)
 > PR: [#24](https://github.com/dayaa-arch/granvas/pull/24)
 
@@ -90,8 +90,8 @@
 - [x] tasklistを最終状態へ更新する。
 - [x] 意図した変更だけをcommit / pushする。
 - [x] PRへ要求、設計、検証結果、残課題を記載する。
-- [ ] greenを確認してPRをmainへmergeし、Issue closeとbranch削除を確認する。
-- [ ] clean mainがorigin/mainと一致することを確認する。
+- [x] greenを確認してPRをmainへmergeし、Issue closeとbranch削除を確認する。
+- [x] clean mainがorigin/mainと一致することを確認する。
 
 ## 完了条件
 
@@ -99,4 +99,4 @@
 - [x] 全Graph authoring操作がText最小差分・Undo 1回・current revisionで成立する。
 - [x] 循環拒否、delete preview、Nested Edge child昇格が成立する。
 - [x] 座標非永続、散文非破壊、module boundaryを維持する。
-- [ ] PR経由でmainへmerge済みである。
+- [x] PR経由でmainへmerge済みである。
