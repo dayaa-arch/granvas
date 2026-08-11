@@ -1,7 +1,7 @@
 # Phase 9 Release Hardening 設計
 
 > 作成日: 2026-08-11
-> ステータス: 承認済み / 実装中
+> ステータス: 完了
 > Issue: [#31](https://github.com/dayaa-arch/granvas/issues/31)
 
 ## 1. Release flow
@@ -98,4 +98,8 @@ Phase 8 main
 
 Preview URL: <https://granvas-e9o90nmyo-taigahr12-gmailcoms-projects.vercel.app>
 
-Production / Pages evidenceはreview済みmainの公開後に追記する。
+Production URL: <https://granvas.vercel.app>
+
+Production deployment: `dpl_BWco1Ra2r77j2or23apX6oTaYaKk` / `READY`。exact CSP、`nosniff`、`no-referrer`、canonical demo、Import、SVG / PNG / PDF、runtime outbound 0、console error 0、`/workspace` direct access / reloadを確認した。
+
+Official Docs: <https://dayaa-arch.github.io/granvas/>。complete edition artifactをreview済みmainから`gh-pages` rootへpublishし、desktop / mobile / no-JS / keyboard / 404を確認した。

@@ -1,6 +1,6 @@
 # Granvas リポジトリ構造定義書
 
-> Status: Release Candidate Hardening
+> Status: Release Candidate
 > Target: v0.1  
 > Updated: 2026-08-10
 

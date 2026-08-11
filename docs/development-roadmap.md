@@ -1,6 +1,6 @@
 # Granvas 開発ロードマップ
 
-> Status: Active
+> Status: Release Candidate
 > Target: v0.1
 > Updated: 2026-08-11
 > Phase Source of Truth: この文書
@@ -58,9 +58,9 @@ flowchart LR
 | 12 | Graph Authoring | 完了 | 11 | `.steering/20260811-phase-12-graph-authoring/` | [Issue #23](https://github.com/dayaa-arch/granvas/issues/23) / [PR #24](https://github.com/dayaa-arch/granvas/pull/24) |
 | 13 | Japanese UI & Official Documentation | 完了 | 12 | `.steering/20260811-phase-13-japanese-ui-official-documentation/` | [Issue #26](https://github.com/dayaa-arch/granvas/issues/26) / [PR #27](https://github.com/dayaa-arch/granvas/pull/27) / [PR #28](https://github.com/dayaa-arch/granvas/pull/28) |
 | 8 | Visual Export | 完了 | 13 | `.steering/20260811-phase-8-visual-export/` | [Issue #29](https://github.com/dayaa-arch/granvas/issues/29) / [PR #30](https://github.com/dayaa-arch/granvas/pull/30) |
-| 9 | Release Hardening | 実装中 | 14 | `.steering/20260811-phase-9-release-hardening/` | [Issue #31](https://github.com/dayaa-arch/granvas/issues/31) |
+| 9 | Release Hardening | 完了 | 14 | `.steering/20260811-phase-9-release-hardening/` | [Issue #31](https://github.com/dayaa-arch/granvas/issues/31) / [PR #32](https://github.com/dayaa-arch/granvas/pull/32) |
 
-現在は**Phase 9 Release Hardening**を実行中である。Phase 8までの機能をproduct v0.1 Release Candidateとして監査し、GitHub Actions、OSS release files、performance / accessibility / security gate、Vercel production、公式Docs edition 1.0完全版を完成させる。
+**Phase 9 Release Hardeningまで完了**し、Granvas v0.1 Release CandidateをVercel productionへ公開した。GitHub Actions、OSS release files、performance / accessibility / security gate、v0.1 Definition of Done、公式Docs edition 1.0完全版を証拠付きで閉じた。
 
 ### 3.1 Scope Change: 2026-08-11
 
@@ -324,15 +324,15 @@ Deliverables:
 - [x] CSP、outbound request、bundle dependencyのsecurity検証。
 - [x] canonical example、CONTRIBUTING、SECURITY、OSS license。
 - [x] typecheck / lint / test / build / E2E用GitHub Actions（後回しの明示指示あり）。
-- [ ] Vercel production deployment、direct access / reload検証。
-- [ ] `docs/GRANVAS_SPEC_v0.1.md`のDefinition of Done完了。
+- [x] Vercel production deployment、direct access / reload検証。
+- [x] `docs/GRANVAS_SPEC_v0.1.md`のDefinition of Done完了。
 
 Exit Criteria:
 
-- [ ] localとCIの全quality gateがgreen。
-- [ ] productionでruntime outbound requestがない。
-- [ ] Vercel production URLでcanonical demoとDownload / Importが動作する。
-- [ ] v0.1 Definition of Doneをすべて満たす。
+- [x] localとCIの全quality gateがgreen。
+- [x] productionでruntime outbound requestがない。
+- [x] Vercel production URLでcanonical demoとDownload / Importが動作する。
+- [x] v0.1 Definition of Doneをすべて満たす。
 
 ## 18. Known Risks
 

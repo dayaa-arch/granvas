@@ -1,7 +1,7 @@
 # Phase 9 Release Hardening 要求
 
 > 作成日: 2026-08-11
-> ステータス: 承認済み / 実装中
+> ステータス: 完了
 > Roadmap: `docs/development-roadmap.md` Phase 9
 > Issue: [#31](https://github.com/dayaa-arch/granvas/issues/31)
 
@@ -79,12 +79,12 @@ Granvas v0.1のDefinition of Doneを証拠付きで満たし、OSS release candi
 
 ## 8. 受け入れ条件
 
-- [ ] Granvas v0.1 Definition of Doneが証拠付きで完了している。
-- [ ] localとGitHub Actionsの全quality gateがgreenである。
-- [ ] Vercel productionで主要flow、direct access、CSP、outbound 0を確認できる。
-- [ ] MIT LICENSE、CONTRIBUTING、SECURITY、canonical exampleが公開されている。
-- [ ] Pages完全版がPhase 8 / 9完了内容とproduction URLに一致する。
-- [ ] main、production、Pages、roadmap、specificationのrelease状態が一致する。
+- [x] Granvas v0.1 Definition of Doneが証拠付きで完了している。
+- [x] localとGitHub Actionsの全quality gateがgreenである。
+- [x] Vercel productionで主要flow、direct access、CSP、outbound 0を確認できる。
+- [x] MIT LICENSE、CONTRIBUTING、SECURITY、canonical exampleが公開されている。
+- [x] Pages完全版がPhase 8 / 9完了内容とproduction URLに一致する。
+- [x] main、production、Pages、roadmap、specificationのrelease状態が一致する。
 
 ## 9. 対象外
 
