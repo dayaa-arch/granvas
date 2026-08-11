@@ -10,6 +10,8 @@ export {
   type WorkspaceApplicationErrorCode,
   type WorkspaceDownloadFormat,
   type WorkspaceDownloadInputDto,
+  type WorkspaceDeleteImpactDto,
+  type WorkspaceDeletePreviewResultDto,
   type WorkspaceGraphEditCommandDto,
   type WorkspaceGraphEditResultDto,
   type WorkspaceProjectDownloadInputDto,

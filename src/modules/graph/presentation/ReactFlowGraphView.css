@@ -21,6 +21,11 @@
   height: 88px;
   border-radius: 14px;
   outline: none;
+  transition: transform 260ms ease;
+}
+
+.graph-canvas .react-flow__node-thought.dragging {
+  transition: none;
 }
 
 .graph-canvas .react-flow__node-thought:focus-visible {
@@ -90,6 +95,26 @@
   border-color: var(--accent-600);
   box-shadow: 0 0 0 3px var(--focus-ring), 0 12px 26px rgba(67, 55, 139, 0.16);
   transform: translateY(-1px);
+}
+
+.graph-node.is-drop-candidate {
+  border-style: solid;
+  border-color: var(--accent-700);
+  box-shadow: 0 0 0 4px var(--focus-ring), 0 14px 30px rgba(67, 55, 139, 0.2);
+}
+
+.graph-node.is-drop-candidate::after {
+  position: absolute;
+  right: 8px;
+  bottom: 7px;
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: var(--accent-700);
+  color: #fff;
+  content: 'New parent';
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 .graph-node--problem {
@@ -186,12 +211,21 @@
 }
 
 .graph-node__handle {
-  width: 1px !important;
-  height: 1px !important;
-  min-width: 1px !important;
-  min-height: 1px !important;
-  border: 0 !important;
-  opacity: 0;
+  width: 9px !important;
+  height: 9px !important;
+  min-width: 9px !important;
+  min-height: 9px !important;
+  border: 2px solid #fff !important;
+  background: var(--accent-600) !important;
+  opacity: 0.38;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.graph-node:hover .graph-node__handle,
+.graph-node.is-selected .graph-node__handle,
+.graph-node__handle:focus-visible {
+  opacity: 1;
+  transform: scale(1.12);
 }
 
 .graph-group {
@@ -201,6 +235,26 @@
   border: 1.5px dashed #a79acb;
   border-radius: 18px;
   background: rgba(238, 233, 255, 0.42);
+}
+
+.graph-group.is-drop-candidate {
+  border-style: solid;
+  border-color: var(--accent-700);
+  background: rgba(225, 217, 255, 0.62);
+  box-shadow: inset 0 0 0 3px var(--focus-ring);
+}
+
+.graph-group.is-drop-candidate::after {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: var(--accent-700);
+  color: #fff;
+  content: 'Add to Group';
+  font-size: 9px;
+  font-weight: 800;
 }
 
 .graph-group__name {
@@ -236,6 +290,230 @@
 
 .graph-canvas .react-flow__edge-label {
   font-family: var(--font-sans);
+}
+
+.graph-canvas .react-flow__edge.selected path {
+  stroke: var(--accent-700) !important;
+  stroke-width: 3px !important;
+}
+
+.graph-canvas .react-flow__edge:focus-visible path {
+  stroke: var(--accent-700) !important;
+}
+
+.graph-author-toolbar {
+  position: absolute;
+  z-index: 8;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  max-width: calc(100% - 20px);
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  overflow-x: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 24px rgba(35, 43, 58, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.graph-author-toolbar button,
+.graph-author-toolbar select {
+  min-height: 30px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink-700);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.graph-author-toolbar button {
+  padding: 0 9px;
+  cursor: pointer;
+}
+
+.graph-author-toolbar select {
+  padding: 0 24px 0 8px;
+}
+
+.graph-author-toolbar button:hover:not(:disabled),
+.graph-author-toolbar button:focus-visible,
+.graph-author-toolbar select:focus-visible {
+  border-color: var(--accent-500);
+  outline: 2px solid var(--focus-ring);
+}
+
+.graph-author-toolbar button:disabled {
+  cursor: progress;
+  opacity: 0.55;
+}
+
+.graph-author-toolbar .is-danger {
+  color: #9b3448;
+}
+
+.graph-author-toolbar__selection {
+  max-width: 112px;
+  padding: 0 5px 0 8px;
+  overflow: hidden;
+  color: var(--ink-500);
+  font-size: 10px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-author-toolbar__certainty {
+  display: flex;
+}
+
+.graph-dialog-backdrop {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  padding: 20px;
+  place-items: center;
+  background: rgba(25, 29, 38, 0.35);
+  backdrop-filter: blur(2px);
+}
+
+.graph-dialog {
+  width: min(390px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 22px 60px rgba(26, 31, 44, 0.28);
+}
+
+.graph-dialog form {
+  display: grid;
+  gap: 17px;
+  padding: 18px;
+}
+
+.graph-dialog__header,
+.graph-dialog__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.graph-dialog__header h3 {
+  margin: 0;
+  color: var(--ink-900);
+  font-size: 16px;
+}
+
+.graph-dialog__close {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-500);
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.graph-dialog__fields {
+  display: grid;
+  gap: 12px;
+}
+
+.graph-dialog__fields label {
+  display: grid;
+  gap: 5px;
+  color: var(--ink-700);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.graph-dialog__fields input,
+.graph-dialog__fields select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink-900);
+  font: inherit;
+}
+
+.graph-dialog__fields input:focus,
+.graph-dialog__fields select:focus,
+.graph-dialog button:focus-visible {
+  border-color: var(--accent-500);
+  outline: 3px solid var(--focus-ring);
+}
+
+.graph-dialog__hint,
+.graph-dialog__impact,
+.graph-dialog__labels {
+  margin: 0;
+  color: var(--ink-600);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.graph-dialog__impact ul {
+  margin: 8px 0;
+  padding-left: 22px;
+}
+
+.graph-dialog__labels {
+  overflow-wrap: anywhere;
+}
+
+.graph-dialog__actions {
+  justify-content: flex-end;
+}
+
+.graph-dialog__actions button {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink-700);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.graph-dialog__actions button[type='submit'] {
+  border-color: var(--accent-700);
+  background: var(--accent-700);
+  color: #fff;
+}
+
+.graph-dialog__actions button.is-danger {
+  border-color: #a53d52;
+  background: #a53d52;
+}
+
+.graph-dialog__actions button:disabled {
+  cursor: progress;
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-canvas .react-flow__node-thought,
+  .graph-node,
+  .graph-node__handle {
+    transition: none;
+  }
 }
 
 .graph-empty {

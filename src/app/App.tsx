@@ -6,7 +6,12 @@ import type {
   GranvasEditorHandle,
   SourceRangeDto,
 } from '@/modules/notation'
-import type { GraphNodeEditDto } from '@/modules/graph'
+import type {
+  GraphAuthoringCommandDto,
+  GraphDeletePreviewDto,
+  GraphDeleteTargetDto,
+  GraphNodeEditDto,
+} from '@/modules/graph'
 import {
   type DownloadDialogSubmitDto,
 } from '@/modules/transfer'
@@ -46,6 +51,27 @@ function isDirty(snapshot: WorkspaceSnapshotDto): boolean {
   )
 }
 
+function authoringSuccessMessage(command: Readonly<{ type: string }>): string {
+  switch (command.type) {
+    case 'set-node-certainty':
+      return 'Node certainty updated.'
+    case 'create-node':
+      return 'Node created from the Graph.'
+    case 'connect-nodes':
+      return 'Relation created from the Graph.'
+    case 'reparent-node':
+      return 'Node parentage updated.'
+    case 'set-group-membership':
+      return 'Node added to the Group.'
+    case 'delete-node':
+      return 'Node structure deleted.'
+    case 'delete-relation':
+      return 'Relation deleted.'
+    default:
+      return 'Graph edit applied.'
+  }
+}
+
 function App({ application }: AppProps) {
   const { workspace, transfer } = application
   const [snapshot, setSnapshot] = useState(() => workspace.getSnapshot())
@@ -63,6 +89,7 @@ function App({ application }: AppProps) {
   const [notice, setNotice] = useState<AppNotice>()
   const editorSourceRef = useRef(editorSource)
   const editorRef = useRef<GranvasEditorHandle>(null)
+  const graphSelectionRangeRef = useRef<SourceRangeDto | undefined>(undefined)
   const updateTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const updateGenerationRef = useRef(0)
   const mountedRef = useRef(true)
@@ -125,6 +152,7 @@ function App({ application }: AppProps) {
     setEditorSource(source)
     setProjectionPending(true)
     setEditorSelection(undefined)
+    graphSelectionRangeRef.current = undefined
     const generation = ++updateGenerationRef.current
 
     if (updateTimerRef.current !== undefined) {
@@ -161,6 +189,16 @@ function App({ application }: AppProps) {
       return
     }
 
+    const graphSelectionRange = graphSelectionRangeRef.current
+    if (
+      graphSelectionRange &&
+      graphSelectionRange.from <= nextCursor.offset &&
+      nextCursor.offset <= graphSelectionRange.to
+    ) {
+      return
+    }
+    graphSelectionRangeRef.current = undefined
+
     workspace.selectSourceOffset(nextCursor.offset)
     applySnapshot(workspace.getSnapshot())
   }
@@ -170,16 +208,13 @@ function App({ application }: AppProps) {
     applySnapshot(workspace.getSnapshot())
 
     if (effect.sourceRange) {
+      graphSelectionRangeRef.current = effect.sourceRange
       setEditorSelection(Object.freeze({ ...effect.sourceRange }))
     }
   }
 
   const handleGraphNodeEdit = async (edit: GraphNodeEditDto) => {
-    setNotice(undefined)
-    await flushEditorSource()
-    setProjectionPending(true)
-
-    const result = await workspace.applyGraphEdit(
+    await handleGraphEdit(
       edit.field === 'label'
         ? {
             type: 'set-node-label',
@@ -191,7 +226,30 @@ function App({ application }: AppProps) {
             graphNodeId: edit.graphNodeId,
             nodeType: edit.value,
           },
+      edit.field === 'label' ? 'Node label updated.' : 'Node type updated.',
     )
+  }
+
+  const handleGraphEdit = async (
+    command:
+      | GraphAuthoringCommandDto
+      | Readonly<{
+          type: 'set-node-label'
+          graphNodeId: string
+          label: string
+        }>
+      | Readonly<{
+          type: 'set-node-type'
+          graphNodeId: string
+          nodeType: string
+        }>,
+    successMessage?: string,
+  ) => {
+    setNotice(undefined)
+    await flushEditorSource()
+    setProjectionPending(true)
+
+    const result = await workspace.applyGraphEdit(command)
 
     if (result.type === 'rejected') {
       setProjectionPending(false)
@@ -203,12 +261,25 @@ function App({ application }: AppProps) {
     editorSourceRef.current = result.snapshot.document.source
     setEditorSource(result.snapshot.document.source)
     setEditorSelection(undefined)
+    graphSelectionRangeRef.current = undefined
     applySnapshot(result.snapshot)
     setProjectionPending(false)
     setNotice({
       tone: 'success',
-      message: edit.field === 'label' ? 'Node label updated.' : 'Node type updated.',
+      message: successMessage ?? authoringSuccessMessage(command),
     })
+  }
+
+  const handleDeletePreview = async (
+    target: GraphDeleteTargetDto,
+  ): Promise<GraphDeletePreviewDto> => {
+    setNotice(undefined)
+    await flushEditorSource()
+    const preview = workspace.previewGraphDelete(target)
+    if (preview.type === 'rejected') {
+      setNotice({ tone: 'error', message: preview.reason.message })
+    }
+    return preview
   }
 
   const closeDownloadDialog = () => {
@@ -255,6 +326,7 @@ function App({ application }: AppProps) {
     applySnapshot(replacement.snapshot)
     setProjectionPending(false)
     setEditorSelection(undefined)
+    graphSelectionRangeRef.current = undefined
     setFitViewKey((current) => current + 1)
     setNotice({
       tone: 'success',
@@ -416,7 +488,10 @@ function App({ application }: AppProps) {
                   status={graphStatus}
                   onNodeActivate={handleGraphNodeActivate}
                   onNodeEdit={(edit) => handleGraphNodeEdit(edit)}
+                  onAuthoringCommand={(command) => handleGraphEdit(command)}
+                  onDeletePreview={(target) => handleDeletePreview(target)}
                   onClearSelection={() => {
+                    graphSelectionRangeRef.current = undefined
                     workspace.selectGraphNode('')
                     applySnapshot(workspace.getSnapshot())
                   }}

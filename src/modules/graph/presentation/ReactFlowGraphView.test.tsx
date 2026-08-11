@@ -88,7 +88,7 @@ const graph: PositionedGraphDto = Object.freeze({
 })
 
 describe('ReactFlowGraphView', () => {
-  it('renders read-only accessible Nodes, Edges, Groups, and controls', async () => {
+  it('renders accessible Nodes, Edges, Groups, authoring toolbar, and controls', async () => {
     render(
       <ReactFlowGraphView
         graph={graph}
@@ -112,6 +112,8 @@ describe('ReactFlowGraphView', () => {
       }),
     ).toBeVisible()
     expect(screen.getByText('Discovery')).toBeVisible()
+    expect(screen.getByRole('toolbar', { name: 'Author graph' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Add child' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Fit View' })).toBeVisible()
   })
 
@@ -227,5 +229,90 @@ describe('ReactFlowGraphView', () => {
 
     await waitFor(() => expect(node).toHaveFocus())
     expect(onNodeEdit).not.toHaveBeenCalled()
+  })
+
+  it('creates a Node and changes certainty from keyboard-accessible controls', async () => {
+    const onAuthoringCommand = vi.fn().mockResolvedValue(undefined)
+    render(
+      <ReactFlowGraphView
+        graph={graph}
+        selectedNodeId="node-problem"
+        fitViewKey={1}
+        status="ready"
+        onNodeActivate={vi.fn()}
+        onNodeEdit={vi.fn()}
+        onAuthoringCommand={onAuthoringCommand}
+        onClearSelection={vi.fn()}
+      />,
+    )
+
+    fireEvent.change(
+      await screen.findByLabelText(
+        'Certainty for Customer information is scattered',
+      ),
+      { target: { value: 'confirmed' } },
+    )
+    expect(onAuthoringCommand).toHaveBeenCalledWith({
+      type: 'set-node-certainty',
+      graphNodeId: 'node-problem',
+      certainty: 'confirmed',
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: '+ New node' }))
+    expect(await screen.findByRole('dialog', { name: 'Create Node' })).toBeVisible()
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'Idea' } })
+    fireEvent.change(screen.getByLabelText('Label'), {
+      target: { value: 'New thought 😀' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+    await waitFor(() =>
+      expect(onAuthoringCommand).toHaveBeenCalledWith({
+        type: 'create-node',
+        nodeType: 'Idea',
+        label: 'New thought 😀',
+      }),
+    )
+  })
+
+  it('shows delete impact, traps the decision in a dialog, and cancels with Escape', async () => {
+    const onDeletePreview = vi.fn().mockResolvedValue({
+      type: 'available',
+      impact: {
+        type: 'node',
+        nodeLabels: ['Unify notes', 'Nested child'],
+        nodeCount: 2,
+        relationCount: 1,
+        groupReferenceCount: 1,
+      },
+    })
+    render(
+      <ReactFlowGraphView
+        graph={graph}
+        fitViewKey={1}
+        status="ready"
+        onNodeActivate={vi.fn()}
+        onNodeEdit={vi.fn()}
+        onAuthoringCommand={vi.fn()}
+        onDeletePreview={onDeletePreview}
+        onClearSelection={vi.fn()}
+      />,
+    )
+    const node = await screen.findByRole('button', {
+      name: 'tentative certainty, idea: Unify notes',
+    })
+    node.focus()
+    fireEvent.keyDown(node, { key: 'Delete' })
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Confirm deletion' }),
+    ).toBeVisible()
+    expect(onDeletePreview).toHaveBeenCalledWith({
+      type: 'node',
+      graphNodeId: 'node-idea',
+    })
+    expect(await screen.findByText('2 Node(s)')).toBeVisible()
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    await waitFor(() => expect(node).toHaveFocus())
   })
 })

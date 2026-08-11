@@ -306,3 +306,166 @@ test('edits Node label and Type as minimal Text patches and undoes in one step',
       'Closing prose must stay',
     ])
 })
+
+test('creates Nodes, changes certainty, and connects Nodes from Graph controls', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  await editor.fill('Intro prose\n[Problem] Root\n[Idea] Target\nClosing prose')
+
+  let root = page.getByRole('button', {
+    name: 'neutral certainty, problem: Root',
+  })
+  await root.focus()
+  await root.press('Enter')
+  await page.getByLabel('Certainty for Root').selectOption('confirmed')
+  root = page.getByRole('button', {
+    name: 'confirmed certainty, problem: Root',
+  })
+  await expect(root).toBeVisible()
+
+  await page.getByRole('button', { name: 'Add child' }).click()
+  const childDialog = page.getByRole('dialog', { name: 'Add child Node' })
+  await childDialog.getByLabel('Type').fill('Cause')
+  await childDialog.getByLabel('Label').fill('Child 😀')
+  await childDialog.getByRole('button', { name: 'Apply' }).click()
+  await expect(
+    page.getByRole('button', {
+      name: 'neutral certainty, cause: Child 😀',
+    }),
+  ).toBeVisible()
+
+  await root.click()
+  await page.getByRole('button', { name: 'Connect' }).click()
+  const connectDialog = page.getByRole('dialog', { name: 'Connect Nodes' })
+  await connectDialog.getByLabel('Target Node').selectOption({ label: 'Target' })
+  await connectDialog.getByLabel('Relation label (optional)').fill('supports')
+  await connectDialog.getByLabel('Certainty').selectOption('tentative')
+  await connectDialog.getByRole('button', { name: 'Apply' }).click()
+
+  await expect(page.getByLabel('Workspace status')).toContainText('3 nodes')
+  await expect(page.getByLabel('Workspace status')).toContainText('2 edges')
+  await expect
+    .poll(() => editor.locator('.cm-line').allTextContents())
+    .toEqual([
+      'Intro prose',
+      '[!Problem @root] Root',
+      '  -> [cause] Child 😀',
+      '[Idea @target] Target',
+      'Closing prose',
+      '@root ?-> @target : supports',
+    ])
+
+  await page.getByRole('button', { name: '+ New node' }).click()
+  const createDialog = page.getByRole('dialog', { name: 'Create Node' })
+  await expect(createDialog.getByLabel('Type')).toBeFocused()
+  await createDialog.getByLabel('Label').fill('Top level')
+  await createDialog.getByRole('button', { name: 'Apply' }).click()
+  await expect(
+    page.getByRole('button', { name: 'neutral certainty, node: Top level' }),
+  ).toBeVisible()
+})
+
+test('uses semantic drag and keyboard Move to change parentage and Group membership', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  await editor.fill(
+    '[Problem] Root\n[Idea] Other\n{Discovery}\n  [Node] Member\nClosing prose',
+  )
+
+  const root = page.getByRole('button', {
+    name: 'neutral certainty, problem: Root',
+  })
+  let other = page.getByRole('button', {
+    name: 'neutral certainty, idea: Other',
+  })
+  await other.dragTo(root, {
+    sourcePosition: { x: 120, y: 44 },
+    targetPosition: { x: 120, y: 44 },
+  })
+  await expect
+    .poll(() => editor.locator('.cm-line').allTextContents())
+    .toContain('  -> [Idea] Other')
+
+  const beforeCycle = await editor.locator('.cm-line').allTextContents()
+  await root.click()
+  await page.getByRole('button', { name: 'Move' }).click()
+  let moveDialog = page.getByRole('dialog', { name: 'Move Node by meaning' })
+  await moveDialog.getByLabel('Meaning target').selectOption({ label: 'Other' })
+  await moveDialog.getByRole('button', { name: 'Apply' }).click()
+  await expect(page.getByRole('alert')).toContainText(
+    'cannot be reparented to itself or one of its descendants',
+  )
+  await expect
+    .poll(() => editor.locator('.cm-line').allTextContents())
+    .toEqual(beforeCycle)
+
+  other = page.getByRole('button', {
+    name: 'neutral certainty, idea: Other',
+  })
+  await other.click()
+  await page.getByRole('button', { name: 'Move' }).click()
+  moveDialog = page.getByRole('dialog', { name: 'Move Node by meaning' })
+  await moveDialog.getByLabel('Meaning target').selectOption({
+    label: 'Discovery',
+  })
+  await moveDialog.getByRole('button', { name: 'Apply' }).click()
+  await expect
+    .poll(() => editor.locator('.cm-line').allTextContents())
+    .toContain('  @other')
+
+  await other.click()
+  await page.getByRole('button', { name: 'Move' }).click()
+  moveDialog = page.getByRole('dialog', { name: 'Move Node by meaning' })
+  await moveDialog.getByLabel('Meaning target').selectOption('detach')
+  await moveDialog.getByRole('button', { name: 'Apply' }).click()
+  await expect
+    .poll(() => editor.locator('.cm-line').allTextContents())
+    .toContain('[Idea @other] Other')
+  await expect(editor).not.toContainText('x:')
+  await expect(editor).not.toContainText('y:')
+})
+
+test('previews deletion impact and preserves children when deleting a Nested Relation', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  await editor.fill(
+    '[Problem @root] Root\n  ?-> [Cause @child] Child\n    !-> [Evidence] Grand\n@root -> @other\n[Idea @other] Other\n{Group}\n  @root\nClosing prose',
+  )
+
+  const nestedEdge = page.locator(
+    '[aria-label="tentative certainty relation from Root to Child"]',
+  )
+  await nestedEdge.focus()
+  await nestedEdge.press('Delete')
+  let dialog = page.getByRole('dialog', { name: 'Confirm deletion' })
+  await expect(dialog).toContainText('Child is promoted to the scope root')
+  await dialog.getByRole('button', { name: 'Delete' }).click()
+  await expect
+    .poll(() => editor.locator('.cm-line').allTextContents())
+    .toContain('[Cause @child] Child')
+  await expect
+    .poll(() => editor.locator('.cm-line').allTextContents())
+    .toContain('  !-> [Evidence] Grand')
+
+  const root = page.getByRole('button', {
+    name: 'neutral certainty, problem: Root',
+  })
+  await root.focus()
+  await root.press('Delete')
+  dialog = page.getByRole('dialog', { name: 'Confirm deletion' })
+  await expect(dialog).toContainText('1 Node(s)')
+  await expect(dialog).toContainText('1 Cross Relation(s)')
+  await expect(dialog).toContainText('1 Group reference(s)')
+  await dialog.getByRole('button', { name: 'Delete' }).click()
+
+  await expect(root).toHaveCount(0)
+  await expect(editor).toContainText('[Cause @child] Child')
+  await expect(editor).toContainText('[Idea @other] Other')
+  await expect(editor).toContainText('Closing prose')
+})

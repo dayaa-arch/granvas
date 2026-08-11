@@ -1725,7 +1725,12 @@ export type SourceEdit = {
 };
 
 export type SourceEditPlan =
-  | { type: 'applicable'; edits: readonly SourceEdit[]; caretAnchor?: number }
+  | {
+      type: 'applicable';
+      edits: readonly SourceEdit[];
+      caretAnchor?: number;
+      caretAffinity?: 'before' | 'after';
+    }
   | { type: 'rejected'; reason: NotationEditRejection };
 ```
 
@@ -1734,6 +1739,8 @@ export type SourceEditPlan =
 - `edits` は `from` 昇順で、範囲が重複しない。
 - 実行できない操作は例外ではなく `rejected` として理由付きで返す。
 - `caretAnchor` は編集前 offset で表現し、適用側が編集列でマップする。
+- `caretAffinity` は同一 offset への挿入をcaretの前後どちらへ置くかを表し、既定値は`after`とする。
+- `before`はNode作成、subtree移動、Nested Relation child昇格のように挿入したroot Nodeを再選択する操作で使う。
 - React / CodeMirror / React Flow / DOM / browser API を参照しない。
 
 対象コマンド:
@@ -1982,7 +1989,7 @@ DownloadCurrentProject
 4. `rejected` なら source を変更せず、理由を返す。
 5. `applicable` なら編集列を current source へ適用し、`UpdateDocumentSource` で新 revision を発行する。
 6. parse → graph → layout を再実行する。
-7. `caretAnchor` を編集列でマップし、再投影後の selection を再解決する。
+7. `caretAnchor` を編集列と`caretAffinity`（既定`after`）でマップし、再投影後の selection を再解決する。
 8. 適用した編集列を presentation へ返す。editor は同じ編集列を 1 トランザクションとして適用する。
 
 
@@ -2400,7 +2407,7 @@ SourceEditPlanDto
         ↓
    parse → graph → layout（15.1 と同じ pipeline）
         ↓
-   caretAnchor を編集列でマップ → selection 再解決
+   caretAnchor を編集列とcaretAffinityでマップ → selection 再解決
         ↓
    Editor presentation: applyEdits（1 transaction）
 ```
@@ -2582,6 +2589,7 @@ export type SourceEditPlanDto =
       type: 'applicable';
       edits: readonly SourceEditDto[];
       caretAnchor?: number;
+      caretAffinity?: 'before' | 'after';
     }
   | {
       type: 'rejected';
@@ -2831,7 +2839,7 @@ expect(parse(next)) toMatch 意図した構造
 - 孫がいる Node を昇格させた場合の indent 再計算
 - Group scope 内での編集が scope を壊さないこと
 - CRLF source での編集列が改行コードを保持すること
-- `caretAnchor` が編集後の正しい位置へマップできること
+- `caretAnchor` が`caretAffinity`に従って編集後の正しい位置へマップできること
 
 Port を fake / stub に差し替えて use case を test する。
 
@@ -3160,7 +3168,7 @@ Status: Complete — Issue #21 / PR #22
 
 ## Phase 12: Graph Authoring
 
-Status: Not Started
+Status: Complete — Issue #23 / PR作成時に追記
 
 - 意味ドラッグ / 循環拒否 / drop 先ハイライト
 - Node 作成 / Edge 接続 / `@id` 自動採番
