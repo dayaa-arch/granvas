@@ -2,7 +2,8 @@
 
 > Status: Draft / Approval Candidate  
 > Target: v0.1  
-> Updated: 2026-08-10
+> Updated: 2026-08-11
+> Related: `docs/adr/`
 
 ## 1. Architecture Summary
 
@@ -48,10 +49,10 @@ PDF生成libraryは未選定である。導入前に、browser support、vector 
 | Context | Responsibility | Depends on other context internals |
 | --- | --- | --- |
 | Document | active source、revision、dirty lifecycle | No |
-| Notation | parser、diagnostics、SourceRange | No |
+| Notation | parser、diagnostics、SourceRange / spans、編集規則 | No |
 | Graph | semantic graph、layout、export scene | No |
 | Transfer | Import / Download、format生成 | No |
-| Workspace | published application APIの協調 | Public contracts only |
+| Workspace | published application APIの協調、Graph編集のorchestration | Public contracts only |
 
 App / Composition Rootが具象adapterとpublic presentation componentを結線する。
 
@@ -104,8 +105,9 @@ infrastructure ──────┘
 
 - Documentはfile I/Oを行わない。
 - TransferはDocumentやGraphのlifecycleを管理しない。
-- GraphはText位置を管理しない。
-- Workspaceはsyntaxやlayout algorithmを実装しない。
+- GraphはText位置を管理しない。GraphはNotationの文法を知らない。
+- Workspaceはsyntaxやlayout algorithmを実装しない。Notation記法の文字列を組み立てない。
+- Presentationは編集規則を持たない。受け取った編集列をUI frameworkのtransactionへ変換するだけとする。
 
 ### 6.3 One-way Dependency
 
@@ -149,10 +151,28 @@ infrastructure ──────┘
 - outputの`x/y`はNode左上座標。
 - Group boundsはmember配置後に24px paddingで計算する。
 - 複数Group所属は重なり可能なoverlayとして表示し、React Flow `parentId`を使用しない。
+- `certainty`はlayoutに影響しない。`rejected`なNodeも他と同じboundsを占める。確信度は表示の差であり配置の差ではない。
+- **座標はどこにも永続化しない。** ユーザーがNodeをドラッグしても位置を保存せず、ドロップ先が何であったかだけを意味として解釈する（[ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md)）。
 
-## 9. File Architecture
+## 9. Source Editing Architecture
 
-### 9.1 `.granvas`
+Graph側の操作をTextへ書き戻す経路の設計。根拠は[ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md)。
+
+- ドキュメントには通常文が混在するため、**Graphからテキスト全文を再生成しない**。すべての操作は現在sourceへの最小編集列へ変換する。
+- 編集規則はNotation domainの`(source, parseResult, command) → SourceEditPlan`というpure functionとして所有する。
+- `SourceEditPlan`はReact / CodeMirror / React Flow / DOM / browser APIを参照しない。
+- 編集列は適用前sourceを基準とし、`from`昇順で重複しない。
+- 実行できない操作は例外ではなく理由付きの`rejected`として返す。
+- ParserはNode / Relation / Groupのtoken単位`spans`を公開する。これがなければラベルだけの置換や`@id`だけの挿入を表現できない。
+- Graph IDからoccurrence keyへの逆引きは`ProjectionSourceMapDto`の`*Keys`を経由する。Graph IDの生成規則を他Contextで再現しない。
+- Presentationは編集列を1トランザクションでdispatchし、Undo 1回で戻せる状態にする。全文置換の経路はImport専用に分離する。
+- Graph編集はdebounceせず、開始前にpendingなsource更新をflushする。
+
+最も強い契約は**round-trip**である。「planを適用したsourceを再parseすると意図した構造になる」ことと「通常文と無関係な行が一切変化しない」ことをtestで保証する。
+
+## 10. File Architecture
+
+### 10.1 `.granvas`
 
 - UTF-8 plain text。
 - active source以外を含めない。
@@ -160,7 +180,7 @@ infrastructure ──────┘
 - Import時は先頭BOMを除去し、改行を保持する。
 - hard limitは5 MiB。
 
-### 9.2 Visual Formats
+### 10.2 Visual Formats
 
 - SVG / PNG / PDFはcurrent valid projectionの派生成果物。
 - full graph boundsと24px paddingを使用する。
@@ -168,7 +188,7 @@ infrastructure ──────┘
 - PNGは2xを基本とし8192 × 8192を上限とする。
 - PDFはsingle-page、graph boundsに合わせたpage sizeとする。
 
-## 10. Security / Privacy
+## 11. Security / Privacy
 
 - production asset load後のoutbound requestは0。
 - telemetry、remote API、cloud storageなし。
@@ -189,7 +209,7 @@ connect-src 'none'
 
 完全なdirectiveはViteのasset形式とWorker動作を確認して`vercel.json`へ定義する。
 
-## 11. Performance
+## 12. Performance
 
 基準fixture: 500 lines、200 nodes、300 edges、10 groups、label 200 UTF-16 code units以下。
 
@@ -200,17 +220,19 @@ connect-src 'none'
 | Layout Worker round trip | p95 ≤ 200ms |
 | debounce end → Graph paint | p95 ≤ 350ms |
 | pan / zoom long task | 100ms超なし |
+| `SourceEditPlan`生成 | p95 ≤ 20ms |
+| Graph編集の確定 → Graph paint | p95 ≤ 350ms |
 
-projection rebuildの既定debounceは120ms。基準を満たせない場合はParserもWorkerへ移す。
+projection rebuildの既定debounceは120ms。Graph編集はdebounceしない。基準を満たせない場合はParserもWorkerへ移す。
 
-## 12. Browser / Accessibility
+## 13. Browser / Accessibility
 
 - PlaywrightのChromium / Firefox / WebKitで主要E2Eを実行する。
 - minimum viewportは960px、recommendedは1280px以上。
 - WCAG 2.2 AAを適合目標とする。
 - keyboard-only navigationとfocus managementをrelease gateにする。
 
-## 13. Future Authentication
+## 14. Future Authentication
 
 将来の認証providerは **Supabase Auth** に決定済みである。実装時は`identity` Contextを新設し、provider portをapplication、Supabase adapterをinfrastructureへ置く。
 
@@ -223,7 +245,7 @@ v0.1では以下を禁止する。
 - protected route。
 - Supabase database / storage / realtimeの暗黙採用。
 
-## 14. Development Commands
+## 15. Development Commands
 
 ```bash
 bun install
@@ -235,10 +257,21 @@ bunx playwright test
 bun run build
 ```
 
-## 15. Required ADR
+## 16. Required ADR
+
+ADRは`docs/adr/`に置き、`docs/adr/README.md`を索引とする。
+
+記録済み:
+
+- [ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md) Semantic node drag without coordinate persistence。
+- [ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md) Source edit plan as a Notation domain concern。
+- [ADR-0003](adr/0003-certainty-markers-in-granvas-notation.md) Certainty markers in Granvas Notation。
+
+未起票:
 
 - PDF generation library selection。
 - 既定Node sizeまたはmeasure-first layoutの変更。
 - ParserをWeb Workerへ移す判断。
 - State management library導入。
+- Node座標永続化を再検討する場合のADR-0001 supersede。
 - Supabase Auth実装開始時のidentity boundaryとsession policy。

@@ -20,6 +20,10 @@ describe('Notation published application contract', () => {
     })
     expect(result.nodes).toHaveLength(5)
     expect(result.relations).toHaveLength(3)
+    expect(result.nodes.every(({ certainty }) => certainty === 'neutral')).toBe(true)
+    expect(result.relations.every(({ certainty }) => certainty === 'neutral')).toBe(
+      true,
+    )
     expect(result.groups).toHaveLength(1)
     expect(result.diagnostics).toHaveLength(0)
     expect(Object.isFrozen(result)).toBe(true)

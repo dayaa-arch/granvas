@@ -1,10 +1,17 @@
 export type GraphDirection = 'TB' | 'LR'
 
+export type GraphCertainty =
+  | 'neutral'
+  | 'tentative'
+  | 'confirmed'
+  | 'rejected'
+
 export type GraphNode = Readonly<{
   id: string
   explicitId?: string
   type: string
   label: string
+  certainty: GraphCertainty
 }>
 
 export type GraphEdge = Readonly<{
@@ -12,6 +19,7 @@ export type GraphEdge = Readonly<{
   sourceNodeId: string
   targetNodeId: string
   label?: string
+  certainty: GraphCertainty
 }>
 
 export type GraphGroup = Readonly<{
@@ -32,6 +40,7 @@ export type ThoughtGraphNodeInput = Readonly<{
   explicitId?: string
   type: string
   label: string
+  certainty: GraphCertainty
 }>
 
 export type ThoughtGraphEdgeInput = Readonly<{
@@ -39,6 +48,7 @@ export type ThoughtGraphEdgeInput = Readonly<{
   sourceNodeKey: string
   targetNodeKey: string
   label?: string
+  certainty: GraphCertainty
 }>
 
 export type ThoughtGraphGroupInput = Readonly<{
@@ -127,6 +137,7 @@ export function createThoughtGraph(input: CreateThoughtGraphInput): ThoughtGraph
       ...(node.explicitId === undefined ? {} : { explicitId: node.explicitId }),
       type: node.type,
       label: node.label,
+      certainty: node.certainty,
     })
   })
 
@@ -147,6 +158,7 @@ export function createThoughtGraph(input: CreateThoughtGraphInput): ThoughtGraph
         id: graphId('edge', edge.key),
         sourceNodeId,
         targetNodeId,
+        certainty: edge.certainty,
         ...(edge.label === undefined ? {} : { label: edge.label }),
       })
     })

@@ -1,7 +1,7 @@
 # Granvas ユビキタス言語
 
 > Status: Draft / Approval Candidate  
-> Updated: 2026-08-10
+> Updated: 2026-08-11
 
 ## 1. 言語規則
 
@@ -9,6 +9,8 @@
 - Codeでは、domain conceptに英語名を使用する。
 - `Node`、`Relation`、`Group`、`Layout`はNotationとGraphで意味が異なる場合があるため、必要に応じ`Parsed`、`Graph`、`Positioned`を付ける。
 - `Save`は自動保存と誤解されるため、v0.1のUIでは`.granvas Download`を使う。
+- Graph上の操作は`編集`と呼び、`移動`や`配置`とは呼ばない。座標を保存しないため、位置の操作という語は誤解を生む。
+- `Certainty`は`確信度`と訳す。`ステータス`や`状態`は`DirtyState`と衝突するため使わない。
 
 ## 2. Product Terms
 
@@ -40,7 +42,17 @@
 | Group Header | `GroupDeclaration` | `{Group Name}`形式のvisual grouping宣言 |
 | Group Member | `GroupMember` | Group scope内のNodeまたはNode reference |
 | Layout Directive | `LayoutDirective` | `@layout flow TB/LR`形式の配置指示 |
+| Relation Operator | `RelationOperator` | `->` / `?->` / `!->` / `~->`。有向Edgeを生成し確信度を伴う |
+| Certainty | `NotationCertainty` / `GraphCertainty` | `neutral` / `tentative` / `confirmed` / `rejected`の4状態。Typeと直交する軸 |
+| Certainty Marker | `CertaintyMarker` | `[` 直後の`?` / `!` / `~`。確信度を指定する記号 |
 | Source Range | `SourceRange` / `SourceRangeDto` | Text上のUTF-16半開区間と開始line / column |
+| Token Spans | `NodeSourceSpans`ほか | 宣言行内のtoken単位range。最小差分編集に使う |
+| Insertion Point | `idInsertionPoint`ほか | 存在しないtokenを挿入すべきoffset |
+| Source Edit | `SourceEdit` / `SourceEditDto` | current sourceへの`{from, to, insert}`単位の変更 |
+| Source Edit Plan | `SourceEditPlan` / `SourceEditPlanDto` | Graph操作から導いた編集列、またはその拒否理由 |
+| Notation Editor | `NotationEditor` | 編集規則を持つNotation domainのpure function群 |
+| Edit Rejection | `NotationEditRejection` | 実行できない操作の理由。例外ではなく戻り値で返す |
+| Round-trip | — | planを適用したsourceを再parseすると意図した構造になる契約 |
 | Diagnostic | `Diagnostic` / `DiagnosticDto` | 入力を妨げずに問題と回復結果を示す情報 |
 | Partial Result | `ParseResultDto` | current source内のvalidな構造とdiagnosticsの組 |
 | Group Scope | `GroupScope` | Group Headerから次のnon-empty indent 0 line直前まで |
@@ -56,6 +68,8 @@
 | Positioned Graph | `PositionedGraphDto` | layout後のNode / Group boundsを含むDTO |
 | Group Overlay | `PositionedGroupDto` | member boundsを囲む重なり可能なbackground表示 |
 | Flow Layout | `FlowLayout` | TBまたはLRの自動配置 |
+| Semantic Drag | `semantic drag` | 座標ではなく親子関係・Group所属を変える意味の操作 |
+| Drop Target | `DropTarget` | ドロップ先の種別（別Node / Group overlay / 空白）。意味の分岐そのもの |
 | Export Scene | `GraphExportSceneDto` | visual file生成に必要なframework-neutral scene |
 | Full Graph Bounds | `GraphBounds` | viewportに依存しない全Node / Edge / Groupの外接範囲 |
 
@@ -67,7 +81,10 @@
 | Current Revision | `currentRevision` | UIが正本として扱う最新revision |
 | Latest Wins | `latest-wins` | current以外のasync結果をcommitしない規則 |
 | Cancellation Signal | `CancellationSignal` | browser型に依存しない処理cancel contract |
-| Projection Source Map | `ProjectionSourceMapDto` | Graph IDからNotation SourceRangeへの対応 |
+| Projection Source Map | `ProjectionSourceMapDto` | Graph IDからNotation SourceRange / occurrence keyへの対応 |
+| Apply Graph Edit | `ApplyGraphEdit` | key解決 → 編集計画取得 → source適用 → 再投影 → selection再解決のorchestration |
+| Caret Anchor | `caretAnchor` | 編集前offsetで表す、編集後に選択したい位置 |
+| Pending Flush | `flushEditorSource` | Graph編集前にdebounce待機中のsource更新を確定させる操作 |
 | Source Selection | `SourceSelection` | Editor上のselection / cursor位置 |
 | Graph Selection | `GraphSelection` | 選択中Graph Node ID |
 | Clean Baseline | `cleanBaselineRevision` | `.granvas` Import / Downloadで保存基準となったrevision |

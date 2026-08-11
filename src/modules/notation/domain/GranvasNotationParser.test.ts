@@ -4,6 +4,7 @@ import { parseGranvasNotation, type DiagnosticCode } from './GranvasNotationPars
 import {
   allDiagnosticsSource,
   canonicalDemoSource,
+  certaintyDemoSource,
   sourceWithBom,
   unicodeCrLfSource,
 } from './fixtures/notationFixtures'
@@ -37,6 +38,72 @@ describe('GranvasNotationParser', () => {
     )
     expect(result.layout).toMatchObject({ mode: 'flow', direction: 'TB' })
     expect(result.diagnostics).toEqual([])
+    expect(result.nodes.every(({ certainty }) => certainty === 'neutral')).toBe(true)
+    expect(result.relations.every(({ certainty }) => certainty === 'neutral')).toBe(
+      true,
+    )
+  })
+
+  it('parses the certainty demo across Nodes, Nested Relations, and Cross Relations', () => {
+    const result = parseGranvasNotation(certaintyDemoSource, 17)
+
+    expect(result.nodes).toHaveLength(6)
+    expect(result.relations).toHaveLength(5)
+    expect(result.groups).toHaveLength(1)
+    expect(result.diagnostics).toEqual([])
+    expect(result.nodes.map(({ certainty }) => certainty)).toEqual([
+      'neutral',
+      'neutral',
+      'tentative',
+      'rejected',
+      'confirmed',
+      'rejected',
+    ])
+    expect(result.relations.map(({ certainty }) => certainty)).toEqual([
+      'confirmed',
+      'tentative',
+      'rejected',
+      'neutral',
+      'tentative',
+    ])
+    expect(result.nodes.find(({ explicitId }) => explicitId === 'discount')).toMatchObject({
+      certainty: 'rejected',
+      label: '値下げする',
+    })
+  })
+
+  it('accepts optional spacing after a Node marker', () => {
+    const result = parseGranvasNotation(
+      '[? problem] Tentative\n[!idea] Confirmed\n[~ todo] Rejected',
+      18,
+    )
+
+    expect(result.nodes.map(({ type, certainty }) => ({ type, certainty }))).toEqual([
+      { type: 'problem', certainty: 'tentative' },
+      { type: 'idea', certainty: 'confirmed' },
+      { type: 'todo', certainty: 'rejected' },
+    ])
+    expect(result.diagnostics).toEqual([])
+  })
+
+  it('recovers invalid certainty markers with bracket-scoped GNV014 diagnostics', () => {
+    const source =
+      '[??problem] Duplicate\n[?~idea] Mixed\n[?] Missing type\n[? @id] Missing type with ID\n[idea] Valid'
+    const result = parseGranvasNotation(source, 19)
+
+    expect(result.nodes).toEqual([
+      expect.objectContaining({ label: 'Valid', certainty: 'neutral' }),
+    ])
+    expect(result.diagnostics.map(({ code }) => code)).toEqual([
+      'GNV014_INVALID_CERTAINTY_MARKER',
+      'GNV014_INVALID_CERTAINTY_MARKER',
+      'GNV014_INVALID_CERTAINTY_MARKER',
+      'GNV014_INVALID_CERTAINTY_MARKER',
+    ])
+    expect(
+      result.diagnostics.map(({ range }) => source.slice(range.from, range.to)),
+    ).toEqual(['[??problem]', '[?~idea]', '[?]', '[? @id]'])
+    expect(result.diagnostics.every(({ level }) => level === 'error')).toBe(true)
   })
 
   it('accepts custom types, normalizes type names, and ignores plain text', () => {

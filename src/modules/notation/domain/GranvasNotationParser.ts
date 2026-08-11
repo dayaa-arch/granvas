@@ -25,8 +25,15 @@ export type DiagnosticCode =
   | 'GNV011_NESTED_GROUP_UNSUPPORTED'
   | 'GNV012_EMPTY_RELATION_LABEL'
   | 'GNV013_EMPTY_GROUP_NAME'
+  | 'GNV014_INVALID_CERTAINTY_MARKER'
 
 export type DiagnosticLevel = 'info' | 'warning' | 'error'
+
+export type NotationCertainty =
+  | 'neutral'
+  | 'tentative'
+  | 'confirmed'
+  | 'rejected'
 
 export type NotationDiagnostic = Readonly<{
   code: DiagnosticCode
@@ -42,6 +49,7 @@ export type ParsedNode = Readonly<{
   explicitId?: string
   type: string
   label: string
+  certainty: NotationCertainty
   sourceRange: SourceRange
 }>
 
@@ -51,6 +59,7 @@ export type ParsedRelation = Readonly<{
   sourceNodeKey: string
   targetNodeKey: string
   label?: string
+  certainty: NotationCertainty
   sourceRange: SourceRange
 }>
 
@@ -95,6 +104,7 @@ type PendingCrossRelation = {
   sourceId: string
   targetId: string
   label?: string
+  certainty: NotationCertainty
   sourceRange: SourceRange
 }
 
@@ -105,13 +115,19 @@ type PendingGroupReference = {
 }
 
 type NodeParseFailure = {
-  code: 'GNV001_INCOMPLETE_NODE' | 'GNV002_EMPTY_LABEL' | 'GNV003_INVALID_ID'
+  code:
+    | 'GNV001_INCOMPLETE_NODE'
+    | 'GNV002_EMPTY_LABEL'
+    | 'GNV003_INVALID_ID'
+    | 'GNV014_INVALID_CERTAINTY_MARKER'
+  relativeRange?: Readonly<{ from: number; to: number }>
 }
 
 type NodeParseSuccess = {
   type: string
   label: string
   explicitId?: string
+  certainty: NotationCertainty
 }
 
 const diagnosticMetadata: Readonly<
@@ -169,6 +185,10 @@ const diagnosticMetadata: Readonly<
     level: 'error',
     message: 'Group name must not be empty.',
   },
+  GNV014_INVALID_CERTAINTY_MARKER: {
+    level: 'error',
+    message: 'Certainty marker must appear once before a node type.',
+  },
 }
 
 function rangeForLine(line: SourceLine): SourceRange {
@@ -177,6 +197,19 @@ function rangeForLine(line: SourceLine): SourceRange {
     to: line.to,
     line: line.number,
     column: 0,
+  })
+}
+
+function rangeForSegment(
+  line: SourceLine,
+  fromColumn: number,
+  toColumn: number,
+): SourceRange {
+  return Object.freeze({
+    from: line.from + fromColumn,
+    to: line.from + toColumn,
+    line: line.number,
+    column: fromColumn,
   })
 }
 
@@ -204,11 +237,41 @@ function parseNodeDeclaration(text: string): NodeParseFailure | NodeParseSuccess
     return { code: 'GNV001_INCOMPLETE_NODE' }
   }
 
-  const header = text.slice(1, closingBracket).trim()
+  const rawHeader = text.slice(1, closingBracket)
+  let header = rawHeader.trim()
   const remainder = text.slice(closingBracket + 1)
 
   if (remainder.length > 0 && !/^[ \t]/.test(remainder)) {
     return { code: 'GNV001_INCOMPLETE_NODE' }
+  }
+
+  let certainty: NotationCertainty = 'neutral'
+  const marker = rawHeader[0]
+
+  if (marker === '?' || marker === '!' || marker === '~') {
+    header = rawHeader.slice(1).trimStart()
+
+    if (
+      header.length === 0 ||
+      header.startsWith('?') ||
+      header.startsWith('!') ||
+      header.startsWith('~')
+    ) {
+      return {
+        code: 'GNV014_INVALID_CERTAINTY_MARKER',
+        relativeRange: { from: 0, to: closingBracket + 1 },
+      }
+    }
+
+    if (!/^[A-Za-z]/u.test(header)) {
+      return {
+        code: 'GNV014_INVALID_CERTAINTY_MARKER',
+        relativeRange: { from: 0, to: closingBracket + 1 },
+      }
+    }
+
+    certainty =
+      marker === '?' ? 'tentative' : marker === '!' ? 'confirmed' : 'rejected'
   }
 
   const headerMatch = /^([A-Za-z][A-Za-z0-9_-]*)(?:[ \t]+@(.+))?$/.exec(header)
@@ -234,7 +297,21 @@ function parseNodeDeclaration(text: string): NodeParseFailure | NodeParseSuccess
   return {
     type: headerMatch[1]!.toLowerCase(),
     label,
+    certainty,
     ...(explicitId === undefined ? {} : { explicitId }),
+  }
+}
+
+function certaintyForRelationOperator(operator: string): NotationCertainty {
+  switch (operator[0]) {
+    case '?':
+      return 'tentative'
+    case '!':
+      return 'confirmed'
+    case '~':
+      return 'rejected'
+    default:
+      return 'neutral'
   }
 }
 
@@ -288,12 +365,20 @@ export function parseGranvasNotation(
   const addNode = (
     line: SourceLine,
     text: string,
+    textColumn = line.indent,
   ): ParsedNode | undefined => {
     const parsed = parseNodeDeclaration(text)
     const sourceRange = rangeForLine(line)
 
     if ('code' in parsed) {
-      addDiagnostic(parsed.code, sourceRange)
+      const diagnosticRange = parsed.relativeRange
+        ? rangeForSegment(
+            line,
+            textColumn + parsed.relativeRange.from,
+            textColumn + parsed.relativeRange.to,
+          )
+        : sourceRange
+      addDiagnostic(parsed.code, diagnosticRange)
       return undefined
     }
 
@@ -301,6 +386,7 @@ export function parseGranvasNotation(
       key: createKey('node', sourceRange.from),
       type: parsed.type,
       label: parsed.label,
+      certainty: parsed.certainty,
       ...(parsed.explicitId === undefined ? {} : { explicitId: parsed.explicitId }),
       sourceRange,
     })
@@ -409,8 +495,15 @@ export function parseGranvasNotation(
         const effectiveIndent = inGroup ? line.indent - 2 : line.indent
         const validIndent = effectiveIndent >= 2 && effectiveIndent % 2 === 0
         const level = validIndent ? effectiveIndent / 2 : undefined
-        const childText = line.content.slice(2).trimStart()
-        const child = addNode(line, childText)
+        const operator = /^(?:[?!~]?->)/u.exec(line.content)?.[0] ?? '->'
+        const rawChildText = line.content.slice(operator.length)
+        const childWhitespace = rawChildText.match(/^[ \t]*/u)?.[0].length ?? 0
+        const childText = rawChildText.slice(childWhitespace)
+        const child = addNode(
+          line,
+          childText,
+          line.indent + operator.length + childWhitespace,
+        )
 
         if (child && activeGroup) {
           addGroupMember(activeGroup.group, child.key)
@@ -447,6 +540,7 @@ export function parseGranvasNotation(
             kind: 'nested',
             sourceNodeKey: parentKey,
             targetNodeKey: child.key,
+            certainty: certaintyForRelationOperator(operator),
             sourceRange,
           }),
         )
@@ -455,7 +549,7 @@ export function parseGranvasNotation(
 
       case 'cross-relation': {
         const match =
-          /^@([A-Za-z][A-Za-z0-9_-]*)[ \t]+->[ \t]+@([A-Za-z][A-Za-z0-9_-]*)(?:[ \t]*:(.*))?[ \t]*$/.exec(
+          /^@([A-Za-z][A-Za-z0-9_-]*)[ \t]+([?!~]?->)[ \t]+@([A-Za-z][A-Za-z0-9_-]*)(?:[ \t]*:(.*))?[ \t]*$/.exec(
             line.content,
           )
 
@@ -464,7 +558,7 @@ export function parseGranvasNotation(
           break
         }
 
-        const rawLabel = match[3]
+        const rawLabel = match[4]
         const label = rawLabel?.trim()
 
         if (rawLabel !== undefined && label?.length === 0) {
@@ -474,7 +568,8 @@ export function parseGranvasNotation(
         pendingCrossRelations.push({
           key: createKey('edge', sourceRange.from),
           sourceId: match[1]!,
-          targetId: match[2]!,
+          targetId: match[3]!,
+          certainty: certaintyForRelationOperator(match[2]!),
           ...(label === undefined || label.length === 0 ? {} : { label }),
           sourceRange,
         })
@@ -538,6 +633,7 @@ export function parseGranvasNotation(
         kind: 'cross',
         sourceNodeKey: sourceNode.key,
         targetNodeKey: targetNode.key,
+        certainty: pending.certainty,
         ...(pending.label === undefined ? {} : { label: pending.label }),
         sourceRange: pending.sourceRange,
       }),

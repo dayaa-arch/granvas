@@ -14,7 +14,10 @@ import {
 } from '@xyflow/react'
 import { memo, useEffect, useMemo, type KeyboardEvent } from 'react'
 
-import type { PositionedGraphDto } from '@/modules/graph/application/GraphApplication'
+import type {
+  GraphCertaintyDto,
+  PositionedGraphDto,
+} from '@/modules/graph/application/GraphApplication'
 
 import '@xyflow/react/dist/style.css'
 import './ReactFlowGraphView.css'
@@ -23,6 +26,7 @@ type ThoughtNodeData = {
   label: string
   semanticType: string
   tone: 'problem' | 'cause' | 'idea' | 'todo' | 'default'
+  certainty: GraphCertaintyDto
 }
 
 type GroupNodeData = {
@@ -57,13 +61,38 @@ function toneForType(type: string): ThoughtNodeData['tone'] {
   return 'default'
 }
 
+const certaintyMarker: Readonly<Record<GraphCertaintyDto, string | undefined>> = {
+  neutral: undefined,
+  tentative: '?',
+  confirmed: '✓',
+  rejected: '×',
+}
+
+function edgeStyle(certainty: GraphCertaintyDto) {
+  switch (certainty) {
+    case 'tentative':
+      return { stroke: '#66758a', strokeWidth: 1.9, strokeDasharray: '8 6' }
+    case 'confirmed':
+      return { stroke: '#4c5f73', strokeWidth: 2.8 }
+    case 'rejected':
+      return {
+        stroke: '#7a8089',
+        strokeWidth: 1.8,
+        strokeDasharray: '3 6',
+        opacity: 0.72,
+      }
+    case 'neutral':
+      return { stroke: '#738093', strokeWidth: 1.7 }
+  }
+}
+
 const ThoughtNodeView = memo(function ThoughtNodeView({
   data,
   selected,
 }: NodeProps<ThoughtFlowNode>) {
   return (
     <div
-      className={`graph-node graph-node--${data.tone}${selected ? ' is-selected' : ''}`}
+      className={`graph-node graph-node--${data.tone} graph-node--certainty-${data.certainty}${selected ? ' is-selected' : ''}`}
     >
       <Handle
         className="graph-node__handle"
@@ -71,6 +100,11 @@ const ThoughtNodeView = memo(function ThoughtNodeView({
         position={Position.Top}
         isConnectable={false}
       />
+      {certaintyMarker[data.certainty] ? (
+        <span className="graph-node__certainty" aria-hidden="true">
+          {certaintyMarker[data.certainty]}
+        </span>
+      ) : null}
       <span className="graph-node__type">{data.semanticType}</span>
       <span className="graph-node__label">{data.label}</span>
       <Handle
@@ -161,6 +195,7 @@ function GraphCanvas({
         label: node.label,
         semanticType: node.type,
         tone: toneForType(node.type),
+        certainty: node.certainty,
       },
       selected: node.id === selectedNodeId,
       selectable: true,
@@ -170,33 +205,47 @@ function GraphCanvas({
       focusable: true,
       zIndex: 1,
       ariaRole: 'button',
-      ariaLabel: `${node.type}: ${node.label}`,
+      ariaLabel: `${node.certainty} certainty, ${node.type}: ${node.label}`,
       style: { width: node.width, height: node.height },
     }))
 
     return [...groupNodes, ...thoughtNodes]
   }, [graph, selectedNodeId])
   const edges = useMemo<Edge[]>(
-    () =>
-      graph?.edges.map((edge) => ({
+    () => {
+      const nodeById = new Map(graph?.nodes.map((node) => [node.id, node]) ?? [])
+
+      return graph?.edges.map((edge) => {
+        const marker = certaintyMarker[edge.certainty]
+        const sourceLabel = nodeById.get(edge.source)?.label ?? edge.source
+        const targetLabel = nodeById.get(edge.target)?.label ?? edge.target
+
+        return {
         id: edge.id,
         source: edge.source,
         target: edge.target,
-        label: edge.label,
+        label: [marker, edge.label].filter(Boolean).join(' ') || undefined,
         type: 'smoothstep',
         focusable: false,
         selectable: false,
+        className: `graph-edge graph-edge--certainty-${edge.certainty}`,
+        ariaLabel: `${edge.certainty} certainty relation from ${sourceLabel} to ${targetLabel}${edge.label ? `: ${edge.label}` : ''}`,
         markerEnd: { type: MarkerType.ArrowClosed, color: '#738093' },
-        style: { stroke: '#738093', strokeWidth: 1.7 },
+        style: edgeStyle(edge.certainty),
         labelStyle: {
           fill: '#4d586a',
           fontSize: 12,
           fontWeight: 650,
+          ...(edge.certainty === 'rejected'
+            ? { textDecoration: 'line-through' }
+            : {}),
         },
         labelBgStyle: { fill: '#ffffff', fillOpacity: 0.92 },
         labelBgPadding: [5, 3],
         labelBgBorderRadius: 5,
-      })) ?? [],
+        }
+      }) ?? []
+    },
     [graph],
   )
 

@@ -5,6 +5,7 @@
 
 - Status: Draft / Approval Candidate
 - Target: Granvas v0.1
+- Notation: Granvas Notation v0.2（v0.1 に対し後方互換）
 - Architecture: Domain-Driven Design + Layered Architecture + Modular Monolith
 - Frontend: React + TypeScript + Vite
 - Hosting: Vercel
@@ -15,11 +16,20 @@
 
 ## 0. この文書の目的
 
-この文書は、Granvas v0.1 のプロダクト仕様・Granvas Notation v0.1・UI・アーキテクチャ・モジュール境界・技術構成・テスト方針・リリース条件を統合して定義する。
+この文書は、Granvas v0.1 のプロダクト仕様・Granvas Notation v0.2・UI・アーキテクチャ・モジュール境界・技術構成・テスト方針・リリース条件を統合して定義する。
 
 要求の真の情報源は `docs/ideas/initial-requirements.md` とする。本書は要求を実装可能な契約へ具体化した統合仕様であり、永続的な設計方針は `docs/product-requirements.md`、`docs/functional-design.md`、`docs/architecture.md` ほか `dev-docs` 標準文書へ分離して保持する。
 
-v0.1 の開発では、本書を実装判断の基準とする。仕様変更が必要になった場合は、実装を先に変えるのではなく、本書または対応する ADR（Architecture Decision Record）を更新する。
+v0.1 の開発では、本書を実装判断の基準とする。仕様変更が必要になった場合は、実装を先に変えるのではなく、本書または対応する ADR（Architecture Decision Record）を更新する。ADR は `docs/adr/` に置き、`docs/adr/README.md` を索引とする。
+
+### 0.1 改訂履歴
+
+| 日付 | 変更 | 根拠 |
+| --- | --- | --- |
+| 2026-08-10 | 初版 | — |
+| 2026-08-11 | Authoring Core を v0.1 scope へ追加。Notation に確信度マーカーを導入し v0.2 とする。Graph を read-only projection から意味編集可へ改訂する。座標の非永続化は維持する。 | [ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md) / [ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md) / [ADR-0003](adr/0003-certainty-markers-in-granvas-notation.md) |
+
+Phase の名称・順序・進捗は `docs/development-roadmap.md` を正本とする。
 
 ---
 
@@ -58,7 +68,11 @@ v0.1 では次を原則とする。
 - グラフの座標・見た目は正本ではない。
 - 同じテキストから同じ意味構造を再生成できることを優先する。
 
-将来的には `Text ⇄ Graph` の双方向編集を目指すが、v0.1 は **Text → Graph** に集中する。
+v0.1 は `Text ⇄ Graph` の双方向編集を含む。ただしこれは正本が2つになることを意味しない。
+
+グラフ上の操作は、グラフの状態を直接変更するのではなく、**現在のテキストに対する最小の編集列へ変換して適用する**。適用後のグラフは、常に更新後のテキストを解析し直した結果である。つまり編集の向きが増えても、投影の向きは `Text → Graph` のままである。
+
+グラフからテキスト全文を再生成（シリアライズ）することは行わない。ドキュメントには通常文が混在しており（§4.8）、通常文はグラフへ投影されないため、全文再生成は必ずユーザーの記述を破壊する。詳細は [ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md)。
 
 ## 1.3 v0.1 が提供する価値
 
@@ -78,12 +92,17 @@ v0.1 では次を原則とする。
 
 - 左: テキストエディタ / 右: グラフの分割 UI
 - 通常文と Granvas Notation の混在
-- Granvas Notation v0.1 のリアルタイム解析
+- Granvas Notation v0.2 のリアルタイム解析
 - Node / Relation / Group / Layout の解釈
+- Node / Relation の確信度（certainty）の解釈と表示
 - Flow レイアウト
 - Text → Graph のリアルタイム投影
 - グラフノード選択 → 対応するテキスト位置へ移動
 - テキストカーソル位置 → 対応するグラフノードをハイライト
+- グラフ上での Node ラベル / Type の編集
+- グラフ上での Node 作成・Edge 接続・削除
+- 意味ドラッグによる親子関係・Group 所属の変更（座標は保存しない）
+- グラフ操作をテキストの最小差分として反映し、Undo で戻せること
 - 構文ハイライト
 - 非破壊的な diagnostics 表示
 - `.granvas` プロジェクトの Import
@@ -97,8 +116,7 @@ v0.1 では次を原則とする。
 ## 2.2 v0.1 では実装しないもの
 
 - draw.io の代替となる自由作図
-- グラフ上からのノード・エッジ編集
-- ノード位置の永続化
+- ノード位置の永続化 / 自由配置（[ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md) により意図的に非対応）
 - ノード色・形・サイズ・座標を指定する記法
 - Map / Outline / Kanban / Timeline など複数ビュー
 - 複数ドキュメント管理 UI
@@ -133,6 +151,10 @@ shape: roundedRectangle
 ```
 
 ユーザーは「何を考えているか」を書き、Granvas が「どう見せるか」を担当する。
+
+この原則は確信度マーカー（§4.2）にも適用される。`[?idea]` は「破線で描け」ではなく「まだ確定していない」という意味を書いている。破線表示はその帰結にすぎず、記法の側は表示方法を規定しない。
+
+同じ理由により、グラフ上のドラッグ操作も見た目ではなく意味の操作として定義する（§5.4）。ノードを動かした座標は記法にも `.granvas` にも保存しない。
 
 ---
 
@@ -195,11 +217,44 @@ ID を使い、離れた場所に記述したノードを接続できる。
 
 のような未完成行が存在しても、それ以前に正常解析できた Node / Edge は表示を維持する。
 
+## UC-07: 未確定のまま構造にする
+
+```text
+[problem @churn] 解約が増えている
+  ?-> [?hypothesis] 価格が高い
+```
+
+検証していない原因を、確定した因果と区別したまま図に置ける。後で検証できたら `?` を外し、否定されたら `~` へ変える。
+
+## UC-08: 棄却した案を残す
+
+```text
+[~idea @manual] 手動で統合する
+```
+
+棄却した案は図から消えず、棄却として表示される。「何を検討して何を捨てたか」が構造として残る。
+
+## UC-09: グラフ側から書き換える
+
+1. ユーザーがグラフ上の Node をダブルクリックする。
+2. ラベルを書き換えて確定する。
+3. テキストの該当行だけが書き換わる。
+4. 通常文と他の行は変化しない。
+5. `Undo` 1 回で元へ戻る。
+
+## UC-10: 掴んで構造を組み替える
+
+1. ユーザーがグラフ上の Node を別の Node へドラッグする。
+2. ドロップ先が親候補としてハイライトされる。
+3. ドロップするとテキストの行位置と indent が書き換わる。
+4. 新しい構造で自動レイアウトが再実行される。
+5. 座標はどこにも保存されない。
+
 ---
 
 
 
-# 4. Granvas Notation v0.1
+# 4. Granvas Notation v0.2
 
 
 
@@ -214,21 +269,39 @@ ID を使い、離れた場所に記述したノードを接続できる。
 - Parser は partial result を返せること。
 - Parser error によりドキュメント全体を無効化しない。
 - Parser は常に **現在 revision の source** だけから結果を生成する。前 revision の構造を last-known-good として混在させない。
+- Parser はすべての構造要素について、宣言行全体の `sourceRange` に加え、トークン単位の `spans` を返す（§4.11）。これはグラフ側の編集を最小差分へ変換するために必要である。
+
+### 4.1.0 v0.1 からの変更点
+
+Granvas Notation v0.2 は v0.1 に対し **後方互換の追加のみ**である。v0.1 として valid だったすべての文書は、v0.2 parser で同じ構造へ解析される。
+
+追加された構文は次の2つで、いずれも v0.1 では invalid だった文字位置を使用するため、既存文書と衝突しない。
+
+| 追加 | 構文 | 非衝突の根拠 |
+| --- | --- | --- |
+| Node 確信度マーカー | `[?type]` / `[!type]` / `[~type]` | v0.1 の `type` は `alpha` で始まる必要があり、`?` `!` `~` は先頭文字として invalid |
+| Relation 確信度 operator | `?->` / `!->` / `~->` | v0.1 の relation operator は `->` のみ |
+
+根拠は [ADR-0003](adr/0003-certainty-markers-in-granvas-notation.md)。
 
 ### 4.1.1 Notation candidate の確定
 
 各 non-empty line は先頭の空白と予約 prefix により、最初に Notation candidate か Plain Text かを分類する。
 
+以下、**relation operator** は `->` / `?->` / `!->` / `~->` のいずれかを指す（§4.4）。
+
 - indent 0 で `[` から始まる行は Node Declaration candidate。
-- 2 spaces 以上の indent 後に `->` が続く行は Nested Relation candidate。
+- 2 spaces 以上の indent 後に relation operator が続く行は Nested Relation candidate。
 - indent 0 で `@layout` から始まる行は Layout Directive candidate。
-- indent 0 で `@` から始まり、行内に `->` がある行は Cross Relation candidate。
+- indent 0 で `@` から始まり、行内に relation operator がある行は Cross Relation candidate。
 - indent 0 で `{` から始まる行は Group Header candidate。
 - open Group の内側で base indent 以上の `[`, `@`, `{` から始まる行は Group Member candidate。`{` は nested Group candidate として `GNV011_NESTED_GROUP_UNSUPPORTED` を返す。
 - open Group の外側で indent 後に `[`, `@`, `{` から始まる行は invalid indentation candidate とし、`GNV006_INVALID_INDENT` を返す。
 - 上記以外は Plain Text とする。
 
-Notation candidate は構文が未完成でも Plain Text へフォールバックせず、対応する diagnostic を返す。これにより `[problem`、`@layout flow`、`  ->` のような入力途中の行を一意に扱う。
+Notation candidate は構文が未完成でも Plain Text へフォールバックせず、対応する diagnostic を返す。これにより `[problem`、`@layout flow`、`  ->`、`  ?->` のような入力途中の行を一意に扱う。
+
+確信度マーカーを伴う candidate も同様にコミットする。`[?` まで入力した時点で Node Declaration candidate として確定し、Plain Text へは戻らない。
 
 ### 4.1.2 Recovery policy
 
@@ -252,8 +325,10 @@ Parser は JavaScript string を入力として受け取り、`LF` と `CRLF` �
 ### Syntax
 
 ```text
-[type] Label
+[certainty? type] Label
 ```
+
+`certainty` マーカーは任意。省略時は `neutral`。
 
 
 
@@ -303,7 +378,36 @@ Built-in Type は初期表示スタイルを持つ。
 
 未知 Type はエラーにせず default Node style で表示する。
 
-Type 名は ASCII の英数字・`-`・`_` を許可し、比較時は小文字へ正規化する。
+Type 名は ASCII の英数字・`-`・`_` を許可し、比較時は小文字へ正規化する。Type 名は英字で始まる。
+
+### Certainty Marker
+
+Type トークンの直前に確信度マーカーを置ける。確信度は Type と**直交する軸**であり、任意の Type と組み合わせられる。
+
+```text
+[?hypothesis @price] 価格が導入障壁       tentative
+[!idea @unify] AI で統合する              confirmed
+[~idea @manual] 手動で統合する            rejected
+[idea] AI で統合する                      neutral（既定）
+```
+
+| Marker | `certainty` | 意味 |
+| --- | --- | --- |
+| なし | `neutral` | 確信度を明示しない。既定 |
+| `?` | `tentative` | 未確定・仮説・検証前 |
+| `!` | `confirmed` | 確定・検証済み・採用 |
+| `~` | `rejected` | 棄却・否定・見送り |
+
+Rules:
+
+- マーカーは `[` の直後にのみ置ける。`[?problem]` は valid、`[problem?]` は invalid。
+- マーカーと Type の間の空白は任意とする。`[?problem]` と `[? problem]` はいずれも valid。
+- マーカーは 1 個まで。`[??problem]` や `[?~problem]` は `GNV014_INVALID_CERTAINTY_MARKER` とする。
+- マーカーのみで Type が無い場合（`[?]`、`[? ]`）も `GNV014_INVALID_CERTAINTY_MARKER` とする。
+- 確信度は Type の意味を変えない。`[?problem]` の Type は `problem` である。
+- 確信度は Node の表示スタイルに反映するが、記法の側は表示方法を規定しない（§2.3）。
+
+`rejected` な Node は Graph から削除せず、棄却として表示する。棄却を記録することがこのマーカーの目的であり、削除したい場合はテキストから行を消す。
 
 ---
 
@@ -390,7 +494,7 @@ Invalid:
   -> [child-type] Child
 ```
 
-インデントは **2 spaces = 1 level** とする。
+インデントは **2 spaces = 1 level** とする。`->` の位置には確信度を伴う relation operator も置ける（後述）。
 
 ### Example
 
@@ -420,12 +524,33 @@ Problem
 
 
 
+### Relation Operator
+
+すべての relation operator は有向 Edge を生成し、確信度だけが異なる。Node の確信度マーカー（§4.2）と同じ記号体系を使う。
+
+| Operator | `certainty` | 意味 |
+| --- | --- | --- |
+| `->` | `neutral` | 確信度を明示しない。既定 |
+| `?->` | `tentative` | 未検証の関連・仮の因果 |
+| `!->` | `confirmed` | 検証済みの関連 |
+| `~->` | `rejected` | 否定された・棄却された関連 |
+
+```text
+[problem @churn] 解約が増えている
+  ?-> [cause] 価格が高い
+  ~-> [cause] UI が古い
+```
+
+Node の確信度と Edge の確信度は独立している。`[!idea]` から `?->` で伸びる Edge は valid であり、「確定した案だが、その効果は未検証」を表す。
+
+`rejected` な Edge は Graph から削除せず、棄却として表示する。
+
 ### Rules
 
-- `->` は有向 Edge を生成する。
+- relation operator は有向 Edge を生成する。
 - Edge の向きは **親 → 子**。
 - Node Type は Edge の意味を自動決定しない。
-- v0.1 の Nested Relation に Edge label は持たせない。
+- Nested Relation に Edge label は持たせない。確信度は operator で表す。
 - level `n` の relation の親は、同一 scope 内で直前に宣言された level `n - 1` の Node とする。
 - Top-level scope では Node Declaration を level 0、先頭 2 spaces の relation を level 1 とする。
 - Group scope では base indent 2 spaces の Node Declaration を level 0、先頭 4 spaces の relation を level 1 として扱う。
@@ -461,6 +586,7 @@ Problem
 
 ```text
 @unify -> @scattered : solves
+@price ?-> @churn : maybe
 ```
 
 
@@ -472,11 +598,11 @@ Problem
 - relation-label は trim 後の文字列をそのまま表示用ラベルとして扱う。
 - `:` が存在するのに trim 後の relation-label が空なら `GNV012_EMPTY_RELATION_LABEL` warning とし、ラベルなし Edge を生成する。
 - 未解決 ID がある場合、warning を返し Edge は生成しない。
-- v0.1 で使用できる relation operator は `->` のみ。
+- 使用できる relation operator は `->` / `?->` / `!->` / `~->` の4種類とし、意味は §4.4 と同一とする。
 - self-loop、cycle、同一 source / target 間の複数 Edge は valid とし、宣言 occurrence ごとに別 Edge として保持する。
 - Duplicate ID を参照した場合は Cross Relation / Group reference とも最初に宣言された Node を採用する。
 
-以下は v0.1 では未対応。
+以下は v0.2 でも未対応。
 
 ```text
 A <- B
@@ -625,6 +751,27 @@ A <-> B
   @interview
 ```
 
+確信度を含む例:
+
+```text
+@layout flow TB
+
+# 解約の分析
+
+[problem @churn] 解約が増えている
+  !-> [cause] オンボーディングが長い
+  ?-> [?hypothesis @price] 価格が高い
+  ~-> [~cause] UI が古い
+
+[!idea @onboarding] 初回設定を3ステップにする
+[~idea @discount] 値下げする
+
+@onboarding -> @churn : solves
+@price ?-> @churn : maybe
+```
+
+`~cause` と `~idea` は Graph から消えず、棄却として表示される。
+
 ---
 
 
@@ -669,6 +816,7 @@ GNV010_DUPLICATE_LAYOUT
 GNV011_NESTED_GROUP_UNSUPPORTED
 GNV012_EMPTY_RELATION_LABEL
 GNV013_EMPTY_GROUP_NAME
+GNV014_INVALID_CERTAINTY_MARKER
 ```
 
 | Code | Default level | Recovery |
@@ -686,6 +834,12 @@ GNV013_EMPTY_GROUP_NAME
 | `GNV011_NESTED_GROUP_UNSUPPORTED` | `warning` | 内側 Group を生成しない |
 | `GNV012_EMPTY_RELATION_LABEL` | `warning` | label なし Edge を生成 |
 | `GNV013_EMPTY_GROUP_NAME` | `error` | Group を省略 |
+| `GNV014_INVALID_CERTAINTY_MARKER` | `error` | Node を省略 |
+
+`GNV014_INVALID_CERTAINTY_MARKER` は次の場合に返す。`range` は `[` から `]` までを指す。
+
+- マーカーが 2 個以上ある（`[??problem]`、`[?~problem]`）。
+- マーカーだけで Type が無い（`[?]`、`[? ]`）。
 
 Diagnostic の公開契約は以下とする。
 
@@ -747,6 +901,49 @@ export type SourceRangeDto = {
 
 この Source Mapping を `Graph → Text` navigation に利用する。
 
+### Token Spans
+
+primary `sourceRange` は宣言行全体を指すため、ラベルだけの置換や `@id` だけの挿入を表現できない。Graph → Text 編集（§5.4）が最小差分を計算できるよう、各構造要素はトークン単位の `spans` も返す。
+
+```ts
+export type NodeSourceSpansDto = {
+  indent: SourceRangeDto;
+  certainty?: SourceRangeDto;
+  type: SourceRangeDto;
+  explicitId?: SourceRangeDto;
+  idInsertionPoint: number;
+  label: SourceRangeDto;
+};
+
+export type RelationSourceSpansDto = {
+  operator: SourceRangeDto;
+  sourceRef?: SourceRangeDto;
+  targetRef?: SourceRangeDto;
+  label?: SourceRangeDto;
+  labelInsertionPoint: number;
+};
+
+export type GroupSourceSpansDto = {
+  header: SourceRangeDto;
+  name: SourceRangeDto;
+  memberInsertionPoint: number;
+};
+```
+
+規約:
+
+- すべての span は primary `sourceRange` の内側に収まる。
+- `indent` は行頭の空白範囲。indent が無い場合は幅 0 の range とする。
+- `certainty` はマーカーが存在する場合のみ返す。
+- `explicitId` は `@` を含む範囲を指す。
+- `idInsertionPoint` は `explicitId` が無いときに `@id` を挿入すべき offset で、`type` span の `to` とする。
+- `labelInsertionPoint` は `: label` を追記すべき offset で、line ending を除く行末とする。
+- `memberInsertionPoint` は Group scope の末尾で、member 行を追記すべき offset とする。
+- `sourceRef` / `targetRef` は Cross Relation にのみ存在する。
+- offset の規約は primary `sourceRange` と同一とする（0-based UTF-16 code-unit）。
+
+`spans` の追加は既存フィールドを変更しないため後方互換である。用途と設計判断は [ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md)。
+
 ---
 
 
@@ -776,15 +973,16 @@ group-member-line = group-base-indent,
                     | nested-relation-after-group-base
                     | plain-text ) ;
 
-node-declaration  = "[", type, [ space, "@", identifier ], "]", space, label ;
+node-declaration  = "[", [ certainty-marker, [ space ] ], type,
+                    [ space, "@", identifier ], "]", space, label ;
 
-nested-relation   = relation-indent, "->", space, node-declaration ;
+nested-relation   = relation-indent, relation-operator, space, node-declaration ;
 
 nested-relation-after-group-base
-                  = relation-indent, "->", space, node-declaration ;
+                  = relation-indent, relation-operator, space, node-declaration ;
 
 explicit-relation = "@", identifier,
-                    space, "->", space,
+                    space, relation-operator, space,
                     "@", identifier,
                     [ space, ":", space, relation-label ] ;
 
@@ -794,6 +992,8 @@ group-reference   = "@", identifier ;
 
 layout-directive  = "@layout", space, "flow", space, ( "TB" | "LR" ) ;
 
+certainty-marker  = "?" | "!" | "~" ;
+relation-operator = [ certainty-marker ], "->" ;
 identifier        = alpha, { alpha | digit | "-" | "_" } ;
 type              = alpha, { alpha | digit | "-" | "_" } ;
 group-base-indent = "  " ;
@@ -805,6 +1005,8 @@ group-name        = non-brace-newline, { non-brace-newline } ;
 ```
 
 `alpha` は ASCII `A-Z` / `a-z`、`digit` は ASCII `0-9` とする。Node Type は parse 後に lowercase へ正規化する。Label、relation-label、group-name に escape syntax は導入せず、各行の閉じ delimiter より後または行末までを文字列として扱う。
+
+`certainty-marker` は `type` の直前にのみ 1 個まで置ける。`type` が `alpha` で始まる制約により、`?` `!` `~` は marker としてのみ解釈され、Type 名の一部にはならない。marker が 2 個以上の場合と、marker のみで `type` が無い場合は `GNV014_INVALID_CERTAINTY_MARKER` とする。
 
 ---
 
@@ -819,10 +1021,13 @@ group-name        = non-brace-newline, { non-brace-newline } ;
 - Node Declaration → Graph Node
 - Nested Relation → Directed Graph Edge
 - Cross Relation → Directed Graph Edge
+- Node / Relation の certainty → Graph Node / Edge の `certainty`
 - Group → Graph Group / visual container
 - Layout Directive → Layout configuration
 - Plain Text → Graph には出さない
 - Diagnostics → Graph state を破壊しない
+
+`rejected` な Node / Edge も Graph へ投影する。確信度は表示の差になるが、投影の有無を変えない。
 
 
 
@@ -840,11 +1045,16 @@ export type ThoughtGraph = {
 ```
 
 ```ts
+export type GraphCertainty = 'neutral' | 'tentative' | 'confirmed' | 'rejected';
+```
+
+```ts
 export type GraphNode = {
   id: string;
   explicitId?: string;
   type: string;
   label: string;
+  certainty: GraphCertainty;
 };
 ```
 
@@ -854,6 +1064,7 @@ export type GraphEdge = {
   sourceNodeId: string;
   targetNodeId: string;
   label?: string;
+  certainty: GraphCertainty;
 };
 ```
 
@@ -873,8 +1084,13 @@ export type ProjectionSourceMapDto = {
   nodeRanges: Readonly<Record<string, SourceRangeDto>>;
   edgeRanges: Readonly<Record<string, SourceRangeDto>>;
   groupRanges: Readonly<Record<string, SourceRangeDto>>;
+  nodeKeys: Readonly<Record<string, string>>;
+  edgeKeys: Readonly<Record<string, string>>;
+  groupKeys: Readonly<Record<string, string>>;
 };
 ```
+
+`*Keys` は Graph 要素 ID から Notation occurrence key への対応表であり、Graph → Text 編集（§5.4）が編集対象の構造要素を特定するために使う。Graph ID の生成規則を Workspace 側で再現することは禁止する。対応は必ずこの表を経由する。
 
 
 
@@ -889,29 +1105,80 @@ export type ProjectionSourceMapDto = {
 - Dagre 入力座標は CSS pixel、出力 `x/y` は Node bounds の左上座標とする。
 - Group は member Node の配置後に、全 member bounds を囲む `24px` padding の overlay bounds を計算する。複数 Group の overlay は重なってよい。
 - 同一 input に対する Node / Edge の順序を occurrence key 順へ正規化し、layout 結果を決定的にする。
+- `certainty` は layout に影響しない。`rejected` な Node も他と同じ bounds を占める。確信度は表示の差であり、配置の差ではない。
 
 
 
 ## 5.4 Graph Editing
 
-v0.1 の Graph は read-only projection とする。
+Graph は**意味の編集が可能な projection** とする。ただし Graph 自体は状態を持たず、すべての編集はテキストへの書き戻しとして実現する。
 
-許可:
+### 原則
 
-- Select
-- Pan
-- Zoom
-- Fit View
+すべての Graph 操作は次の経路をたどる。
 
-禁止:
+```text
+Graph 操作
+  ↓
+occurrence key の解決（ProjectionSourceMapDto）
+  ↓
+SourceEditPlan の生成（Notation domain / 純関数）
+  ↓
+現在 source への最小編集列の適用
+  ↓
+新しい revision で parse → graph → layout
+```
 
-- Node drag による意味変更
-- Edge 作成
-- Node 作成
-- Node 削除
-- 座標保存
+- Graph の状態を直接変更しない。編集後の Graph は必ず更新後のテキストの解析結果である。
+- Graph からテキスト全文を再生成しない（§1.2）。
+- 編集列は昇順・非重複とし、1 トランザクションとして適用する。
+- 実行できない操作は例外ではなく理由付きの `rejected` として返し、テキストを変更しない。
+- すべての Graph 操作は `Undo` 1 回で元へ戻る。
 
-Node drag は原則 disabled とする。
+### 許可する操作
+
+| 操作 | テキストへの反映 |
+| --- | --- |
+| Select / Pan / Zoom / Fit View | なし |
+| Node ラベル編集 | 宣言行の label span を置換 |
+| Node Type 編集 | 宣言行の type span を置換 |
+| Node 確信度変更 | 確信度マーカーの挿入・置換・削除 |
+| Node 作成 | 宣言行を挿入 |
+| Edge 作成 | 必要なら両端へ `@id` を付与し、Cross Relation 行を挿入 |
+| Node 削除 | 宣言行と、それを参照する Relation 行・Group 参照行・子孫行を削除 |
+| Edge 削除 | Cross Relation は行を削除。Nested Relation は child を top-level へ昇格 |
+| 意味ドラッグ | ドロップ先に応じて親子関係・Group 所属を変更 |
+
+### 意味ドラッグ
+
+Node drag は座標の操作ではなく**意味の操作**として解釈する。決定の根拠は [ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md)。
+
+| ドロップ先 | 意味 | テキストへの反映 |
+| --- | --- | --- |
+| 別 Node の上 | その Node を親にする | 行を新しい親の直下へ移動し、indent を `親 indent + 2` へ再計算。top-level 宣言だった場合は relation operator を前置 |
+| Group overlay の内側 | その Group のメンバーにする | `@id` が無ければ自動採番して宣言行へ付与し、Group ブロックへ member 行を追加 |
+| 空白 | 親子関係を解除する | relation operator を剥がし、indent 0 の宣言行へ戻す |
+
+- 自分の子孫を親にする操作（循環）は `rejected` とし、理由を UI に示す。
+- Group への drop は既定で「追加」とする（§4.6 が複数所属を許容するため）。
+- ドロップ後は自動レイアウトが位置を決めるため、指を離した位置には留まらない。ドラッグ中の drop 先ハイライトと、確定後のアニメーション遷移を実装要件とする。
+
+### 禁止
+
+- 座標の保存。`.granvas` に Node 位置を書き出さない。
+- 自由配置。ドロップ位置そのものを意味として扱わない。
+- Graph からのテキスト全文再生成。
+- Graph 側での通常文の編集。通常文は Text pane でのみ編集する。
+
+### ID 自動採番
+
+Edge 作成や Group 所属変更で `@id` が必要になった場合、Granvas が採番する。
+
+- Node label を ASCII 英数字へ slug 化する。
+- 先頭が英字でない場合は `n` を前置する。
+- slug が空になる場合は `node-1` 形式の連番とする。
+- 既存 ID と衝突する場合は `-2`、`-3` を付す。
+- 結果は §4.3 の ID 規則（英字開始、英数字・`-`・`_`）を必ず満たす。
 
 ---
 
@@ -985,13 +1252,25 @@ Requirements:
 Highlight 対象:
 
 - `[type]`
+- 確信度マーカー `?` / `!` / `~`（type とは別トークンとして描き分ける）
 - `@id`
-- `->`
+- relation operator `->` / `?->` / `!->` / `~->`
 - `{Group}`
 - `@layout`
 - relation label
 
 IME composition 中は editor の文字列更新を妨げない。parse / layout / dirty 判定は更新してよいが、composition 中の一時的な diagnostic は gutter に表示せず、`compositionend` 後の revision で確定表示する。
+
+### Graph 編集の適用
+
+Graph 側の編集（§5.4）は、全文置換ではなく最小編集列として editor へ適用する。
+
+- editor は `applyEdits(edits, select?)` に相当する命令的 API を公開する。
+- 複数レンジの変更は 1 トランザクションで dispatch し、`Undo` 1 回で戻せる状態にする。
+- 全文置換の経路は Project Import 専用として残し、編集経路と分ける。
+- 編集適用中は editor 由来の `onSourceChange` を再入させない。
+- IME composition 中は Graph 編集を受け付けない。
+- Graph 編集を開始する前に、debounce 待機中の source 更新を必ず flush する。これを怠ると古い解析結果の offset に対して編集列を計算し、誤った位置を書き換える。
 
 
 
@@ -1015,6 +1294,28 @@ Graph Node は focusable とし、`Enter` / `Space` で click と同じ Graph �
 Node visual style は semantic type に応じて軽く差別化する。
 
 Built-in Type 以外は default style。
+
+### Certainty の表示
+
+| `certainty` | Node | Edge |
+| --- | --- | --- |
+| `neutral` | 既定 | 実線 |
+| `tentative` | 破線ボーダー ＋ `?` バッジ | 破線 ＋ `?` マーカー |
+| `confirmed` | 実線太め ＋ `✓` バッジ | 実線太め |
+| `rejected` | 打ち消し線 ＋ グレーアウト | 破線グレー ＋ 打ち消し |
+
+色だけで確信度を区別しない（§18）。線種・バッジ・テキスト装飾を併用し、accessible name にも確信度を含める。
+
+`rejected` な Node / Edge を非表示にしない。棄却を図の上に残すことが目的である（§4.2）。
+
+### 編集操作
+
+- Node のダブルクリックでラベルのインライン編集に入る。`Enter` で確定、`Escape` で取消。
+- キャンバス空白のダブルクリックで Node を作成する。
+- Node の handle をドラッグして別 Node へ接続すると Edge を作成する。
+- Node のドラッグは意味ドラッグとして扱う（§5.4）。ドラッグ中は drop 先候補をハイライトし、確定後は新しい配置へアニメーション遷移する。
+- 削除は連鎖対象を事前に提示してから実行する。
+- すべての編集操作は keyboard からも到達できるようにする（§18）。
 
 ## 6.6 Text / Graph Synchronization
 
@@ -1380,7 +1681,9 @@ Document context は CodeMirror を知らない。
 
 ### Responsibility
 
-Granvas Notation の syntax / semantics / diagnostics / source mapping を管理する。
+Granvas Notation の syntax / semantics / diagnostics / source mapping / **編集規則** を管理する。
+
+「Node A と Node B を接続する」「Node を別の親の下へ移す」といった操作は、Graph の知識ではなく Granvas Notation の文法知識を必要とするため、Notation Context が所有する。根拠は [ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md)。
 
 ### Domain
 
@@ -1393,9 +1696,12 @@ RelationDeclaration
 GroupDeclaration
 LayoutDirective
 NodeType
+NodeCertainty
 NodeReference
 SourceRange
+SourceSpans
 Diagnostic
+SourceEditPlan
 ```
 
 
@@ -1404,9 +1710,45 @@ Diagnostic
 
 ```text
 GranvasNotationParser
+NotationEditor
 ```
 
-Parser は Granvas の言語仕様そのものなので、v0.1 の pure TypeScript parser は domain service として扱う。
+Parser は Granvas の言語仕様そのものなので、pure TypeScript parser は domain service として扱う。
+
+`NotationEditor` は `(source, parseResult, command) → SourceEditPlan` の pure function 群であり、Parser と同じく言語仕様の一部として domain に置く。
+
+```ts
+export type SourceEdit = {
+  from: number;
+  to: number;
+  insert: string;
+};
+
+export type SourceEditPlan =
+  | { type: 'applicable'; edits: readonly SourceEdit[]; caretAnchor?: number }
+  | { type: 'rejected'; reason: NotationEditRejection };
+```
+
+規約:
+
+- `edits` は `from` 昇順で、範囲が重複しない。
+- 実行できない操作は例外ではなく `rejected` として理由付きで返す。
+- `caretAnchor` は編集前 offset で表現し、適用側が編集列でマップする。
+- React / CodeMirror / React Flow / DOM / browser API を参照しない。
+
+対象コマンド:
+
+```text
+SetNodeLabel
+SetNodeType
+SetNodeCertainty
+CreateNode
+ConnectNodes
+ReparentNode
+SetGroupMembership
+DeleteNode
+DeleteRelation
+```
 
 外部 parser generator を将来導入する場合、その技術 adapter は infrastructure に置く。
 
@@ -1414,25 +1756,38 @@ Parser は Granvas の言語仕様そのものなので、v0.1 の pure TypeScri
 
 ```text
 ParseNotation
+PlanNotationEdit
 ```
 
-Input:
+`ParseNotation` Input:
 
 ```ts
 { source: string }
 ```
 
-Output:
+`ParseNotation` Output:
 
 ```ts
 ParseResultDto
 ```
 
+`PlanNotationEdit` Input:
 
+```ts
+{ source: string; parseResult: ParseResultDto; command: NotationEditCommandDto }
+```
+
+`PlanNotationEdit` Output:
+
+```ts
+SourceEditPlanDto
+```
+
+use case は編集を適用しない。適用と再投影は Workspace の責務とする。
 
 ### Infrastructure
 
-v0.1 では必須実装なし。
+必須実装なし。
 
 ### Presentation
 
@@ -1442,9 +1797,10 @@ CodeMirror integration:
 Granvas syntax highlighting
 Diagnostics decoration
 Source range mapping
+Source edit application (applyEdits)
 ```
 
-CodeMirror の型は presentation の外へ出さない。
+CodeMirror の型は presentation の外へ出さない。`applyEdits` は `SourceEdit` の配列を受け取り、CodeMirror transaction へ変換する。
 
 ---
 
@@ -1589,7 +1945,9 @@ TransferStatus
 
 Document / Notation / Graph / Transfer をユーザーの編集体験として協調させる。
 
-Granvas の主要 UX である **Text ↔ Graph navigation** を扱う。
+Granvas の主要 UX である **Text ↔ Graph navigation** と **Text ⇄ Graph editing** を扱う。
+
+Workspace は Notation の文法知識を持たない。Graph 編集では「Graph 要素 ID から occurrence key を解決し、Notation へ編集計画を要求し、結果を Document source へ適用して再投影する」という orchestration だけを担う（§6.2）。
 
 ### Domain
 
@@ -1609,11 +1967,23 @@ v0.1 では無理に domain object を増やさない。
 OpenWorkspace
 UpdateWorkspaceSource
 RebuildWorkspaceProjection
+ApplyGraphEdit
 SelectGraphNode
 SelectSourceRange
 ImportProject
 DownloadCurrentProject
 ```
+
+`ApplyGraphEdit` の処理順は次のとおり。
+
+1. pending な source 更新を flush し、current revision の解析結果を確定させる。
+2. `ProjectionSourceMapDto` の `*Keys` で Graph 要素 ID を occurrence key へ解決する。
+3. Notation の `PlanNotationEdit` から `SourceEditPlanDto` を取得する。
+4. `rejected` なら source を変更せず、理由を返す。
+5. `applicable` なら編集列を current source へ適用し、`UpdateDocumentSource` で新 revision を発行する。
+6. parse → graph → layout を再実行する。
+7. `caretAnchor` を編集列でマップし、再投影後の selection を再解決する。
+8. 適用した編集列を presentation へ返す。editor は同じ編集列を 1 トランザクションとして適用する。
 
 
 
@@ -2007,7 +2377,39 @@ selected graph node id
 Graph presentation highlight
 ```
 
-## 15.3 Import / Download Flow
+## 15.3 Graph Edit Flow
+
+```text
+Graph 操作（inline edit / drag / connect / delete）
+   ↓
+flush pending source update
+   ↓
+Workspace application
+   ↓
+ProjectionSourceMapDto: graph id → occurrence key
+   ↓
+Notation Application: PlanNotationEdit
+   ↓
+SourceEditPlanDto
+   ├─ rejected  → source を変更せず理由を通知して終了
+   └─ applicable
+        ↓
+   current source へ編集列を適用
+        ↓
+   Document UpdateDocumentSource → 新 revision
+        ↓
+   parse → graph → layout（15.1 と同じ pipeline）
+        ↓
+   caretAnchor を編集列でマップ → selection 再解決
+        ↓
+   Editor presentation: applyEdits（1 transaction）
+```
+
+Graph 編集は debounce しない。editor 入力の debounce（§17.1）とは別経路とし、開始前に必ず pending な source 更新を flush する。
+
+editor と Workspace の双方へ同じ編集列が渡るため、editor 側の適用が `onSourceChange` を再入させないようガードする。
+
+## 15.4 Import / Download Flow
 
 ```text
 Import Project
@@ -2050,22 +2452,29 @@ Context 間では immutable DTO / published contract を利用する。
 例:
 
 ```ts
+export type NotationCertaintyDto = 'neutral' | 'tentative' | 'confirmed' | 'rejected';
+
 export type ParsedNodeDto = {
   key: string;
   explicitId?: string;
   type: string;
   label: string;
+  certainty: NotationCertaintyDto;
   sourceRange: SourceRangeDto;
+  spans: NodeSourceSpansDto;
 };
 ```
 
 ```ts
 export type ParsedRelationDto = {
   key: string;
+  kind: 'nested' | 'cross';
   sourceNodeKey: string;
   targetNodeKey: string;
   label?: string;
+  certainty: NotationCertaintyDto;
   sourceRange: SourceRangeDto;
+  spans: RelationSourceSpansDto;
 };
 
 export type ParsedGroupDto = {
@@ -2073,6 +2482,7 @@ export type ParsedGroupDto = {
   name: string;
   memberNodeKeys: string[];
   sourceRange: SourceRangeDto;
+  spans: GroupSourceSpansDto;
 };
 
 export type ParsedLayoutDto = {
@@ -2111,6 +2521,7 @@ export type PositionedGraphDto = {
     id: string;
     label: string;
     type: string;
+    certainty: NotationCertaintyDto;
     x: number;
     y: number;
     width: number;
@@ -2121,6 +2532,7 @@ export type PositionedGraphDto = {
     source: string;
     target: string;
     label?: string;
+    certainty: NotationCertaintyDto;
   }>;
   groups: Array<{
     id: string;
@@ -2156,7 +2568,79 @@ export type WorkspaceProjectionDto = {
 };
 ```
 
-React Flow / Dagre の型を DTO に含めない。
+Graph 編集の contract は次のとおり。
+
+```ts
+export type SourceEditDto = {
+  from: number;
+  to: number;
+  insert: string;
+};
+
+export type SourceEditPlanDto =
+  | {
+      type: 'applicable';
+      edits: readonly SourceEditDto[];
+      caretAnchor?: number;
+    }
+  | {
+      type: 'rejected';
+      reason: NotationEditRejectionDto;
+    };
+
+export type NotationEditRejectionDto = {
+  code:
+    | 'unknown-target'
+    | 'cyclic-parent'
+    | 'unresolved-reference'
+    | 'unsupported-structure'
+    | 'invalid-value';
+  message: string;
+  range?: SourceRangeDto;
+};
+```
+
+```ts
+export type NotationEditCommandDto =
+  | { type: 'set-node-label'; nodeKey: string; label: string }
+  | { type: 'set-node-type'; nodeKey: string; nodeType: string }
+  | { type: 'set-node-certainty'; nodeKey: string; certainty: NotationCertaintyDto }
+  | {
+      type: 'create-node';
+      nodeType: string;
+      label: string;
+      parentNodeKey?: string;
+      groupKey?: string;
+    }
+  | {
+      type: 'connect-nodes';
+      sourceNodeKey: string;
+      targetNodeKey: string;
+      label?: string;
+      certainty?: NotationCertaintyDto;
+    }
+  | { type: 'reparent-node'; nodeKey: string; parentNodeKey?: string }
+  | { type: 'set-group-membership'; nodeKey: string; groupKey: string }
+  | { type: 'delete-node'; nodeKey: string }
+  | { type: 'delete-relation'; relationKey: string };
+```
+
+```ts
+export type WorkspaceGraphEditResultDto =
+  | {
+      type: 'applied';
+      snapshot: WorkspaceSnapshotDto;
+      edits: readonly SourceEditDto[];
+    }
+  | {
+      type: 'rejected';
+      reason: NotationEditRejectionDto;
+    };
+```
+
+`SourceEditDto` の offset は `SourceRangeDto` と同じ 0-based UTF-16 code-unit とする。編集列は適用前の source を基準とし、`from` 昇順で重複しない。
+
+React Flow / Dagre / CodeMirror の型を DTO に含めない。
 
 ---
 
@@ -2175,6 +2659,8 @@ React Flow / Dagre の型を DTO に含めない。
 - Dagre layout は Web Worker adapter で実行し、main thread には DTO だけを返す。
 - revision / abort / latest-wins policy を必須とする。
 - Graph 更新中でも text editing を継続できる。
+- Graph 編集は debounce しない。ユーザーの確定操作に対する応答であり、遅延させる理由がない。ただし開始前に pending な source 更新を flush する（§15.3）。
+- `SourceEditPlan` の生成は同期の pure function とし、main thread をブロックしない規模に収める。
 
 
 
@@ -2197,6 +2683,8 @@ Canonical performance fixture を Chromium / Firefox / WebKit の最新安定版
 - Layout worker round trip: p95 200ms 以下。
 - debounce終了からGraph paint完了: p95 350ms 以下。
 - pan / zoom 操作中のlong task: 100ms超を発生させない。
+- `SourceEditPlan` 生成: p95 20ms 以下。
+- Graph 編集の確定操作からGraph paint完了: p95 350ms 以下。
 
 巨大 graph optimization は v0.1 の対象外。
 
@@ -2213,9 +2701,18 @@ v0.1 でも最低限以下を守る。
 - graph controls を keyboard 操作可能にする。
 - Graph NodeをTabでfocusでき、Enter / SpaceでTextへ移動できる。
 - color だけで Node Type を区別しない。
+- color だけで certainty を区別しない。線種・バッジ・テキスト装飾を併用し、accessible name にも certainty を含める。
 - selection / diagnostics は非色情報でも認識できるようにする。
 - focus indicatorを表示し、status / transfer errorは`aria-live`で通知する。
 - Download dialogはfocus trap、Escapeでcancel、実行後のfocus復帰を行う。
+
+Graph 編集（§5.4）についても以下を守る。
+
+- すべての編集操作にkeyboardから到達できる経路を用意する。pointer専用の操作を作らない。
+- 意味ドラッグはkeyboardでも実行できる代替手段（Node選択後のcommandまたはcontext menu）を持つ。
+- 編集の結果と`rejected`の理由を`aria-live`で通知する。
+- inline編集はfocusを編集対象へ移し、確定・取消後にfocusを元のNodeへ戻す。
+- 削除の連鎖対象を提示するUIはfocus trapとEscape cancelを行う。
 
 適合目標は WCAG 2.2 AA とし、自動検査に加えてkeyboard-only E2Eをrelease gateに含める。
 
@@ -2298,10 +2795,43 @@ errors = 0
 - empty relation label / empty Group name
 - UTF-16 surrogate pair / CRLF / BOM除去後のsource range
 - deterministic occurrence key
+- certainty marker 4状態（Node / Relation の全組み合わせ）
+- `[??type]` / `[?~type]` / `[?]` の `GNV014_INVALID_CERTAINTY_MARKER`
+- `[? problem]` のように marker と type の間に空白がある場合
+- `?->` / `!->` / `~->` の candidate 分類と `  ?->` の入力途中コミット
+- token spans の正しさ（indent / certainty / type / explicitId / label / operator / refs）
+- `idInsertionPoint` / `labelInsertionPoint` / `memberInsertionPoint` の位置
+- span の正しさをCRLF / surrogate pair / 日本語ラベル / 全角空白で検証
+- **後方互換**: Phase 3 の全 fixture が無改変で通り、`certainty` がすべて `neutral` になること
 
+### 20.1.1 Notation Editor Tests
 
+`NotationEditor` の pure function 群は Parser と同格の executable specification として扱う。
 
-## 20.2 Application Tests
+最重要は **round-trip test** である。
+
+```text
+plan = planXxx(source, parse(source), command)
+next = applyEdits(source, plan.edits)
+expect(parse(next)) toMatch 意図した構造
+```
+
+必須 case:
+
+- 全コマンド（`SetNodeLabel` / `SetNodeType` / `SetNodeCertainty` / `CreateNode` / `ConnectNodes` / `ReparentNode` / `SetGroupMembership` / `DeleteNode` / `DeleteRelation`）の round-trip
+- **通常文が一切変化しないこと**
+- **編集対象以外の行が一切変化しないこと**
+- `edits` が `from` 昇順で重複しないこと
+- `ConnectNodes` で両端に `@id` が無い場合の自動採番と3箇所同時編集
+- 自動採番したIDが§4.3のID規則を満たし、既存IDと衝突しないこと
+- 日本語のみのラベルから採番する場合のfallback
+- `ReparentNode` の循環が `rejected` になり、`edits` を返さないこと
+- `DeleteNode` の連鎖（Cross Relation行 / Group参照行 / 子孫行）
+- `DeleteRelation` が Nested Relation の child を削除せず top-level へ昇格させること
+- 孫がいる Node を昇格させた場合の indent 再計算
+- Group scope 内での編集が scope を壊さないこと
+- CRLF source での編集列が改行コードを保持すること
+- `caretAnchor` が編集後の正しい位置へマップできること
 
 Port を fake / stub に差し替えて use case を test する。
 
@@ -2313,7 +2843,9 @@ UpdateDocumentSource
 ReplaceDocumentSource
 MarkProjectDownloaded
 ParseNotation
+PlanNotationEdit
 LayoutThoughtGraph
+ApplyGraphEdit
 SelectGraphNode
 SelectSourceRange
 ImportProject
@@ -2321,6 +2853,15 @@ DownloadCurrentProject
 ```
 
 latest-wins、古いlayout結果の破棄、abort、dirty confirmation、`.granvas`以外のDownloadでdirtyを解除しないことを検証する。
+
+`ApplyGraphEdit` については以下も検証する。
+
+- Graph要素IDからoccurrence keyへの解決が`*Keys`経由で行われること。
+- `rejected`のときにsourceとdirty stateが変化しないこと。
+- 適用後のsnapshotとpresentationへ返す編集列が同一revisionに属すること。
+- 編集直後のselectionが正しいNodeを指すこと。
+- 編集とprojection rebuildが並行しても、古いrevisionの結果がcurrentを上書きしないこと。
+- pending source updateがある状態で編集を開始した場合、flush後の解析結果に対して編集列が計算されること。
 
 
 
@@ -2349,6 +2890,13 @@ React Testing Library を利用する。
 - Download dialogのformat / file name / disabled state
 - dirty / error status
 - keyboard Node activation / focus return
+- certainty 4状態のNode / Edge描画と、色以外の判別手段
+- accessible nameへのcertainty反映
+- inline編集のEnter確定 / Escape取消 / IME中の抑止
+- `applyEdits`によるパッチ適用でUndoが**1ステップ**で戻ること
+- `applyEdits`適用後にcursor位置が保たれること
+- Graph編集の`rejected`が`aria-live`で通知されること
+- 削除の連鎖対象を提示するUIのfocus trapとEscape cancel
 
 
 
@@ -2402,6 +2950,39 @@ Scenario 6:
 ```text
 keyboardだけでGraph Nodeを選択
 → 対応するText宣言へ移動
+```
+
+Scenario 7:
+
+```text
+[~idea] を含むsourceを入力
+→ 棄却Nodeがgraphから消えず、打ち消し表示で残る
+→ 確信度が色以外の手段でも判別できる
+```
+
+Scenario 8:
+
+```text
+Graph上のNodeラベルをinline編集
+→ Textの該当行だけが書き換わる
+→ 通常文と他の行が変化しない
+→ Graphが更新される
+```
+
+Scenario 9:
+
+```text
+NodeをドラッグしてほかのNodeへdrop
+→ Textのindentと行位置が書き換わる
+→ 自分の子孫へのdropは拒否され、Textが変化しない
+→ .granvasに座標が書き込まれない
+```
+
+Scenario 10:
+
+```text
+Graph編集を実行 → Undo
+→ TextとGraphが1手で編集前へ戻る
 ```
 
 ---
@@ -2478,6 +3059,8 @@ AbortSignal
 
 Phaseの名称、順序、進捗、履歴対応は`docs/development-roadmap.md`を正本とする。Milestoneは複数Phaseを束ねるrelease checkpointであり、Phase番号とは別に管理する。
 
+Phase番号は採番順であり実行順ではない。実行順は **0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 10 → 11 → 12 → 8 → 9** とする。Phase 10〜12は2026-08-11のscope変更（§0.1）で追加され、Phase 8〜9より先に実行する。
+
 ## Phase 0: Documentation Baseline
 
 Status: Complete
@@ -2553,6 +3136,39 @@ Status: Complete — Issue #15 / PR #16
 - Download dialog / Import / `.granvas` and SVG Download
 - status / dirty warning / component and E2E tests
 
+## Phase 10: Notation Certainty
+
+Status: Implementation Complete — Issue #19（PR準備中）
+
+- certainty marker `[?type]` / `[!type]` / `[~type]`
+- relation operator `?->` / `!->` / `~->`
+- `GNV014_INVALID_CERTAINTY_MARKER` / recovery
+- Graph Domain への certainty 伝播
+- 色に依存しない4状態表示 / syntax highlight
+- certainty fixture と Phase 3 fixture の後方互換検証
+
+## Phase 11: Source Edit Core
+
+Status: Not Started
+
+- token spans / `NotationEditor` / `SourceEditPlan`
+- `ProjectionSourceMapDto` の key 対応
+- `applyEdits` によるパッチ適用経路
+- Workspace `ApplyGraphEdit` と selection 再解決
+- Node ラベル / Type の inline 編集
+- round-trip test / 散文非破壊 test
+
+## Phase 12: Graph Authoring
+
+Status: Not Started
+
+- 意味ドラッグ / 循環拒否 / drop 先ハイライト
+- Node 作成 / Edge 接続 / `@id` 自動採番
+- Node / Edge 削除と連鎖範囲の提示
+- Nested Relation Edge 削除時の child 昇格
+- 全操作の round-trip / `rejected` test
+- Graph 編集 E2E
+
 ## Phase 8: Visual Export
 
 Status: Not Started
@@ -2602,6 +3218,18 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [ ] SVG / PNG / PDFを選択してfull graphをDownloadできる
 - [ ] dirty状態のImport / New / 離脱でデータ消失警告が出る
 - [ ] Download / Import失敗時に現在sourceが維持される
+- [x] certainty marker と relation operator の4状態が解析・表示される
+- [x] 既存の`.granvas`が確信度導入後も同じ構造へ解析される
+- [x] `rejected`なNode / EdgeがGraphから消えず棄却として表示される
+- [x] 確信度を色以外の手段で判別できる
+- [ ] Graph上でNodeのラベル / Typeを編集できる
+- [ ] Graph上でNode作成・Edge接続・削除ができる
+- [ ] 意味ドラッグで親子関係とGroup所属を変更できる
+- [ ] 循環する親付け替えが拒否され、理由が通知される
+- [ ] Graph編集がTextの該当箇所だけを書き換え、通常文を破壊しない
+- [ ] Graph編集がUndo 1回で戻る
+- [ ] Graph編集後も`.granvas`に座標が含まれない
+- [ ] すべての編集操作へkeyboardから到達できる
 
 
 
@@ -2616,6 +3244,11 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [ ] Transfer Context のbrowser / export具象がports越しに隔離されている
 - [ ] Workspace projectionが同一revisionのGraph / SourceMap / Diagnosticsだけを公開する
 - [ ] composition root が `src/app/bootstrap` に集約されている
+- [ ] 編集規則が Notation domain の pure function として実装されている
+- [ ] `NotationEditor` が React / CodeMirror / React Flow / DOM を参照していない
+- [ ] Workspace が Notation 記法の文字列を組み立てていない
+- [ ] Graph 要素 ID から occurrence key への解決が `ProjectionSourceMapDto` 経由で行われている
+- [ ] Graph からテキスト全文を再生成する経路が存在しない
 
 
 
@@ -2623,10 +3256,14 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 
 - [ ] Parser executable specificationが4章の全candidate・回復規則を網羅している
 - [ ] UTF-16 / emoji / CRLF / BOMを含むsource range testがある
+- [ ] token spans のtestがある
+- [ ] `NotationEditor` の全コマンドにround-trip testがある
+- [ ] 編集で通常文と無関係な行が変化しないことのtestがある
+- [ ] Phase 3 の全 fixture が無改変で通る
 - [ ] application use case tests がある
 - [ ] Import / Download / dirty state / failure pathのtestがある
 - [ ] latest-wins / abort testがある
-- [ ] 主要 E2E 6 scenario がChromium / Firefox / WebKitで通る
+- [ ] 主要 E2E 10 scenario がChromium / Firefox / WebKitで通る
 - [ ] 17章のperformance budgetを満たす
 - [ ] WCAG 2.2 AA自動検査とkeyboard E2Eが通る
 - [ ] productionでruntime outbound requestがなく、CSP testが通る
@@ -2644,8 +3281,9 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 
 以下は v0.1 では決定・実装しない。
 
-- Graph → Text の双方向編集
-- Node drag の永続化
+- Node drag の永続化 / 自由配置（[ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md) により意図的に非対応。変更する場合は superseding ADR を起こす）
+- 兄弟 Node の並び替えドラッグ
+- Group membership の「移動」（既定は追加）
 - Map view
 - Outline view
 - Timeline view
@@ -2669,7 +3307,9 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - reverse relation syntax
 - nested groups
 
-これらは v0.1 の使用実績を見て ADR / v0.2 specification で判断する。
+これらは v0.1 の使用実績を見て ADR / 後続 specification で判断する。
+
+Graph → Text の双方向編集は2026-08-11のscope変更（§0.1）でv0.1のscopeへ移った。詳細は§5.4と[ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md)。
 
 ---
 
@@ -2691,6 +3331,18 @@ Granvas v0.1 の目的は、多機能なノートアプリを完成させるこ�
 4. Text と Graph の対応が分かること
 5. Notation が初見でも推測できること
 6. Domain / Parser が UI framework から独立していること
+7. 未確定の思考を未確定のまま構造にできること
+8. Graph を触っても Text が正本であり続けること
+
+7 と 8 は 2026-08-11 の scope 変更（§0.1）で追加した。
+
+構文プリミティブの単体は既存の軽量記法に先行事例がある。Granvas が固有に持つのは次の3点であり、この順で優先度を判断する。
+
+1. **散文がホストで、記法が opt-in であること。** 図を書くために別のモードへ入る必要がない。
+2. **書きかけでも壊れないこと。** candidate のコミット規則（§4.1.1）と部分回復（§4.1.2）を言語仕様として定義している。
+3. **未確定を一級市民として扱えること。** 確定した構造だけを描く既存記法との差はここにある。
+
+機能を足すかどうか迷ったときは、この3点を強めるかどうかで判断する。
 
 ---
 
@@ -2699,6 +3351,8 @@ Granvas v0.1 の目的は、多機能なノートアプリを完成させるこ�
 # 26. Canonical Demo Document
 
 README / E2E / manual test で共通利用する基準 document とする。
+
+Phase 10 以降も本 document は無改変で同じ結果を返す。後方互換の検証点として維持する。
 
 ```text
 @layout flow TB
@@ -2732,6 +3386,47 @@ Layout: flow TB
 Diagnostics: 0
 ```
 
+## 26.1 Certainty Demo Document
+
+Phase 10 以降の manual test / E2E で使用する。
+
+```text
+@layout flow TB
+
+# 解約の分析
+
+先週のインタビューから、解約の原因を整理する。
+
+[problem @churn] 解約が増えている
+  !-> [cause] オンボーディングが長い
+  ?-> [?hypothesis @price] 価格が高い
+  ~-> [~cause] UI が古い
+
+[!idea @onboarding] 初回設定を3ステップにする
+[~idea @discount] 値下げする
+
+@onboarding -> @churn : solves
+@price ?-> @churn : maybe
+
+{Validated}
+  @onboarding
+```
+
+Expected Graph:
+
+```text
+Nodes: 6
+Nested Relations: 3
+Cross Relations: 2
+Groups: 1
+Layout: flow TB
+Diagnostics: 0
+Node certainty:  neutral 2 / tentative 1 / confirmed 1 / rejected 2
+Edge certainty:  neutral 1 / tentative 2 / confirmed 1 / rejected 1
+```
+
+`@discount` と `UI が古い` は棄却として表示され、Graph から消えない。
+
 ---
 
 
@@ -2741,9 +3436,10 @@ Diagnostics: 0
 ```text
 Granvas = User-owned-file Text Editor
         + Granvas Notation Parser
+        + Notation Source Edit Planner
         + Semantic Thought Graph
         + Automatic Layout
-        + Read-only Graph Projection
+        + Editable Graph Projection（座標は非永続）
         + Project Import / Multi-format Download
         + Vercel Static Hosting
 ```

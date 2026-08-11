@@ -2,12 +2,14 @@
 
 > Status: Draft / Approval Candidate  
 > Target: v0.1  
-> Updated: 2026-08-10  
-> Related: `docs/product-requirements.md`, `docs/GRANVAS_SPEC_v0.1.md`
+> Updated: 2026-08-11
+> Related: `docs/product-requirements.md`, `docs/GRANVAS_SPEC_v0.1.md`, `docs/adr/`
 
 ## 1. 設計目的
 
-Textを正本とし、Notation解析・意味Graph・自動Layout・Text/Graph同期・Project file transferを、境界づけられたコンテキスト間の公開DTOで接続する。
+Textを正本とし、Notation解析・意味Graph・自動Layout・Text/Graph同期・Graph編集の書き戻し・Project file transferを、境界づけられたコンテキスト間の公開DTOで接続する。
+
+Graph編集は「Graphの状態を変える」のではなく「現在のTextへ最小の編集列を適用し、再投影する」ものとして設計する。Graphからテキスト全文を再生成する経路は作らない。根拠は[ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md)。
 
 ## 2. システム構成
 
@@ -53,15 +55,29 @@ v0.1にserver-side component、database、authentication、remote APIは存在�
 
 - CodeMirror 6を使用する。
 - line number、cursor position、syntax highlight、diagnostic decorationを表示する。
+- 確信度マーカーとrelation operatorをtypeとは別トークンとしてhighlightする。
 - Node selection commandは宣言行全体のUTF-16半開区間を受け取る。
+- Graph編集の適用は`applyEdits(edits, select?)`で受け取り、全文置換しない。
+- 複数レンジの変更は1トランザクションでdispatchし、Undo 1回で戻せる状態にする。
+- 全文置換の経路はProject Import専用として残す。
+- 適用中はeditor由来の`onSourceChange`を再入させない。
 - IME composition中の一時diagnosticは確定表示しない。
 
 ### 3.3 Graph Pane
 
-- React Flowを使用し、Node dragとGraph編集を無効化する。
+- React Flowを使用する。
 - Pan / Zoom / Fit Viewを提供する。
 - Nodeはkeyboard focus可能とし、Enter / SpaceでTextへ移動する。
 - GroupはNodeのparentではなく、重なり可能なbackground overlayとして描画する。
+- certaintyの4状態を線種・バッジ・テキスト装飾で描き分け、colorだけに依存しない。
+- `rejected`なNode / Edgeを非表示にしない。
+- Nodeのdouble clickでラベルのinline編集に入る。Enterで確定、Escapeで取消。
+- キャンバス空白のdouble clickでNodeを作成する。
+- Node handleのドラッグでEdgeを作成する。
+- Node dragは意味ドラッグとして扱う。ドラッグ中はdrop先候補をハイライトし、確定後は新しい配置へアニメーション遷移する。
+- 座標は保存しない。ドロップ位置ではなくドロップ先が何であったかだけを意味として解釈する。
+- 削除は連鎖対象を事前提示してから実行する。
+- すべての編集操作へkeyboardから到達できる経路を用意する。
 
 ### 3.4 Download Dialog
 
@@ -96,14 +112,20 @@ DocumentはFile API、CodeMirror、Parserを知らない。
 
 - Notation candidate分類。
 - indentation stateとGroup scope。
-- syntax / semantics / diagnostics。
-- source mappingとoccurrence key。
+- syntax / semantics / diagnostics / certainty。
+- source mapping、token spans、occurrence key。
+- **編集規則**。Graph操作をTextの最小編集列へ変換するpure function群を所有する。
 
 公開Use Case:
 
 - `ParseNotation`
+- `PlanNotationEdit`
 
-NotationはUI、Graph、Documentを知らない。
+`PlanNotationEdit`は`(source, parseResult, command)`から`SourceEditPlanDto`を返すだけで、編集を適用しない。適用と再投影はWorkspaceの責務。
+
+「A と B を接続する」といった操作はGranvas Notationの文法知識（`@id`の有無、挿入位置、Group scopeやparent stackを壊さないか）を必要とするため、Graphではなく Notation が所有する。
+
+NotationはUI、Graph、Documentを知らない。domainはReact / CodeMirror / React Flow / DOM / browser APIを参照しない。
 
 ### 4.3 Graph
 
@@ -145,11 +167,12 @@ TransferはDocument / Graphの内部型をimportせず、Workspaceから公開DT
 - 4 Contextのapplication APIを協調させる。
 - parse → graph → layout pipeline。
 - revision / cancellation / latest-wins。
-- Graph IDとSourceRangeの対応。
+- Graph IDとSourceRange / occurrence keyの対応。
 - Text / Graph selection。
+- Graph編集のorchestration（key解決 → 編集計画取得 → source適用 → 再投影 → selection再解決）。
 - dirty confirmationを伴うImport / New。
 
-Workspaceは他Contextのdomain / infrastructureを直接importしない。
+Workspaceは他Contextのdomain / infrastructureを直接importしない。**Notationの文法知識も持たない。** 記法文字列の組み立ては行わず、編集列はNotationから受け取ったものをそのまま適用する。
 
 ## 5. データモデル
 
@@ -185,6 +208,14 @@ classDiagram
       +Record nodeRanges
       +Record edgeRanges
       +Record groupRanges
+      +Record nodeKeys
+      +Record edgeKeys
+      +Record groupKeys
+    }
+    class SourceEditPlanDto {
+      +string type
+      +SourceEditDto[] edits
+      +number caretAnchor
     }
     class WorkspaceProjectionDto {
       +number revision
@@ -208,12 +239,22 @@ classDiagram
 - Node primary rangeはline endingを除く宣言行全体。
 - CRLFはoffset上2 code unitsとして保持する。
 
+primary rangeは宣言行全体を指すため、ラベルだけの置換や`@id`だけの挿入を表現できない。Graph編集が最小差分を計算できるよう、各構造要素はtoken単位の`spans`も持つ。
+
+- Node: `indent` / `certainty` / `type` / `explicitId` / `idInsertionPoint` / `label`。
+- Relation: `operator` / `sourceRef` / `targetRef` / `label` / `labelInsertionPoint`。
+- Group: `header` / `name` / `memberInsertionPoint`。
+
+すべてのspanはprimary rangeの内側に収まり、offset規約はprimary rangeと同一とする。
+
 ### 5.2 Identity
 
 - `explicitId`: user-facing reference ID。任意でありduplicate errorを許容する。
 - occurrence `key`: Parserが全構造要素へ付与する一意な内部ID。
 - Graph ID: occurrence keyから決定的に生成する。
+- Graph IDからoccurrence keyへの逆引きは`ProjectionSourceMapDto`の`*Keys`を経由する。Graph IDの生成規則をWorkspace側で再現しない。
 - revisionが変わったらWorkspaceはselectionをcurrent SourceRangeから再解決する。
+- Graph編集後は`caretAnchor`を編集列でマップし、再投影後のselectionを再解決する。
 
 ### 5.3 Dirty State
 
@@ -257,7 +298,38 @@ sequenceDiagram
 
 新しいrevisionを開始したら古いlayoutをcancelする。cancel不能でもcurrent revisionと一致しない結果は破棄する。
 
-### 6.2 Import Project
+### 6.2 Graph Edit
+
+```mermaid
+sequenceDiagram
+    participant G as Graph Pane
+    participant W as Workspace
+    participant N as Notation
+    participant D as Document
+    participant E as Editor
+    G->>W: edit command (graph element id)
+    W->>W: flush pending source update
+    W->>W: graph id → occurrence key (sourceMap)
+    W->>N: PlanNotationEdit(source, parseResult, command)
+    N-->>W: SourceEditPlanDto
+    alt rejected
+        W-->>G: reason（sourceは変更しない）
+    else applicable
+        W->>D: UpdateDocumentSource(applied source)
+        D-->>W: 新しいrevision
+        W->>W: parse → graph → layout（6.1と同じpipeline）
+        W-->>E: applyEdits(edits) 1 transaction
+        W-->>G: 再投影 + selection再解決
+    end
+```
+
+- Graph編集はdebounceしない。ユーザーの確定操作への応答であり、遅延させる理由がない。
+- 開始前にpendingなsource更新を必ずflushする。怠ると古い解析結果のoffsetへpatchを当て、誤った位置を書き換える。
+- editorとWorkspaceの双方へ同じ編集列が渡るため、editor側の適用が`onSourceChange`を再入させないようガードする。
+- IME composition中はGraph編集を受け付けない。
+- 編集列は適用前sourceを基準とし、`from`昇順で重複しない。
+
+### 6.3 Import Project
 
 1. dirtyなら置換確認を表示する。
 2. Transferが`.granvas`を選択する。
@@ -267,7 +339,7 @@ sequenceDiagram
 6. projectionを再構築し、Fit Viewする。
 7. read / decode / validation失敗時は既存Projectを維持する。
 
-### 6.3 Download
+### 6.4 Download
 
 1. file nameとformatを取得する。
 2. `.granvas`はcurrent sourceからBlobを生成する。
@@ -308,5 +380,16 @@ v0.1にHTTP APIは存在しない。将来認証を追加する場合は`src/mod
 
 - Parserの入力誤りは`DiagnosticDto`として返し、例外で編集を停止しない。
 - Layout errorはcurrent Textを維持し、Graph error stateを通知する。
+- 実行できないGraph操作は例外ではなく`SourceEditPlanDto`の`rejected`として理由付きで返し、sourceとdirty stateを変更しない。理由は`aria-live`で通知する。
 - Import / Download errorはTransfer resultとして返し、現在sourceを変更しない。
 - unexpected errorはError Boundaryで捕捉し、sourceを`.granvas`として退避できる導線を優先する。
+
+`rejected`の主な理由:
+
+| code | 発生条件 |
+| --- | --- |
+| `unknown-target` | 指定されたoccurrence keyがcurrent parse resultに存在しない |
+| `cyclic-parent` | 自分の子孫を親にする付け替え |
+| `unresolved-reference` | 参照先のNodeを解決できない |
+| `unsupported-structure` | 現在の記法で表現できない構造（nested Groupなど） |
+| `invalid-value` | 空ラベル、ID規則を満たさないtypeなど |

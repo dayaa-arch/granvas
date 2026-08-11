@@ -17,8 +17,8 @@ import {
 const graph = createThoughtGraph({
   revision: 5,
   nodes: [
-    { key: 'node:0', type: 'problem', label: 'A' },
-    { key: 'node:10', type: 'idea', label: 'B' },
+    { key: 'node:0', type: 'problem', label: 'A', certainty: 'neutral' },
+    { key: 'node:10', type: 'idea', label: 'B', certainty: 'tentative' },
   ],
   relations: [
     {
@@ -26,6 +26,7 @@ const graph = createThoughtGraph({
       sourceNodeKey: 'node:0',
       targetNodeKey: 'node:10',
       label: 'solves',
+      certainty: 'confirmed',
     },
   ],
   groups: [
@@ -42,6 +43,7 @@ function positionedFrom(input: GraphLayoutInputDto): PositionedGraphDto {
           id: node.id,
           label: node.label,
           type: node.type,
+          certainty: node.certainty,
           x: index * 300,
           y: index * 150,
           width: node.width,
@@ -75,6 +77,11 @@ describe('Graph Application', () => {
       expect.objectContaining({ width: GRAPH_NODE_WIDTH, height: GRAPH_NODE_HEIGHT }),
     ])
     expect(input.edges[0]).toMatchObject({ label: 'solves' })
+    expect(input.nodes.map(({ certainty }) => certainty)).toEqual([
+      'neutral',
+      'tentative',
+    ])
+    expect(input.edges[0]?.certainty).toBe('confirmed')
     expect(input.groups[0]?.memberNodeIds).toEqual(
       graph.groups[0]?.memberNodeIds,
     )

@@ -63,7 +63,7 @@ class FakeWorker implements GraphLayoutWorker {
 
 const graph = createThoughtGraph({
   revision: 1,
-  nodes: [{ key: 'a', type: 'node', label: 'A' }],
+  nodes: [{ key: 'a', type: 'node', label: 'A', certainty: 'neutral' }],
   relations: [],
   groups: [],
 })

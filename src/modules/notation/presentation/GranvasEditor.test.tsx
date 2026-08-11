@@ -5,7 +5,7 @@ import { GranvasEditor, type DiagnosticDto } from '@/modules/notation'
 
 describe('GranvasEditor', () => {
   it('renders source, syntax marks, line numbers, and soft diagnostics', async () => {
-    const source = '[problem @risk] Unsafe\n  -> [cause] Cause'
+    const source = '[?problem @risk] Unsafe\n  !-> [cause] Cause'
     const diagnostics: readonly DiagnosticDto[] = [
       Object.freeze({
         code: 'GNV005_UNRESOLVED_REFERENCE',
@@ -26,12 +26,17 @@ describe('GranvasEditor', () => {
     )
 
     expect(await screen.findByRole('textbox', { name: 'Granvas text editor' })).toHaveTextContent(
-      '[problem @risk] Unsafe',
+      '[?problem @risk] Unsafe',
     )
     await waitFor(() => {
       expect(container.querySelector('.cm-gnv-type')).toHaveTextContent('problem')
       expect(container.querySelector('.cm-gnv-id')).toHaveTextContent('@risk')
       expect(container.querySelector('.cm-gnv-arrow')).toHaveTextContent('->')
+      expect(
+        [...container.querySelectorAll('.cm-gnv-certainty')].map(
+          (element) => element.textContent,
+        ),
+      ).toEqual(['?', '!'])
       expect(container.querySelector('.cm-gnv-diagnostic')).toHaveAttribute(
         'title',
         'GNV005_UNRESOLVED_REFERENCE: Reference is unresolved.',

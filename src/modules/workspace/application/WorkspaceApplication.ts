@@ -204,17 +204,19 @@ function createProjectionSourceMap(
 function createSemanticGraph(parseResult: ParseResultDto): ThoughtGraphDto {
   return createThoughtGraph({
     revision: parseResult.documentRevision,
-    nodes: parseResult.nodes.map(({ key, explicitId, type, label }) => ({
+    nodes: parseResult.nodes.map(({ key, explicitId, type, label, certainty }) => ({
       key,
       ...(explicitId === undefined ? {} : { explicitId }),
       type,
       label,
+      certainty,
     })),
     relations: parseResult.relations.map(
-      ({ key, sourceNodeKey, targetNodeKey, label }) => ({
+      ({ key, sourceNodeKey, targetNodeKey, label, certainty }) => ({
         key,
         sourceNodeKey,
         targetNodeKey,
+        certainty,
         ...(label === undefined ? {} : { label }),
       }),
     ),
