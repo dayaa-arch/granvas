@@ -56,11 +56,11 @@ flowchart LR
 | 10 | Notation Certainty | 完了 | 9 | `.steering/20260811-phase-10-notation-certainty/` | [Issue #19](https://github.com/dayaa-arch/granvas/issues/19) / [PR #20](https://github.com/dayaa-arch/granvas/pull/20) |
 | 11 | Source Edit Core | 完了 | 10 | `.steering/20260811-phase-11-source-edit-core/` | [Issue #21](https://github.com/dayaa-arch/granvas/issues/21) / [PR #22](https://github.com/dayaa-arch/granvas/pull/22) |
 | 12 | Graph Authoring | 完了 | 11 | `.steering/20260811-phase-12-graph-authoring/` | [Issue #23](https://github.com/dayaa-arch/granvas/issues/23) / [PR #24](https://github.com/dayaa-arch/granvas/pull/24) |
-| 13 | Japanese UI & Official Documentation | 実装中 | 12 | `.steering/20260811-phase-13-japanese-ui-official-documentation/` | [Issue #26](https://github.com/dayaa-arch/granvas/issues/26) / PR未作成 |
+| 13 | Japanese UI & Official Documentation | 完了 | 12 | `.steering/20260811-phase-13-japanese-ui-official-documentation/` | [Issue #26](https://github.com/dayaa-arch/granvas/issues/26) / [PR #27](https://github.com/dayaa-arch/granvas/pull/27) / [PR #28](https://github.com/dayaa-arch/granvas/pull/28) |
 | 8 | Visual Export | 未着手 | 13 | 作業開始時に新規作成 | 未起票 |
 | 9 | Release Hardening | 未着手 | 14 | 作業開始時に新規作成 | 未起票 |
 
-現在の完了地点は**Phase 12 Graph Authoring**であり、M4 Authoring Coreまで完了した。ユーザー要求により**Phase 13 Japanese UI & Official Documentation**を実行中とし、完了後の次工程は**Phase 8 Visual Export**とする。GitHub Actionsはユーザー指示により後回しとし、Phase 9の未完了項目として保持する。
+現在の完了地点は**Phase 13 Japanese UI & Official Documentation**であり、M5 Japanese Product Guidanceまで完了した。日本語UIと[Granvas 1.0 公式ドキュメント](https://dayaa-arch.github.io/granvas/)の公開プレビューを提供している。次工程は**Phase 8 Visual Export**だが、本作業では開始しない。GitHub Actionsはユーザー指示により後回しとし、Phase 9の未完了項目として保持する。
 
 ### 3.1 Scope Change: 2026-08-11
 
@@ -271,24 +271,24 @@ Goal: 製品UIを日本語へ統一し、Phase 12完了時点の実装に一致�
 
 Deliverables:
 
-- [ ] visible text、accessible name、tooltip、dialog、status、notification、diagnostic、errorの日本語化。
-- [ ] 日本語の初期Project。Notation token、Type、Explicit IDと構造は互換性を維持する。
-- [ ] Diagnostic / Notation rejection / Transfer error codeから日本語表示文へのpresentation formatter。
-- [ ] 日本語UIに対応したcomponent testと3-browser E2E。
-- [ ] `docs-site/`に画面構成、Notation、確信度、Graph authoring、Project workflow、keyboard、FAQを含む公式利用ガイド。
-- [ ] 日本語UIのproduction buildから取得した実画面screenshot。
-- [ ] `/granvas/` base pathを持つ再現可能なdocs buildとartifact verification。
-- [ ] `gh-pages` branch rootから`https://dayaa-arch.github.io/granvas/`へのPages公開。
-- [ ] repository homepageから公式利用ガイドへの導線。
+- [x] visible text、accessible name、tooltip、dialog、status、notification、diagnostic、errorの日本語化。
+- [x] 日本語の初期Project。Notation token、Type、Explicit IDと構造は互換性を維持する。
+- [x] Diagnostic / Notation rejection / Transfer error codeから日本語表示文へのpresentation formatter。
+- [x] 日本語UIに対応したcomponent testと3-browser E2E。
+- [x] `docs-site/`に画面構成、Notation、確信度、Graph authoring、Project workflow、keyboard、FAQを含む公式利用ガイド。
+- [x] 日本語UIのproduction buildから取得した実画面screenshot。
+- [x] `/granvas/` base pathを持つ再現可能なdocs buildとartifact verification。
+- [x] `gh-pages` branch rootから`https://dayaa-arch.github.io/granvas/`へのPages公開。
+- [x] repository homepageから公式利用ガイドへの導線。
 
 Exit Criteria:
 
-- [ ] 日本語UIでText / Graph編集、Import / Download、keyboard操作を利用できる。
-- [ ] UI日本語化後もtypecheck、lint、unit / component、build、3-browser E2Eがgreen。
-- [ ] 公式利用ガイドが実装済み機能だけを利用可能として説明し、Phase 8 / 9未完了を明示している。
-- [ ] PagesのHTML、CSS、JS、画像、anchor、404がHTTPSのlive URLで利用できる。
-- [ ] `Granvas 1.0 公式ドキュメント — 公開プレビュー`と対応実装v0.1の違いが明示されている。
-- [ ] custom GitHub Actions workflow、tracking、backend、credentialを追加していない。
+- [x] 日本語UIでText / Graph編集、Import / Download、keyboard操作を利用できる。
+- [x] UI日本語化後もtypecheck、lint、unit / component、build、3-browser E2Eがgreen。
+- [x] 公式利用ガイドが実装済み機能だけを利用可能として説明し、Phase 8 / 9未完了を明示している。
+- [x] PagesのHTML、CSS、JS、画像、anchor、404がHTTPSのlive URLで利用できる。
+- [x] `Granvas 1.0 公式ドキュメント — 公開プレビュー`と対応実装v0.1の違いが明示されている。
+- [x] custom GitHub Actions workflow、tracking、backend、credentialを追加していない。
 
 ## 16. Phase 8: Visual Export
 

@@ -3222,7 +3222,7 @@ Status: Complete — Issue #23 / PR #24
 
 ## Phase 13: Japanese UI & Official Documentation
 
-Status: In Progress — Issue #26
+Status: Complete — Issue #26 / PR #27 / PR #28
 
 - visible text / accessible name / diagnostic / error / initial Projectの日本語化
 - 日本語UIに対応したcomponent test / three-browser E2E
@@ -3294,9 +3294,9 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [x] Graph編集がUndo 1回で戻る
 - [x] Graph編集後も`.granvas`に座標が含まれない
 - [ ] すべての編集操作へkeyboardから到達できる
-- [ ] visible text、accessible name、diagnostic、error、初期Projectが日本語で提供される
-- [ ] 日本語の公式利用ガイドが実装済みの利用方法と現在の制約を説明する
-- [ ] 公式利用ガイドがGitHub PagesのHTTPS URLで公開される
+- [x] visible text、accessible name、diagnostic、error、初期Projectが日本語で提供される
+- [x] 日本語の公式利用ガイドが実装済みの利用方法と現在の制約を説明する
+- [x] 公式利用ガイドがGitHub PagesのHTTPS URLで公開される
 
 
 

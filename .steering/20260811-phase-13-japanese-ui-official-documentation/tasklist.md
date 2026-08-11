@@ -1,8 +1,9 @@
 # Phase 13 Japanese UI & Official Documentation タスクリスト
 
 > 作成日: 2026-08-11
-> ステータス: 実装中
+> ステータス: 完了
 > Issue: [#26](https://github.com/dayaa-arch/granvas/issues/26)
+> PR: [#27](https://github.com/dayaa-arch/granvas/pull/27) / [#28](https://github.com/dayaa-arch/granvas/pull/28)
 
 ## 1. 準備
 
@@ -91,22 +92,22 @@
 ## 9. Git / GitHub / Pages
 
 - [x] tasklistと永続文書を最終状態へ同期する。
-- [ ] 意図した変更だけをcommit / pushする。
-- [ ] PRへ要求、設計、検証結果、v1.0 preview policy、残課題を記載する。
-- [ ] greenを確認してPRをmainへmergeする。
-- [ ] review済みmainからdocs artifactを再buildする。
-- [ ] `gh-pages` branchへartifactと`.nojekyll`だけをpublishする。
-- [ ] Pages APIをlegacy / `gh-pages` / rootへ設定し、HTTPSを有効化する。
-- [ ] live URLのHTML、CSS、JS、画像、anchor、404を検証する。
-- [ ] repository homepageを`https://dayaa-arch.github.io/granvas/`へ設定する。
+- [x] 意図した変更だけをcommit / pushする。
+- [x] PRへ要求、設計、検証結果、v1.0 preview policy、残課題を記載する。
+- [x] greenを確認してPRをmainへmergeする。
+- [x] review済みmainからdocs artifactを再buildする。
+- [x] `gh-pages` branchへartifactと`.nojekyll`だけをpublishする。
+- [x] Pages APIをlegacy / `gh-pages` / rootへ設定し、HTTPSを有効化する。
+- [x] live URLのHTML、CSS、JS、画像、anchor、404を検証する。
+- [x] repository homepageを`https://dayaa-arch.github.io/granvas/`へ設定する。
 - [x] custom GitHub Actions workflowが追加されていないことを確認する。
-- [ ] Issue close、branch整理、clean main / origin/main一致を確認する。
+- [x] Issue close、branch整理、clean main / origin/main一致を確認する。
 
 ## 完了条件
 
-- [ ] UI全体が日本語で利用でき、既存の編集・Import / Download契約が維持されている。
-- [ ] 公式利用ガイドが実装済みの使い方を正確に説明している。
-- [ ] Pagesが公式URLで公開され、repositoryから到達できる。
-- [ ] v1.0 previewと現行v0.1 implementationの違いが明示されている。
-- [ ] GitHub Actions、Phase 8 / 9機能、正式v1.0 releaseを暗黙に追加していない。
-- [ ] PR経由でmainへmerge済みで、公開内容がmain sourceから再現できる。
+- [x] UI全体が日本語で利用でき、既存の編集・Import / Download契約が維持されている。
+- [x] 公式利用ガイドが実装済みの使い方を正確に説明している。
+- [x] Pagesが公式URLで公開され、repositoryから到達できる。
+- [x] v1.0 previewと現行v0.1 implementationの違いが明示されている。
+- [x] GitHub Actions、Phase 8 / 9機能、正式v1.0 releaseを暗黙に追加していない。
+- [x] PR経由でmainへmerge済みで、公開内容がmain sourceから再現できる。
