@@ -286,6 +286,159 @@ describe('Workspace Application', () => {
     expect(workspace.getSnapshot()).toEqual(before)
   })
 
+  it('orchestrates certainty, create, and connect commands through Graph IDs', async () => {
+    const workspace = createWorkspaceApplication({
+      graphLayout: immediateLayoutPort(),
+      source: '[Problem] Root\r\n[Idea] 日本語',
+    })
+    let snapshot = await workspace.openWorkspace()
+    const graphIdFor = (label: string): string =>
+      snapshot.projection!.graph.nodes.find((node) => node.label === label)!.id
+
+    const certainty = await workspace.applyGraphEdit({
+      type: 'set-node-certainty',
+      graphNodeId: graphIdFor('Root'),
+      certainty: 'confirmed',
+    })
+    expect(certainty.type).toBe('applied')
+    if (certainty.type !== 'applied') throw new Error('Expected an edit.')
+    snapshot = certainty.snapshot
+    expect(snapshot.document.source).toBe('[!Problem] Root\r\n[Idea] 日本語')
+
+    const connected = await workspace.applyGraphEdit({
+      type: 'connect-nodes',
+      sourceGraphNodeId: graphIdFor('Root'),
+      targetGraphNodeId: graphIdFor('日本語'),
+      certainty: 'tentative',
+      label: 'supports',
+    })
+    expect(connected.type).toBe('applied')
+    if (connected.type !== 'applied') throw new Error('Expected an edit.')
+    snapshot = connected.snapshot
+    expect(snapshot.document.source).toContain(
+      '[!Problem @root] Root\r\n[Idea @node-1] 日本語\r\n@root ?-> @node-1 : supports',
+    )
+    expect(snapshot.projection?.graph.edges).toHaveLength(1)
+
+    const created = await workspace.applyGraphEdit({
+      type: 'create-node',
+      nodeType: 'Cause',
+      label: 'Child 😀',
+      parentGraphNodeId: graphIdFor('Root'),
+    })
+    expect(created.type).toBe('applied')
+    if (created.type !== 'applied') throw new Error('Expected an edit.')
+    expect(created.snapshot.document.source).toContain(
+      '[!Problem @root] Root\r\n  -> [cause] Child 😀',
+    )
+    const selected = created.snapshot.projection?.graph.nodes.find(
+      ({ id }) => id === created.snapshot.selectedGraphNodeId,
+    )
+    expect(selected?.label).toBe('Child 😀')
+  })
+
+  it('resolves Group IDs and semantic reparent/detach commands', async () => {
+    const workspace = createWorkspaceApplication({
+      graphLayout: immediateLayoutPort(),
+      source: '[Problem] Root\n[Idea] Other\n{Group}\n  [Node] Member\nTail',
+    })
+    let snapshot = await workspace.openWorkspace()
+    const graphIdFor = (label: string): string =>
+      snapshot.projection!.graph.nodes.find((node) => node.label === label)!.id
+
+    const member = await workspace.applyGraphEdit({
+      type: 'set-group-membership',
+      graphNodeId: graphIdFor('Other'),
+      graphGroupId: snapshot.projection!.graph.groups[0]!.id,
+    })
+    expect(member.type).toBe('applied')
+    if (member.type !== 'applied') throw new Error('Expected an edit.')
+    snapshot = member.snapshot
+    expect(snapshot.document.source).toContain('  @other\nTail')
+    expect(snapshot.projection?.graph.groups[0]?.memberNodeIds).toHaveLength(2)
+
+    const reparented = await workspace.applyGraphEdit({
+      type: 'reparent-node',
+      graphNodeId: graphIdFor('Other'),
+      parentGraphNodeId: graphIdFor('Root'),
+    })
+    expect(reparented.type).toBe('applied')
+    if (reparented.type !== 'applied') throw new Error('Expected an edit.')
+    snapshot = reparented.snapshot
+    expect(snapshot.document.source).toContain(
+      '[Problem] Root\n  -> [Idea @other] Other',
+    )
+
+    const detached = await workspace.applyGraphEdit({
+      type: 'reparent-node',
+      graphNodeId: graphIdFor('Other'),
+    })
+    expect(detached.type).toBe('applied')
+    if (detached.type !== 'applied') throw new Error('Expected an edit.')
+    expect(detached.snapshot.document.source).toContain(
+      '[Problem] Root\n[Idea @other] Other',
+    )
+  })
+
+  it('previews deletes, promotes Nested children, and applies cascade deletion', async () => {
+    const source =
+      '[Problem @root] Root\n  -> [Cause @child] Child\n@root -> @other\n[Idea @other] Other\n{Group}\n  @root\nTail'
+    const workspace = createWorkspaceApplication({
+      graphLayout: immediateLayoutPort(),
+      source,
+    })
+    let snapshot = await workspace.openWorkspace()
+    const rootId = snapshot.projection!.graph.nodes.find(
+      ({ label }) => label === 'Root',
+    )!.id
+    const nestedEdge = snapshot.projection!.graph.edges.find(
+      (edge) => edge.source === rootId,
+    )!
+
+    expect(
+      workspace.previewGraphDelete({ type: 'relation', graphEdgeId: nestedEdge.id }),
+    ).toEqual({
+      type: 'available',
+      impact: {
+        type: 'relation',
+        relationKind: 'nested',
+        promotedNodeLabel: 'Child',
+      },
+    })
+    const promoted = await workspace.applyGraphEdit({
+      type: 'delete-relation',
+      graphEdgeId: nestedEdge.id,
+    })
+    expect(promoted.type).toBe('applied')
+    if (promoted.type !== 'applied') throw new Error('Expected an edit.')
+    snapshot = promoted.snapshot
+    expect(snapshot.document.source).toContain('[Problem @root] Root\n[Cause @child] Child')
+
+    const currentRootId = snapshot.projection!.graph.nodes.find(
+      ({ label }) => label === 'Root',
+    )!.id
+    expect(
+      workspace.previewGraphDelete({ type: 'node', graphNodeId: currentRootId }),
+    ).toMatchObject({
+      type: 'available',
+      impact: {
+        type: 'node',
+        nodeLabels: ['Root'],
+        relationCount: 1,
+        groupReferenceCount: 1,
+      },
+    })
+    const deleted = await workspace.applyGraphEdit({
+      type: 'delete-node',
+      graphNodeId: currentRootId,
+    })
+    expect(deleted.type).toBe('applied')
+    if (deleted.type !== 'applied') throw new Error('Expected an edit.')
+    expect(deleted.snapshot.document.source).toBe(
+      '[Cause @child] Child\n[Idea @other] Other\n{Group}\nTail',
+    )
+  })
+
   it('requires confirmation before replacing a dirty project', async () => {
     const workspace = createWorkspaceApplication({
       graphLayout: immediateLayoutPort(),

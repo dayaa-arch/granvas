@@ -25,7 +25,10 @@ import {
   mapSourceOffsetThroughEdits,
   parseNotation,
   planNotationEdit,
+  previewNotationDelete,
   type DiagnosticDto,
+  type NotationDeleteImpactDto,
+  type NotationEditCommandDto,
   type NotationEditRejectionDto,
   type ParseResultDto,
   type SourceEditDto,
@@ -79,12 +82,73 @@ export type WorkspaceGraphEditCommandDto =
       graphNodeId: string
       nodeType: string
     }>
+  | Readonly<{
+      type: 'set-node-certainty'
+      graphNodeId: string
+      certainty: 'neutral' | 'tentative' | 'confirmed' | 'rejected'
+    }>
+  | Readonly<{
+      type: 'create-node'
+      nodeType: string
+      label: string
+      parentGraphNodeId?: string
+      graphGroupId?: string
+    }>
+  | Readonly<{
+      type: 'connect-nodes'
+      sourceGraphNodeId: string
+      targetGraphNodeId: string
+      label?: string
+      certainty?: 'neutral' | 'tentative' | 'confirmed' | 'rejected'
+    }>
+  | Readonly<{
+      type: 'reparent-node'
+      graphNodeId: string
+      parentGraphNodeId?: string
+    }>
+  | Readonly<{
+      type: 'set-group-membership'
+      graphNodeId: string
+      graphGroupId: string
+    }>
+  | Readonly<{ type: 'delete-node'; graphNodeId: string }>
+  | Readonly<{ type: 'delete-relation'; graphEdgeId: string }>
+
+export type WorkspaceDeleteImpactDto =
+  | Readonly<{
+      type: 'node'
+      nodeLabels: readonly string[]
+      nodeCount: number
+      relationCount: number
+      groupReferenceCount: number
+    }>
+  | Readonly<{
+      type: 'relation'
+      relationKind: 'cross' | 'nested'
+      promotedNodeLabel?: string
+    }>
+
+export type WorkspaceDeletePreviewResultDto =
+  | Readonly<{ type: 'available'; impact: WorkspaceDeleteImpactDto }>
+  | Readonly<{ type: 'rejected'; reason: NotationEditRejectionDto }>
 
 export type WorkspaceGraphEditResultDto =
   | Readonly<{
       type: 'applied'
       snapshot: WorkspaceSnapshotDto
       edits: readonly SourceEditDto[]
+    }>
+  | Readonly<{
+      type: 'rejected'
+      reason: NotationEditRejectionDto
+    }>
+
+type ResolvedGraphEdit =
+  | Readonly<{
+      type: 'resolved'
+      command: NotationEditCommandDto
+      fallbackOffset: number
+      selectedGraphNodeId?: string
     }>
   | Readonly<{
       type: 'rejected'
@@ -150,6 +214,28 @@ export class WorkspaceApplicationError extends Error {
   }
 }
 
+function toWorkspaceDeleteImpact(
+  impact: NotationDeleteImpactDto,
+): WorkspaceDeleteImpactDto {
+  if (impact.type === 'node') {
+    return Object.freeze({
+      type: 'node',
+      nodeLabels: Object.freeze([...impact.nodeLabels]),
+      nodeCount: impact.nodeKeys.length,
+      relationCount: impact.relationKeys.length,
+      groupReferenceCount: impact.groupReferenceCount,
+    })
+  }
+
+  return Object.freeze({
+    type: 'relation',
+    relationKind: impact.relationKind,
+    ...(impact.promotedNodeLabel === undefined
+      ? {}
+      : { promotedNodeLabel: impact.promotedNodeLabel }),
+  })
+}
+
 export type CreateWorkspaceApplicationInput = Readonly<{
   graphLayout: GraphLayoutPort
   name?: string
@@ -168,6 +254,12 @@ export interface WorkspaceApplication {
   applyGraphEdit(
     command: WorkspaceGraphEditCommandDto,
   ): Promise<WorkspaceGraphEditResultDto>
+  previewGraphDelete(
+    target: Readonly<
+      | { type: 'node'; graphNodeId: string }
+      | { type: 'relation'; graphEdgeId: string }
+    >,
+  ): WorkspaceDeletePreviewResultDto
   createDownloadInput(format: WorkspaceDownloadFormat): WorkspaceDownloadInputDto
   beginProjectDownload(): WorkspaceProjectDownloadRequestDto
   markProjectDownloaded(ticket: ProjectDownloadTicketDto): WorkspaceSnapshotDto
@@ -383,10 +475,15 @@ export function createWorkspaceApplication(
       )
       currentParseResult = parseResult
       if (selectionOffset !== undefined) {
-        selectedGraphNodeId = Object.entries(sourceMap.nodeRanges).find(
-          ([, range]) =>
-            range.from <= selectionOffset && selectionOffset < range.to,
-        )?.[0]
+        const ranges = Object.entries(sourceMap.nodeRanges)
+        selectedGraphNodeId =
+          ranges.find(
+            ([, range]) =>
+              range.from <= selectionOffset && selectionOffset < range.to,
+          )?.[0] ??
+          ranges
+            .filter(([, range]) => range.from >= selectionOffset)
+            .sort((left, right) => left[1].from - right[1].from)[0]?.[0]
       }
       status = Object.freeze({ type: 'ready', revision })
       activeCancellation = undefined
@@ -436,6 +533,231 @@ export function createWorkspaceApplication(
     })
   }
 
+  const unknownGraphTarget = (message: string): ResolvedGraphEdit =>
+    Object.freeze({
+      type: 'rejected',
+      reason: Object.freeze({ code: 'unknown-target', message }),
+    })
+
+  const projectionIsCurrent = (): boolean =>
+    projection !== undefined &&
+    currentParseResult !== undefined &&
+    projection.revision === document.revision &&
+    currentParseResult.documentRevision === document.revision
+
+  const resolveGraphEdit = (
+    graphCommand: WorkspaceGraphEditCommandDto,
+  ): ResolvedGraphEdit => {
+    if (!projectionIsCurrent() || !projection) {
+      return unknownGraphTarget('The current Graph projection is unavailable.')
+    }
+
+    const nodeKey = (graphNodeId: string): string | undefined =>
+      projection?.sourceMap.nodeKeys[graphNodeId]
+    const nodeOffset = (graphNodeId: string): number | undefined =>
+      projection?.sourceMap.nodeRanges[graphNodeId]?.from
+
+    switch (graphCommand.type) {
+      case 'set-node-label':
+      case 'set-node-type':
+      case 'set-node-certainty': {
+        const key = nodeKey(graphCommand.graphNodeId)
+        const offset = nodeOffset(graphCommand.graphNodeId)
+        if (!key || offset === undefined) {
+          return unknownGraphTarget('The Node is not present in the current projection.')
+        }
+        const notationCommand: NotationEditCommandDto =
+          graphCommand.type === 'set-node-label'
+            ? {
+                type: 'set-node-label',
+                nodeKey: key,
+                label: graphCommand.label,
+              }
+            : graphCommand.type === 'set-node-type'
+              ? {
+                  type: 'set-node-type',
+                  nodeKey: key,
+                  nodeType: graphCommand.nodeType,
+                }
+              : {
+                  type: 'set-node-certainty',
+                  nodeKey: key,
+                  certainty: graphCommand.certainty,
+                }
+        return Object.freeze({
+          type: 'resolved',
+          command: Object.freeze(notationCommand),
+          fallbackOffset: offset,
+          selectedGraphNodeId: graphCommand.graphNodeId,
+        })
+      }
+
+      case 'create-node': {
+        const parentNodeKey = graphCommand.parentGraphNodeId
+          ? nodeKey(graphCommand.parentGraphNodeId)
+          : undefined
+        const groupKey = graphCommand.graphGroupId
+          ? projection.sourceMap.groupKeys[graphCommand.graphGroupId]
+          : undefined
+        if (graphCommand.parentGraphNodeId && !parentNodeKey) {
+          return unknownGraphTarget('The parent Node is not present in the current projection.')
+        }
+        if (graphCommand.graphGroupId && !groupKey) {
+          return unknownGraphTarget('The Group is not present in the current projection.')
+        }
+        return Object.freeze({
+          type: 'resolved',
+          command: Object.freeze({
+            type: 'create-node',
+            nodeType: graphCommand.nodeType,
+            label: graphCommand.label,
+            ...(parentNodeKey === undefined ? {} : { parentNodeKey }),
+            ...(groupKey === undefined ? {} : { groupKey }),
+          }),
+          fallbackOffset: document.source.length,
+        })
+      }
+
+      case 'connect-nodes': {
+        const sourceNodeKey = nodeKey(graphCommand.sourceGraphNodeId)
+        const targetNodeKey = nodeKey(graphCommand.targetGraphNodeId)
+        const offset = nodeOffset(graphCommand.sourceGraphNodeId)
+        if (!sourceNodeKey || !targetNodeKey || offset === undefined) {
+          return unknownGraphTarget('An endpoint Node is not present in the current projection.')
+        }
+        return Object.freeze({
+          type: 'resolved',
+          command: Object.freeze({
+            type: 'connect-nodes',
+            sourceNodeKey,
+            targetNodeKey,
+            ...(graphCommand.label === undefined ? {} : { label: graphCommand.label }),
+            ...(graphCommand.certainty === undefined
+              ? {}
+              : { certainty: graphCommand.certainty }),
+          }),
+          fallbackOffset: offset,
+          selectedGraphNodeId: graphCommand.sourceGraphNodeId,
+        })
+      }
+
+      case 'reparent-node': {
+        const key = nodeKey(graphCommand.graphNodeId)
+        const parentNodeKey = graphCommand.parentGraphNodeId
+          ? nodeKey(graphCommand.parentGraphNodeId)
+          : undefined
+        const offset = nodeOffset(graphCommand.graphNodeId)
+        if (!key || offset === undefined || (graphCommand.parentGraphNodeId && !parentNodeKey)) {
+          return unknownGraphTarget('A Node is not present in the current projection.')
+        }
+        return Object.freeze({
+          type: 'resolved',
+          command: Object.freeze({
+            type: 'reparent-node',
+            nodeKey: key,
+            ...(parentNodeKey === undefined ? {} : { parentNodeKey }),
+          }),
+          fallbackOffset: offset,
+          selectedGraphNodeId: graphCommand.graphNodeId,
+        })
+      }
+
+      case 'set-group-membership': {
+        const key = nodeKey(graphCommand.graphNodeId)
+        const groupKey = projection.sourceMap.groupKeys[graphCommand.graphGroupId]
+        const offset = nodeOffset(graphCommand.graphNodeId)
+        if (!key || !groupKey || offset === undefined) {
+          return unknownGraphTarget('The Node or Group is not present in the current projection.')
+        }
+        return Object.freeze({
+          type: 'resolved',
+          command: Object.freeze({
+            type: 'set-group-membership',
+            nodeKey: key,
+            groupKey,
+          }),
+          fallbackOffset: offset,
+          selectedGraphNodeId: graphCommand.graphNodeId,
+        })
+      }
+
+      case 'delete-node': {
+        const key = nodeKey(graphCommand.graphNodeId)
+        const offset = nodeOffset(graphCommand.graphNodeId)
+        if (!key || offset === undefined) {
+          return unknownGraphTarget('The Node is not present in the current projection.')
+        }
+        return Object.freeze({
+          type: 'resolved',
+          command: Object.freeze({ type: 'delete-node', nodeKey: key }),
+          fallbackOffset: offset,
+        })
+      }
+
+      case 'delete-relation': {
+        const relationKey = projection.sourceMap.edgeKeys[graphCommand.graphEdgeId]
+        const offset = projection.sourceMap.edgeRanges[graphCommand.graphEdgeId]?.from
+        if (!relationKey || offset === undefined) {
+          return unknownGraphTarget('The Relation is not present in the current projection.')
+        }
+        return Object.freeze({
+          type: 'resolved',
+          command: Object.freeze({ type: 'delete-relation', relationKey }),
+          fallbackOffset: offset,
+        })
+      }
+    }
+  }
+
+  const previewGraphDelete: WorkspaceApplication['previewGraphDelete'] = (target) => {
+    if (!projectionIsCurrent() || !projection || !currentParseResult) {
+      return Object.freeze({
+        type: 'rejected',
+        reason: Object.freeze({
+          code: 'unknown-target',
+          message: 'The current Graph projection is unavailable.',
+        }),
+      })
+    }
+
+    const notationTarget =
+      target.type === 'node'
+        ? projection.sourceMap.nodeKeys[target.graphNodeId]
+          ? ({
+              type: 'node',
+              nodeKey: projection.sourceMap.nodeKeys[target.graphNodeId],
+            } as const)
+          : undefined
+        : projection.sourceMap.edgeKeys[target.graphEdgeId]
+          ? ({
+              type: 'relation',
+              relationKey: projection.sourceMap.edgeKeys[target.graphEdgeId],
+            } as const)
+          : undefined
+
+    if (!notationTarget) {
+      return Object.freeze({
+        type: 'rejected',
+        reason: Object.freeze({
+          code: 'unknown-target',
+          message: 'The delete target is not present in the current projection.',
+        }),
+      })
+    }
+
+    const preview = previewNotationDelete({
+      source: document.source,
+      parseResult: currentParseResult,
+      target: notationTarget,
+    })
+    return preview.type === 'rejected'
+      ? preview
+      : Object.freeze({
+          type: 'available',
+          impact: toWorkspaceDeleteImpact(preview.impact),
+        })
+  }
+
   return Object.freeze({
     getSnapshot,
     openWorkspace: rebuildCurrentProjection,
@@ -462,43 +784,27 @@ export function createWorkspaceApplication(
     },
     selectGraphNode,
     selectSourceOffset,
+    previewGraphDelete,
     async applyGraphEdit(
       command: WorkspaceGraphEditCommandDto,
     ): Promise<WorkspaceGraphEditResultDto> {
-      const graphNodeId = command.graphNodeId
-      const nodeKey = projection?.sourceMap.nodeKeys[graphNodeId]
-
-      if (
-        !projection ||
-        !currentParseResult ||
-        projection.revision !== document.revision ||
-        currentParseResult.documentRevision !== document.revision ||
-        !nodeKey
-      ) {
-        return Object.freeze({
-          type: 'rejected',
-          reason: Object.freeze({
-            code: 'unknown-target',
-            message: 'The Node is not present in the current projection.',
-          }),
-        })
+      const resolved = resolveGraphEdit(command)
+      if (resolved.type === 'rejected' || !projection || !currentParseResult) {
+        return resolved.type === 'rejected'
+          ? resolved
+          : Object.freeze({
+              type: 'rejected',
+              reason: Object.freeze({
+                code: 'unknown-target',
+                message: 'The current Graph projection is unavailable.',
+              }),
+            })
       }
 
       const plan = planNotationEdit({
         source: document.source,
         parseResult: currentParseResult,
-        command:
-          command.type === 'set-node-label'
-            ? Object.freeze({
-                type: 'set-node-label',
-                nodeKey,
-                label: command.label,
-              })
-            : Object.freeze({
-                type: 'set-node-type',
-                nodeKey,
-                nodeType: command.nodeType,
-              }),
+        command: resolved.command,
       })
 
       if (plan.type === 'rejected') {
@@ -506,7 +812,7 @@ export function createWorkspaceApplication(
       }
 
       if (plan.edits.length === 0) {
-        selectedGraphNodeId = graphNodeId
+        selectedGraphNodeId = resolved.selectedGraphNodeId
         return Object.freeze({
           type: 'applied',
           snapshot: getSnapshot(),
@@ -516,8 +822,9 @@ export function createWorkspaceApplication(
 
       const nextSource = applySourceEdits(document.source, plan.edits)
       const selectionOffset = mapSourceOffsetThroughEdits(
-        plan.caretAnchor ?? projection.sourceMap.nodeRanges[graphNodeId]!.from,
+        plan.caretAnchor ?? resolved.fallbackOffset,
         plan.edits,
+        plan.caretAffinity,
       )
       document = updateDocumentSource(document, nextSource)
       const editRevision = document.revision

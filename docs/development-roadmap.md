@@ -53,11 +53,11 @@ flowchart LR
 | 7 | Presentation Shell | 完了 | 8 | `.steering/20260810-phase-7-presentation-shell/` | [Issue #15](https://github.com/dayaa-arch/granvas/issues/15) / [PR #16](https://github.com/dayaa-arch/granvas/pull/16) |
 | 10 | Notation Certainty | 完了 | 9 | `.steering/20260811-phase-10-notation-certainty/` | [Issue #19](https://github.com/dayaa-arch/granvas/issues/19) / [PR #20](https://github.com/dayaa-arch/granvas/pull/20) |
 | 11 | Source Edit Core | 完了 | 10 | `.steering/20260811-phase-11-source-edit-core/` | [Issue #21](https://github.com/dayaa-arch/granvas/issues/21) / [PR #22](https://github.com/dayaa-arch/granvas/pull/22) |
-| 12 | Graph Authoring | 未着手 | 11 | 作業開始時に新規作成 | 未起票 |
+| 12 | Graph Authoring | 完了 | 11 | `.steering/20260811-phase-12-graph-authoring/` | [Issue #23](https://github.com/dayaa-arch/granvas/issues/23) / [PR #24](https://github.com/dayaa-arch/granvas/pull/24) |
 | 8 | Visual Export | 未着手 | 12 | 作業開始時に新規作成 | 未起票 |
 | 9 | Release Hardening | 未着手 | 13 | 作業開始時に新規作成 | 未起票 |
 
-現在の完了地点は**Phase 11 Source Edit Core**である。次の実装Phaseは**Phase 12 Graph Authoring**とする。GitHub Actionsはユーザー指示により後回しとし、Phase 9の未完了項目として保持する。
+現在の完了地点は**Phase 12 Graph Authoring**であり、M4 Authoring Coreまで完了した。次の実装Phaseはロードマップ実行順に従い**Phase 8 Visual Export**とする。GitHub Actionsはユーザー指示により後回しとし、Phase 9の未完了項目として保持する。
 
 ### 3.1 Scope Change: 2026-08-11
 
@@ -231,23 +231,23 @@ Goal: 意味ドラッグ、Node作成、Edge接続、削除をGraph側から行�
 
 Deliverables:
 
-- [ ] 意味ドラッグ: 別Nodeへのdropで親付け替え、Group overlayへのdropでmembership追加、空白へのdropで親子解除。
-- [ ] 循環する親付け替えの拒否と、拒否理由の通知（Textは変更しない）。
-- [ ] drop先候補のハイライトと、確定後の再配置アニメーション（ADR-0001のConsequencesにより実装要件）。
-- [ ] Node新規作成: 空白のdouble clickと、既存Nodeのhandle引き出し。
-- [ ] Edge作成と`@id`自動採番（仕様§4.3のID規則を満たすslug化・衝突回避）。
-- [ ] Node削除の連鎖範囲（Cross Relation行、Group参照行、Nested Relationの子孫）の事前提示と実行。
-- [ ] Nested Relation Edge削除時のchild Node昇格（子を消さずindentと`-> `を除去する）。
-- [ ] 全操作のround-trip testと`rejected`ケースのtest。
-- [ ] Graph編集の3-browser E2E。
+- [x] 意味ドラッグ: 別Nodeへのdropで親付け替え、Group overlayへのdropでmembership追加、空白へのdropで親子解除。
+- [x] 循環する親付け替えの拒否と、拒否理由の通知（Textは変更しない）。
+- [x] drop先候補のハイライトと、確定後の再配置アニメーション（ADR-0001のConsequencesにより実装要件）。
+- [x] Node新規作成: 空白のdouble clickと、既存Nodeのhandle引き出し。
+- [x] Edge作成と`@id`自動採番（仕様§4.3のID規則を満たすslug化・衝突回避）。
+- [x] Node削除の連鎖範囲（Cross Relation行、Group参照行、Nested Relationの子孫）の事前提示と実行。
+- [x] Nested Relation Edge削除時のchild Node昇格（子を消さずindentと`-> `を除去する）。
+- [x] 全操作のround-trip testと`rejected`ケースのtest。
+- [x] Graph編集の3-browser E2E。
 
 Exit Criteria:
 
-- [ ] 全操作が`.granvas`へ座標を書き込まない。
-- [ ] 循環する親付け替えが拒否され、Textが変化しない。
-- [ ] Nested Relation Edgeの削除でchild Nodeが失われない。
-- [ ] 全操作がUndoで戻る。
-- [ ] Graph操作前後で散文が保持される。
+- [x] 全操作が`.granvas`へ座標を書き込まない。
+- [x] 循環する親付け替えが拒否され、Textが変化しない。
+- [x] Nested Relation Edgeの削除でchild Nodeが失われない。
+- [x] 全操作がUndoで戻る。
+- [x] Graph操作前後で散文が保持される。
 
 ## 15. Phase 8: Visual Export
 
@@ -312,7 +312,7 @@ Exit Criteria:
 ## 18. Deferred Work
 
 - Node座標の永続化と自由配置（[ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md)により意図的に非対応。変更する場合はsuperseding ADRを起こす）。
-- 兄弟Nodeの並び替えドラッグ（Phase 12のスコープ内だが初期実装からは外す）。
+- 兄弟Nodeの並び替えドラッグ（Phase 12の対象外。将来のauthoring拡張で再検討する）。
 - Group membershipの「移動」（既定は追加。仕様§4.6が複数所属を許容するため）。
 - multi-document workspace、folder、search、backlink。
 - account / authentication implementation。

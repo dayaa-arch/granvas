@@ -36,6 +36,10 @@ export {
 } from '@/modules/graph/application/GraphApplication'
 export {
   ReactFlowGraphView,
+  type GraphAuthoringCommandDto,
+  type GraphDeleteImpactDto,
+  type GraphDeletePreviewDto,
+  type GraphDeleteTargetDto,
   type GraphNodeEditDto,
   type GraphNodeEditField,
   type ReactFlowGraphViewProps,

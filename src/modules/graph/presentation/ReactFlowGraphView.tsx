@@ -9,6 +9,8 @@ import {
   ReactFlowProvider,
   useReactFlow,
   type Edge,
+  type Connection,
+  type FinalConnectionState,
   type Node,
   type NodeProps,
 } from '@xyflow/react'
@@ -18,6 +20,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type FormEvent,
   type KeyboardEvent,
 } from 'react'
 
@@ -34,6 +37,7 @@ type ThoughtNodeData = {
   semanticType: string
   tone: 'problem' | 'cause' | 'idea' | 'todo' | 'default'
   certainty: GraphCertaintyDto
+  dropCandidate?: boolean
   editing?: Readonly<{
     field: GraphNodeEditField
     draft: string
@@ -48,7 +52,9 @@ type ThoughtNodeData = {
 }
 
 type GroupNodeData = {
+  graphGroupId: string
   name: string
+  dropCandidate?: boolean
 }
 
 type ThoughtFlowNode = Node<ThoughtNodeData, 'thought'>
@@ -62,6 +68,10 @@ export type ReactFlowGraphViewProps = Readonly<{
   status: 'idle' | 'projecting' | 'ready' | 'error'
   onNodeActivate(graphNodeId: string): void
   onNodeEdit(edit: GraphNodeEditDto): void | Promise<void>
+  onAuthoringCommand?(command: GraphAuthoringCommandDto): void | Promise<void>
+  onDeletePreview?(
+    target: GraphDeleteTargetDto,
+  ): GraphDeletePreviewDto | Promise<GraphDeletePreviewDto>
   onClearSelection(): void
 }>
 
@@ -72,6 +82,75 @@ export type GraphNodeEditDto = Readonly<{
   field: GraphNodeEditField
   value: string
 }>
+
+export type GraphAuthoringCommandDto =
+  | Readonly<{
+      type: 'set-node-certainty'
+      graphNodeId: string
+      certainty: GraphCertaintyDto
+    }>
+  | Readonly<{
+      type: 'create-node'
+      nodeType: string
+      label: string
+      parentGraphNodeId?: string
+      graphGroupId?: string
+    }>
+  | Readonly<{
+      type: 'connect-nodes'
+      sourceGraphNodeId: string
+      targetGraphNodeId: string
+      label?: string
+      certainty?: GraphCertaintyDto
+    }>
+  | Readonly<{
+      type: 'reparent-node'
+      graphNodeId: string
+      parentGraphNodeId?: string
+    }>
+  | Readonly<{
+      type: 'set-group-membership'
+      graphNodeId: string
+      graphGroupId: string
+    }>
+  | Readonly<{ type: 'delete-node'; graphNodeId: string }>
+  | Readonly<{ type: 'delete-relation'; graphEdgeId: string }>
+
+export type GraphDeleteTargetDto = Readonly<
+  | { type: 'node'; graphNodeId: string }
+  | { type: 'relation'; graphEdgeId: string }
+>
+
+export type GraphDeleteImpactDto =
+  | Readonly<{
+      type: 'node'
+      nodeLabels: readonly string[]
+      nodeCount: number
+      relationCount: number
+      groupReferenceCount: number
+    }>
+  | Readonly<{
+      type: 'relation'
+      relationKind: 'cross' | 'nested'
+      promotedNodeLabel?: string
+    }>
+
+export type GraphDeletePreviewDto =
+  | Readonly<{ type: 'available'; impact: GraphDeleteImpactDto }>
+  | Readonly<{
+      type: 'rejected'
+      reason: Readonly<{ code: string; message: string }>
+    }>
+
+type AuthorDialogState =
+  | Readonly<{
+      type: 'create'
+      parentGraphNodeId?: string
+      graphGroupId?: string
+    }>
+  | Readonly<{ type: 'connect'; sourceGraphNodeId: string }>
+  | Readonly<{ type: 'move'; graphNodeId: string }>
+  | Readonly<{ type: 'delete'; target: GraphDeleteTargetDto }>
 
 type InlineEditState = Readonly<{
   graphNodeId: string
@@ -127,13 +206,13 @@ const ThoughtNodeView = memo(function ThoughtNodeView({
 }: NodeProps<ThoughtFlowNode>) {
   return (
     <div
-      className={`graph-node graph-node--${data.tone} graph-node--certainty-${data.certainty}${selected ? ' is-selected' : ''}`}
+      className={`graph-node graph-node--${data.tone} graph-node--certainty-${data.certainty}${selected ? ' is-selected' : ''}${data.dropCandidate ? ' is-drop-candidate' : ''}`}
     >
       <Handle
         className="graph-node__handle"
         type="target"
         position={Position.Top}
-        isConnectable={false}
+        isConnectable
       />
       {certaintyMarker[data.certainty] ? (
         <span className="graph-node__certainty" aria-hidden="true">
@@ -203,7 +282,7 @@ const ThoughtNodeView = memo(function ThoughtNodeView({
         className="graph-node__handle"
         type="source"
         position={Position.Bottom}
-        isConnectable={false}
+        isConnectable
       />
     </div>
   )
@@ -213,7 +292,10 @@ const GroupOverlayView = memo(function GroupOverlayView({
   data,
 }: NodeProps<GroupFlowNode>) {
   return (
-    <div className="graph-group">
+    <div
+      className={`graph-group${data.dropCandidate ? ' is-drop-candidate' : ''}`}
+      data-graph-group-id={data.graphGroupId}
+    >
       <span className="graph-group__name">{data.name}</span>
     </div>
   )
@@ -238,6 +320,317 @@ function FitViewEffect({ fitViewKey }: Readonly<{ fitViewKey: number }>) {
   return null
 }
 
+function AuthorDialog({
+  dialog,
+  graph,
+  busy,
+  preview,
+  onSubmit,
+  onCancel,
+}: Readonly<{
+  dialog: AuthorDialogState
+  graph?: PositionedGraphDto
+  busy: boolean
+  preview?: GraphDeletePreviewDto
+  onSubmit(command: GraphAuthoringCommandDto): void
+  onCancel(): void
+}>) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const [nodeType, setNodeType] = useState('node')
+  const [label, setLabel] = useState('')
+  const [targetNodeId, setTargetNodeId] = useState(
+    dialog.type === 'connect'
+      ? (graph?.nodes.find(({ id }) => id !== dialog.sourceGraphNodeId)?.id ?? '')
+      : '',
+  )
+  const [relationLabel, setRelationLabel] = useState('')
+  const [certainty, setCertainty] = useState<GraphCertaintyDto>('neutral')
+  const [moveTarget, setMoveTarget] = useState('detach')
+
+  useEffect(() => {
+    const first =
+      dialogRef.current?.querySelector<HTMLElement>('input, select') ??
+      dialogRef.current?.querySelector<HTMLElement>('button:not([disabled])')
+    first?.focus()
+  }, [])
+
+  const handleDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape' && !busy) {
+      event.preventDefault()
+      onCancel()
+      return
+    }
+    if (event.key !== 'Tab') return
+
+    const focusable = [
+      ...(dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled])',
+      ) ?? []),
+    ]
+    if (focusable.length === 0) return
+    const first = focusable[0]!
+    const last = focusable.at(-1)!
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (dialog.type === 'create') {
+      onSubmit({
+        type: 'create-node',
+        nodeType,
+        label,
+        ...(dialog.parentGraphNodeId === undefined
+          ? {}
+          : { parentGraphNodeId: dialog.parentGraphNodeId }),
+        ...(dialog.graphGroupId === undefined
+          ? {}
+          : { graphGroupId: dialog.graphGroupId }),
+      })
+      return
+    }
+    if (dialog.type === 'connect') {
+      if (!targetNodeId) return
+      onSubmit({
+        type: 'connect-nodes',
+        sourceGraphNodeId: dialog.sourceGraphNodeId,
+        targetGraphNodeId: targetNodeId,
+        ...(relationLabel.trim() ? { label: relationLabel } : {}),
+        certainty,
+      })
+      return
+    }
+    if (dialog.type === 'move') {
+      if (moveTarget.startsWith('node:')) {
+        onSubmit({
+          type: 'reparent-node',
+          graphNodeId: dialog.graphNodeId,
+          parentGraphNodeId: moveTarget.slice(5),
+        })
+      } else if (moveTarget.startsWith('group:')) {
+        onSubmit({
+          type: 'set-group-membership',
+          graphNodeId: dialog.graphNodeId,
+          graphGroupId: moveTarget.slice(6),
+        })
+      } else {
+        onSubmit({ type: 'reparent-node', graphNodeId: dialog.graphNodeId })
+      }
+      return
+    }
+    if (dialog.type === 'delete' && preview?.type === 'available') {
+      onSubmit(
+        dialog.target.type === 'node'
+          ? { type: 'delete-node', graphNodeId: dialog.target.graphNodeId }
+          : { type: 'delete-relation', graphEdgeId: dialog.target.graphEdgeId },
+      )
+    }
+  }
+
+  const title =
+    dialog.type === 'create'
+      ? dialog.parentGraphNodeId
+        ? 'Add child Node'
+        : dialog.graphGroupId
+          ? 'Add Node to Group'
+          : 'Create Node'
+      : dialog.type === 'connect'
+        ? 'Connect Nodes'
+        : dialog.type === 'move'
+          ? 'Move Node by meaning'
+          : 'Confirm deletion'
+
+  return (
+    <div className="graph-dialog-backdrop" role="presentation">
+      <div
+        ref={dialogRef}
+        className="graph-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="graph-author-dialog-title"
+        onKeyDown={handleDialogKeyDown}
+      >
+        <form onSubmit={submit}>
+          <div className="graph-dialog__header">
+            <h3 id="graph-author-dialog-title">{title}</h3>
+            <button
+              className="graph-dialog__close"
+              type="button"
+              aria-label="Close dialog"
+              disabled={busy}
+              onClick={onCancel}
+            >
+              ×
+            </button>
+          </div>
+
+          {dialog.type === 'create' ? (
+            <div className="graph-dialog__fields">
+              <label>
+                <span>Type</span>
+                <input
+                  value={nodeType}
+                  required
+                  pattern="[A-Za-z](?:[A-Za-z0-9_]|-)*"
+                  disabled={busy}
+                  onChange={(event) => setNodeType(event.currentTarget.value)}
+                />
+              </label>
+              <label>
+                <span>Label</span>
+                <input
+                  value={label}
+                  required
+                  autoComplete="off"
+                  disabled={busy}
+                  onChange={(event) => setLabel(event.currentTarget.value)}
+                />
+              </label>
+            </div>
+          ) : null}
+
+          {dialog.type === 'connect' ? (
+            <div className="graph-dialog__fields">
+              <label>
+                <span>Target Node</span>
+                <select
+                  value={targetNodeId}
+                  required
+                  disabled={busy}
+                  onChange={(event) => setTargetNodeId(event.currentTarget.value)}
+                >
+                  <option value="" disabled>
+                    Select a Node
+                  </option>
+                  {graph?.nodes.map((node) => (
+                    <option key={node.id} value={node.id}>
+                      {node.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>Relation label (optional)</span>
+                <input
+                  value={relationLabel}
+                  disabled={busy}
+                  onChange={(event) => setRelationLabel(event.currentTarget.value)}
+                />
+              </label>
+              <label>
+                <span>Certainty</span>
+                <select
+                  value={certainty}
+                  disabled={busy}
+                  onChange={(event) =>
+                    setCertainty(event.currentTarget.value as GraphCertaintyDto)
+                  }
+                >
+                  <option value="neutral">Neutral</option>
+                  <option value="tentative">Tentative</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </label>
+            </div>
+          ) : null}
+
+          {dialog.type === 'move' ? (
+            <div className="graph-dialog__fields">
+              <label>
+                <span>Meaning target</span>
+                <select
+                  value={moveTarget}
+                  disabled={busy}
+                  onChange={(event) => setMoveTarget(event.currentTarget.value)}
+                >
+                  <option value="detach">Detach to scope root</option>
+                  <optgroup label="Parent Node">
+                    {graph?.nodes
+                      .filter(({ id }) => id !== dialog.graphNodeId)
+                      .map((node) => (
+                        <option key={node.id} value={`node:${node.id}`}>
+                          {node.label}
+                        </option>
+                      ))}
+                  </optgroup>
+                  {graph?.groups.length ? (
+                    <optgroup label="Add to Group">
+                      {graph.groups.map((group) => (
+                        <option key={group.id} value={`group:${group.id}`}>
+                          {group.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : null}
+                </select>
+              </label>
+              <p className="graph-dialog__hint">
+                This changes parentage or Group membership. Canvas coordinates are never saved.
+              </p>
+            </div>
+          ) : null}
+
+          {dialog.type === 'delete' ? (
+            <div className="graph-dialog__impact" aria-live="polite">
+              {!preview ? <p>Checking affected structure…</p> : null}
+              {preview?.type === 'rejected' ? (
+                <p role="alert">{preview.reason.message}</p>
+              ) : null}
+              {preview?.type === 'available' && preview.impact.type === 'node' ? (
+                <>
+                  <p>This deletion removes:</p>
+                  <ul>
+                    <li>{preview.impact.nodeCount} Node(s)</li>
+                    <li>{preview.impact.relationCount} Cross Relation(s)</li>
+                    <li>{preview.impact.groupReferenceCount} Group reference(s)</li>
+                  </ul>
+                  <p className="graph-dialog__labels">
+                    {preview.impact.nodeLabels.join(', ')}
+                  </p>
+                </>
+              ) : null}
+              {preview?.type === 'available' &&
+              preview.impact.type === 'relation' ? (
+                preview.impact.relationKind === 'nested' ? (
+                  <p>
+                    The Relation is removed. {preview.impact.promotedNodeLabel ?? 'The child'}
+                    {' '}is promoted to the scope root with descendants preserved.
+                  </p>
+                ) : (
+                  <p>Only this Cross Relation declaration is removed.</p>
+                )
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className="graph-dialog__actions">
+            <button type="button" disabled={busy} onClick={onCancel}>
+              Cancel
+            </button>
+            <button
+              className={dialog.type === 'delete' ? 'is-danger' : ''}
+              type="submit"
+              disabled={
+                busy ||
+                (dialog.type === 'delete' && preview?.type !== 'available')
+              }
+            >
+              {busy ? 'Applying…' : dialog.type === 'delete' ? 'Delete' : 'Apply'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 function GraphCanvas({
   graph,
   selectedNodeId,
@@ -245,17 +638,196 @@ function GraphCanvas({
   status,
   onNodeActivate,
   onNodeEdit,
+  onAuthoringCommand,
+  onDeletePreview,
   onClearSelection,
 }: ReactFlowGraphViewProps) {
   const canvasRef = useRef<HTMLDivElement>(null)
+  const focusReturnRef = useRef<HTMLElement | null>(null)
+  const connectedRef = useRef(false)
+  const { getIntersectingNodes } = useReactFlow<GranvasFlowNode>()
   const [inlineEdit, setInlineEdit] = useState<InlineEditState>()
   const [focusReturnNodeId, setFocusReturnNodeId] = useState<string>()
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string>()
+  const [dialog, setDialog] = useState<AuthorDialogState>()
+  const [dialogBusy, setDialogBusy] = useState(false)
+  const [deletePreview, setDeletePreview] = useState<GraphDeletePreviewDto>()
+  const [dropCandidateId, setDropCandidateId] = useState<string>()
+  const [dragState, setDragState] = useState<
+    Readonly<{
+      revision?: number
+      positions: Readonly<Record<string, Readonly<{ x: number; y: number }>>>
+    }>
+  >({ positions: {} })
+  const [authoringStatus, setAuthoringStatus] = useState('')
   const editingGraphNodeId = inlineEdit?.graphNodeId
   const editingField = inlineEdit?.field
   const graphNodeIds = useMemo(
     () => new Set(graph?.nodes.map(({ id }) => id) ?? []),
     [graph],
   )
+  const selectedNode = graph?.nodes.find(({ id }) => id === selectedNodeId)
+  const selectedEdge = graph?.edges.find(({ id }) => id === selectedEdgeId)
+
+  const closeAuthorDialog = () => {
+    if (dialogBusy) return
+    setDialog(undefined)
+    setDeletePreview(undefined)
+    const returnTarget = focusReturnRef.current
+    focusReturnRef.current = null
+    requestAnimationFrame(() => returnTarget?.focus())
+  }
+
+  const openAuthorDialog = (next: AuthorDialogState) => {
+    focusReturnRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+    setDialog(next)
+    setDeletePreview(undefined)
+
+    if (next.type !== 'delete') return
+    if (!onDeletePreview) {
+      setDeletePreview({
+        type: 'rejected',
+        reason: {
+          code: 'preview-unavailable',
+          message: 'Delete preview is unavailable.',
+        },
+      })
+      return
+    }
+
+    void Promise.resolve(onDeletePreview(next.target)).then((preview) => {
+      setDeletePreview(preview)
+    })
+  }
+
+  const submitAuthoringCommand = async (command: GraphAuthoringCommandDto) => {
+    if (!onAuthoringCommand || dialogBusy) return
+    setDialogBusy(true)
+    try {
+      await onAuthoringCommand(command)
+      setDialog(undefined)
+      setDeletePreview(undefined)
+      const returnTarget = focusReturnRef.current
+      focusReturnRef.current = null
+      requestAnimationFrame(() => returnTarget?.focus())
+    } finally {
+      setDialogBusy(false)
+    }
+  }
+
+  const submitPointerCommand = (command: GraphAuthoringCommandDto) => {
+    if (!onAuthoringCommand) return
+    void Promise.resolve(onAuthoringCommand(command))
+  }
+
+  const dropTargetIdFor = (
+    draggedNode: GranvasFlowNode,
+    event?: MouseEvent | TouchEvent,
+  ): string | undefined => {
+    const pointer =
+      event instanceof MouseEvent
+        ? { x: event.clientX, y: event.clientY }
+        : event?.touches[0]
+          ? { x: event.touches[0].clientX, y: event.touches[0].clientY }
+          : undefined
+    const elementId = pointer
+      ? document
+          .elementsFromPoint(pointer.x, pointer.y)
+          .map(
+            (element) =>
+              element.closest<HTMLElement>('.react-flow__node')?.dataset.id,
+          )
+          .find(
+            (id) =>
+              id !== undefined &&
+              id !== draggedNode.id &&
+              (graphNodeIds.has(id) || id.startsWith('overlay:')),
+          )
+      : undefined
+    if (elementId) return elementId
+
+    const intersections = getIntersectingNodes(draggedNode)
+    return (
+      intersections.find(
+        (candidate) => candidate.type === 'thought' && candidate.id !== draggedNode.id,
+      ) ?? intersections.find((candidate) => candidate.type === 'groupOverlay')
+    )?.id
+  }
+
+  const updateDropCandidate = (
+    event: MouseEvent | TouchEvent,
+    draggedNode: GranvasFlowNode,
+  ) => {
+    const candidateId = dropTargetIdFor(draggedNode, event)
+    setDropCandidateId(candidateId)
+    const candidateNode = graph?.nodes.find(({ id }) => id === candidateId)
+    const candidateGroup = graph?.groups.find(
+      ({ id }) => `overlay:${id}` === candidateId,
+    )
+    if (candidateNode) {
+      setAuthoringStatus(`Drop on ${candidateNode.label} to make it the parent.`)
+    } else if (candidateGroup) {
+      setAuthoringStatus(`Drop on ${candidateGroup.name} to add Group membership.`)
+    } else {
+      setAuthoringStatus('Drop on blank canvas to detach to the scope root.')
+    }
+  }
+
+  const completeSemanticDrag = (
+    event: MouseEvent | TouchEvent,
+    draggedNode: GranvasFlowNode,
+  ) => {
+    if (draggedNode.type !== 'thought') return
+    const candidateId = dropTargetIdFor(draggedNode, event)
+    const candidateNode = graph?.nodes.find(({ id }) => id === candidateId)
+    const candidateGroup = graph?.groups.find(
+      ({ id }) => `overlay:${id}` === candidateId,
+    )
+    if (candidateNode) {
+      submitPointerCommand({
+        type: 'reparent-node',
+        graphNodeId: draggedNode.id,
+        parentGraphNodeId: candidateNode.id,
+      })
+      setAuthoringStatus(`${draggedNode.data.label} reparent requested.`)
+    } else if (candidateGroup) {
+      submitPointerCommand({
+        type: 'set-group-membership',
+        graphNodeId: draggedNode.id,
+        graphGroupId: candidateGroup.id,
+      })
+      setAuthoringStatus(`${draggedNode.data.label} Group membership requested.`)
+    } else {
+      submitPointerCommand({ type: 'reparent-node', graphNodeId: draggedNode.id })
+      setAuthoringStatus(`${draggedNode.data.label} detach requested.`)
+    }
+    setDropCandidateId(undefined)
+  }
+
+  const handleConnect = (connection: Connection) => {
+    if (!connection.source || !connection.target) return
+    connectedRef.current = true
+    submitPointerCommand({
+      type: 'connect-nodes',
+      sourceGraphNodeId: connection.source,
+      targetGraphNodeId: connection.target,
+    })
+    setAuthoringStatus('Relation creation requested.')
+  }
+
+  const handleConnectEnd = (
+    _event: MouseEvent | TouchEvent,
+    state: FinalConnectionState,
+  ) => {
+    const connected = connectedRef.current
+    connectedRef.current = false
+    if (connected || state.isValid || state.fromNode?.type !== 'thought') return
+    openAuthorDialog({
+      type: 'create',
+      parentGraphNodeId: state.fromNode.id,
+    })
+  }
 
   const beginInlineEdit = (graphNodeId: string, field: GraphNodeEditField) => {
     const node = graph?.nodes.find(({ id }) => id === graphNodeId)
@@ -349,9 +921,14 @@ function GraphCanvas({
         position: { x: group.x, y: group.y },
         width: group.width,
         height: group.height,
+        measured: { width: group.width, height: group.height },
         initialWidth: group.width,
         initialHeight: group.height,
-        data: { name: group.name },
+        data: {
+          graphGroupId: group.id,
+          name: group.name,
+          dropCandidate: dropCandidateId === `overlay:${group.id}`,
+        },
         selectable: false,
         draggable: false,
         connectable: false,
@@ -364,9 +941,13 @@ function GraphCanvas({
     const thoughtNodes: ThoughtFlowNode[] = graph.nodes.map((node) => ({
       id: node.id,
       type: 'thought',
-      position: { x: node.x, y: node.y },
+      position:
+        dragState.revision === graph.revision
+          ? (dragState.positions[node.id] ?? { x: node.x, y: node.y })
+          : { x: node.x, y: node.y },
       width: node.width,
       height: node.height,
+      measured: { width: node.width, height: node.height },
       initialWidth: node.width,
       initialHeight: node.height,
       data: {
@@ -374,6 +955,7 @@ function GraphCanvas({
         semanticType: node.type,
         tone: toneForType(node.type),
         certainty: node.certainty,
+        dropCandidate: dropCandidateId === node.id,
         ...(inlineEdit?.graphNodeId === node.id
           ? { editing: inlineEdit }
           : {}),
@@ -395,8 +977,8 @@ function GraphCanvas({
       },
       selected: node.id === selectedNodeId,
       selectable: true,
-      draggable: false,
-      connectable: false,
+      draggable: inlineEdit?.graphNodeId !== node.id,
+      connectable: inlineEdit?.graphNodeId !== node.id,
       deletable: false,
       focusable: inlineEdit?.graphNodeId !== node.id,
       zIndex: 1,
@@ -420,44 +1002,64 @@ function GraphCanvas({
         const targetLabel = nodeById.get(edge.target)?.label ?? edge.target
 
         return {
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        label: [marker, edge.label].filter(Boolean).join(' ') || undefined,
-        type: 'smoothstep',
-        focusable: false,
-        selectable: false,
-        className: `graph-edge graph-edge--certainty-${edge.certainty}`,
-        ariaLabel: `${edge.certainty} certainty relation from ${sourceLabel} to ${targetLabel}${edge.label ? `: ${edge.label}` : ''}`,
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#738093' },
-        style: edgeStyle(edge.certainty),
-        labelStyle: {
-          fill: '#4d586a',
-          fontSize: 12,
-          fontWeight: 650,
-          ...(edge.certainty === 'rejected'
-            ? { textDecoration: 'line-through' }
-            : {}),
-        },
-        labelBgStyle: { fill: '#ffffff', fillOpacity: 0.92 },
-        labelBgPadding: [5, 3],
-        labelBgBorderRadius: 5,
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+          label: [marker, edge.label].filter(Boolean).join(' ') || undefined,
+          type: 'smoothstep',
+          focusable: true,
+          selectable: true,
+          selected: edge.id === selectedEdgeId,
+          className: `graph-edge graph-edge--certainty-${edge.certainty}`,
+          ariaLabel: `${edge.certainty} certainty relation from ${sourceLabel} to ${targetLabel}${edge.label ? `: ${edge.label}` : ''}`,
+          markerEnd: { type: MarkerType.ArrowClosed, color: '#738093' },
+          style: edgeStyle(edge.certainty),
+          labelStyle: {
+            fill: '#4d586a',
+            fontSize: 12,
+            fontWeight: 650,
+            ...(edge.certainty === 'rejected'
+              ? { textDecoration: 'line-through' }
+              : {}),
+          },
+          labelBgStyle: { fill: '#ffffff', fillOpacity: 0.92 },
+          labelBgPadding: [5, 3],
+          labelBgBorderRadius: 5,
         }
       }) ?? []
     },
-    [graph],
+    [graph, selectedEdgeId],
   )
 
   const handleKeyboardActivation = (event: KeyboardEvent<HTMLDivElement>) => {
     const target = event.target
 
-    if (!(target instanceof HTMLElement)) {
+    if (!(target instanceof Element)) {
       return
     }
 
     const nodeId = target.closest<HTMLElement>('.react-flow__node')?.dataset.id
+    const edgeId = target.closest<HTMLElement>('.react-flow__edge')?.dataset.id
+
+    if ((event.key === 'Delete' || event.key === 'Backspace') && edgeId) {
+      event.preventDefault()
+      openAuthorDialog({
+        type: 'delete',
+        target: { type: 'relation', graphEdgeId: edgeId },
+      })
+      return
+    }
 
     if (!nodeId || !graphNodeIds.has(nodeId)) {
+      return
+    }
+
+    if (event.key === 'Delete' || event.key === 'Backspace') {
+      event.preventDefault()
+      openAuthorDialog({
+        type: 'delete',
+        target: { type: 'node', graphNodeId: nodeId },
+      })
       return
     }
 
@@ -480,24 +1082,161 @@ function GraphCanvas({
       ref={canvasRef}
       className="graph-canvas"
       onKeyDown={handleKeyboardActivation}
+      onDoubleClick={(event) => {
+        const target = event.target
+        if (
+          target instanceof Element &&
+          target.closest('.react-flow__pane') &&
+          !target.closest('.react-flow__node')
+        ) {
+          openAuthorDialog({ type: 'create' })
+        }
+      }}
       data-graph-status={status}
     >
+      <div className="graph-author-toolbar" role="toolbar" aria-label="Author graph">
+        <button
+          type="button"
+          disabled={status !== 'ready'}
+          onClick={() => openAuthorDialog({ type: 'create' })}
+        >
+          + New node
+        </button>
+        {selectedNode ? (
+          <>
+            <span className="graph-author-toolbar__selection" title={selectedNode.label}>
+              {selectedNode.label}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                openAuthorDialog({
+                  type: 'create',
+                  parentGraphNodeId: selectedNode.id,
+                })
+              }
+            >
+              Add child
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                openAuthorDialog({
+                  type: 'connect',
+                  sourceGraphNodeId: selectedNode.id,
+                })
+              }
+            >
+              Connect
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                openAuthorDialog({ type: 'move', graphNodeId: selectedNode.id })
+              }
+            >
+              Move
+            </button>
+            <label className="graph-author-toolbar__certainty">
+              <span className="sr-only">Certainty for {selectedNode.label}</span>
+              <select
+                aria-label={`Certainty for ${selectedNode.label}`}
+                value={selectedNode.certainty}
+                onChange={(event) =>
+                  submitPointerCommand({
+                    type: 'set-node-certainty',
+                    graphNodeId: selectedNode.id,
+                    certainty: event.currentTarget.value as GraphCertaintyDto,
+                  })
+                }
+              >
+                <option value="neutral">Neutral</option>
+                <option value="tentative">Tentative</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </label>
+            <button
+              className="is-danger"
+              type="button"
+              onClick={() =>
+                openAuthorDialog({
+                  type: 'delete',
+                  target: { type: 'node', graphNodeId: selectedNode.id },
+                })
+              }
+            >
+              Delete
+            </button>
+          </>
+        ) : null}
+        {selectedEdge ? (
+          <>
+            <span className="graph-author-toolbar__selection">Selected relation</span>
+            <button
+              className="is-danger"
+              type="button"
+              onClick={() =>
+                openAuthorDialog({
+                  type: 'delete',
+                  target: { type: 'relation', graphEdgeId: selectedEdge.id },
+                })
+              }
+            >
+              Delete
+            </button>
+          </>
+        ) : null}
+      </div>
       <ReactFlow<GranvasFlowNode, Edge>
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
         onNodeClick={(_event, node) => {
           if (graphNodeIds.has(node.id) && inlineEdit?.graphNodeId !== node.id) {
+            setSelectedEdgeId(undefined)
             onNodeActivate(node.id)
           }
         }}
-        onPaneClick={onClearSelection}
-        nodesDraggable={false}
-        nodesConnectable={false}
+        onNodeDoubleClick={(event, node) => {
+          if (!graphNodeIds.has(node.id)) return
+          const target = event.target
+          beginInlineEdit(
+            node.id,
+            target instanceof Element && target.closest('.graph-node__type')
+              ? 'type'
+              : 'label',
+          )
+        }}
+        onEdgeClick={(_event, edge) => {
+          setSelectedEdgeId(edge.id)
+          onClearSelection()
+        }}
+        onPaneClick={() => {
+          setSelectedEdgeId(undefined)
+          onClearSelection()
+        }}
+        onNodeDrag={(event, node) => {
+          if (node.type !== 'thought') return
+          setDragState((current) => ({
+            revision: graph?.revision,
+            positions: {
+              ...(current.revision === graph?.revision ? current.positions : {}),
+              [node.id]: Object.freeze({ ...node.position }),
+            },
+          }))
+          updateDropCandidate(event, node)
+        }}
+        onNodeDragStop={(event, node) => completeSemanticDrag(event, node)}
+        onConnect={handleConnect}
+        onConnectEnd={handleConnectEnd}
+        nodesDraggable
+        nodesConnectable
         nodesFocusable
-        edgesFocusable={false}
+        edgesFocusable
         elementsSelectable
         panOnDrag
+        deleteKeyCode={null}
         zoomOnDoubleClick={false}
         minZoom={0.2}
         maxZoom={2}
@@ -525,6 +1264,26 @@ function GraphCanvas({
           <strong>{status === 'projecting' ? 'Building graph…' : 'No graph yet'}</strong>
           <span>Write a node declaration in the Text pane.</span>
         </div>
+      ) : null}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {authoringStatus}
+      </div>
+      {dialog ? (
+        <AuthorDialog
+          key={`${dialog.type}:${
+            dialog.type === 'delete'
+              ? dialog.target.type === 'node'
+                ? dialog.target.graphNodeId
+                : dialog.target.graphEdgeId
+              : ''
+          }`}
+          dialog={dialog}
+          graph={graph}
+          busy={dialogBusy}
+          preview={deletePreview}
+          onCancel={closeAuthorDialog}
+          onSubmit={(command) => void submitAuthoringCommand(command)}
+        />
       ) : null}
     </div>
   )
