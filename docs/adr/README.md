@@ -17,6 +17,7 @@ Granvas の設計上の意思決定のうち、後から「なぜこうなって
 | [0001](0001-semantic-node-drag-without-coordinate-persistence.md) | Semantic node drag without coordinate persistence | Accepted | 2026-08-11 |
 | [0002](0002-source-edit-plan-as-notation-domain-concern.md) | Source edit plan as a Notation domain concern | Accepted | 2026-08-11 |
 | [0003](0003-certainty-markers-in-granvas-notation.md) | Certainty markers in Granvas Notation | Accepted | 2026-08-11 |
+| [0004](0004-official-documentation-on-github-pages.md) | Official documentation on GitHub Pages | Accepted | 2026-08-11 |
 
 ## 起票が必要と分かっている論点
 

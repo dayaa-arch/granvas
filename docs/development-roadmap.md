@@ -9,13 +9,13 @@
 
 Granvas v0.1の仮説「文章を書く行為と、思考構造を見る行為を一つの連続した体験にできるか」を、検証可能な実装単位へ分割する。
 
-- **Milestone**: 複数Phaseを束ねるrelease-level checkpoint。M0〜M6で表す。
-- **Phase**: 原則として1つのsteering、Issue、PRで完結する実装・検証単位。Phase 0〜12で表す。
+- **Milestone**: 複数Phaseを束ねるrelease-level checkpoint。M0〜M7で表す。
+- **Phase**: 原則として1つのsteering、Issue、PRで完結する実装・検証単位。Phase 0〜13で表す。
 - **Task**: Phase内の具体的な作業項目。初回実装タスクリストの番号を独立したPhase番号として解釈しない。
 
 Phaseの名称、順序、進捗はこの文書を正本とする。完了済みsteering、Issue、PRは履歴であるため改名せず、本書の対応表から追跡する。
 
-**Phase番号は採番順であり、実行順ではない。** 実行順は§2のMilestoneと§3のstatus表に従う。Phase 10〜12はPhase 8〜9より後に採番されたが、先に実行する。
+**Phase番号は採番順であり、実行順ではない。** 実行順は§2のMilestoneと§3のstatus表に従う。Phase 10〜13はPhase 8〜9より後に採番されたが、先に実行する。
 
 ## 2. Release Milestones
 
@@ -25,8 +25,9 @@ flowchart LR
     M1 --> M2["M2 Workspace Core<br/>Phase 5"]
     M2 --> M3["M3 Transfer & Presentation<br/>Phase 6–7"]
     M3 --> M4["M4 Authoring Core<br/>Phase 10–12"]
-    M4 --> M5["M5 Visual Export<br/>Phase 8"]
-    M5 --> M6["M6 Vercel Release Candidate<br/>Phase 9"]
+    M4 --> M5["M5 Japanese Product Guidance<br/>Phase 13"]
+    M5 --> M6["M6 Visual Export<br/>Phase 8"]
+    M6 --> M7["M7 Vercel Release Candidate<br/>Phase 9"]
 ```
 
 | Milestone | 対象Phase | Exit |
@@ -36,8 +37,9 @@ flowchart LR
 | M2 Workspace Core | Phase 5 | revision整合性とText / Graph往復がapplication contractで成立 |
 | M3 Transfer & Presentation | Phase 6〜7 | browser上で編集、投影、`.granvas`保存・再開、SVG共有が可能 |
 | M4 Authoring Core | Phase 10〜12 | 確信度を記法で表現でき、Graph操作がTextの最小差分として反映される |
-| M5 Visual Export | Phase 8 | SVG / PNG / PDFへfull Graphを出力可能 |
-| M6 Vercel Release Candidate | Phase 9 | DoD、OSS、品質、production検証をすべて完了 |
+| M5 Japanese Product Guidance | Phase 13 | 日本語UIと実装に一致する公式利用ガイドが公開される |
+| M6 Visual Export | Phase 8 | SVG / PNG / PDFへfull Graphを出力可能 |
+| M7 Vercel Release Candidate | Phase 9 | DoD、OSS、品質、production検証をすべて完了 |
 
 ## 3. Phase Status / History
 
@@ -54,10 +56,11 @@ flowchart LR
 | 10 | Notation Certainty | 完了 | 9 | `.steering/20260811-phase-10-notation-certainty/` | [Issue #19](https://github.com/dayaa-arch/granvas/issues/19) / [PR #20](https://github.com/dayaa-arch/granvas/pull/20) |
 | 11 | Source Edit Core | 完了 | 10 | `.steering/20260811-phase-11-source-edit-core/` | [Issue #21](https://github.com/dayaa-arch/granvas/issues/21) / [PR #22](https://github.com/dayaa-arch/granvas/pull/22) |
 | 12 | Graph Authoring | 完了 | 11 | `.steering/20260811-phase-12-graph-authoring/` | [Issue #23](https://github.com/dayaa-arch/granvas/issues/23) / [PR #24](https://github.com/dayaa-arch/granvas/pull/24) |
-| 8 | Visual Export | 未着手 | 12 | 作業開始時に新規作成 | 未起票 |
-| 9 | Release Hardening | 未着手 | 13 | 作業開始時に新規作成 | 未起票 |
+| 13 | Japanese UI & Official Documentation | 実装中 | 12 | `.steering/20260811-phase-13-japanese-ui-official-documentation/` | [Issue #26](https://github.com/dayaa-arch/granvas/issues/26) / PR未作成 |
+| 8 | Visual Export | 未着手 | 13 | 作業開始時に新規作成 | 未起票 |
+| 9 | Release Hardening | 未着手 | 14 | 作業開始時に新規作成 | 未起票 |
 
-現在の完了地点は**Phase 12 Graph Authoring**であり、M4 Authoring Coreまで完了した。次の実装Phaseはロードマップ実行順に従い**Phase 8 Visual Export**とする。GitHub Actionsはユーザー指示により後回しとし、Phase 9の未完了項目として保持する。
+現在の完了地点は**Phase 12 Graph Authoring**であり、M4 Authoring Coreまで完了した。ユーザー要求により**Phase 13 Japanese UI & Official Documentation**を実行中とし、完了後の次工程は**Phase 8 Visual Export**とする。GitHub Actionsはユーザー指示により後回しとし、Phase 9の未完了項目として保持する。
 
 ### 3.1 Scope Change: 2026-08-11
 
@@ -75,6 +78,17 @@ v0.1のscopeへ**Authoring Core（Phase 10〜12）を追加**し、Phase 8 / 9�
 - [ADR-0003 Certainty markers in Granvas Notation](adr/0003-certainty-markers-in-granvas-notation.md)
 
 Node座標の永続化は引き続き実装しない。ドラッグは座標ではなく意味（親子・Group所属・並び順）の操作として扱う。`Text is the source of truth`（仕様§1.2）と「座標を記法に保存しない」（仕様§2.3 / §4.7）は改訂しない。
+
+### 3.2 Scope Change: 2026-08-11 — Japanese UI / Official Documentation
+
+Phase 12完了後、製品UIを日本語へ統一し、その実装内容に一致する公式利用ガイドをGitHub Pagesへ公開するPhase 13を追加した。
+
+- product applicationのtargetは引き続きv0.1とし、Phase 8 / 9未完了のrelease状態を変更しない。
+- 公開siteは`Granvas 1.0 公式ドキュメント`の`公開プレビュー`とし、対応実装がv0.1開発版であることを明示する。
+- product applicationはVercel、official DocsはGitHub Pagesとしてhostingを分離する。
+- repositoryへcustom GitHub Actions workflowを追加せず、`gh-pages` branch rootをPages sourceとする。
+
+決定の根拠は[ADR-0004](adr/0004-official-documentation-on-github-pages.md)。
 
 ## 4. Phase 0: Documentation Baseline
 
@@ -249,7 +263,34 @@ Exit Criteria:
 - [x] 全操作がUndoで戻る。
 - [x] Graph操作前後で散文が保持される。
 
-## 15. Phase 8: Visual Export
+## 15. Phase 13: Japanese UI & Official Documentation
+
+Goal: 製品UIを日本語へ統一し、Phase 12完了時点の実装に一致する日本語の公式利用ガイドをGitHub Pagesへ公開する。
+
+公開方式とversion表記の根拠は[ADR-0004](adr/0004-official-documentation-on-github-pages.md)。
+
+Deliverables:
+
+- [ ] visible text、accessible name、tooltip、dialog、status、notification、diagnostic、errorの日本語化。
+- [ ] 日本語の初期Project。Notation token、Type、Explicit IDと構造は互換性を維持する。
+- [ ] Diagnostic / Notation rejection / Transfer error codeから日本語表示文へのpresentation formatter。
+- [ ] 日本語UIに対応したcomponent testと3-browser E2E。
+- [ ] `docs-site/`に画面構成、Notation、確信度、Graph authoring、Project workflow、keyboard、FAQを含む公式利用ガイド。
+- [ ] 日本語UIのproduction buildから取得した実画面screenshot。
+- [ ] `/granvas/` base pathを持つ再現可能なdocs buildとartifact verification。
+- [ ] `gh-pages` branch rootから`https://dayaa-arch.github.io/granvas/`へのPages公開。
+- [ ] repository homepageから公式利用ガイドへの導線。
+
+Exit Criteria:
+
+- [ ] 日本語UIでText / Graph編集、Import / Download、keyboard操作を利用できる。
+- [ ] UI日本語化後もtypecheck、lint、unit / component、build、3-browser E2Eがgreen。
+- [ ] 公式利用ガイドが実装済み機能だけを利用可能として説明し、Phase 8 / 9未完了を明示している。
+- [ ] PagesのHTML、CSS、JS、画像、anchor、404がHTTPSのlive URLで利用できる。
+- [ ] `Granvas 1.0 公式ドキュメント — 公開プレビュー`と対応実装v0.1の違いが明示されている。
+- [ ] custom GitHub Actions workflow、tracking、backend、credentialを追加していない。
+
+## 16. Phase 8: Visual Export
 
 Goal: current valid projectionのfull Graphを共有可能な全visual formatへ安全に出力する。
 
@@ -270,7 +311,7 @@ Exit Criteria:
 - [ ] PNG制限とPDF page boundsが仕様どおりである。
 - [ ] 生成・download失敗時にcurrent sourceとdirty stateを維持する。
 
-## 16. Phase 9: Release Hardening
+## 17. Phase 9: Release Hardening
 
 Goal: OSSとしてVercel上で安全かつ再現可能に利用できるrelease candidateを作る。
 
@@ -293,7 +334,7 @@ Exit Criteria:
 - [ ] Vercel production URLでcanonical demoとDownload / Importが動作する。
 - [ ] v0.1 Definition of Doneをすべて満たす。
 
-## 17. Known Risks
+## 18. Known Risks
 
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
@@ -308,8 +349,11 @@ Exit Criteria:
 | Node削除の連鎖範囲が想定より広い | 意図しない構造の喪失 | 削除対象を事前提示し、Undo 1回で復元できることを保証する |
 | `spans`追加によるParser公開契約の肥大 | 維持コストの増加 | 編集に必要なspanだけを公開し、用途をADR-0002に限定して記録する |
 | certaintyマーカーによる既存文書の解析変化 | 後方互換の破壊 | `?` `!` `~` はtype先頭文字として現在invalidであることを前提とし、Phase 3の全fixtureが無改変で通ることをExit Criteriaにする |
+| v1.0 Docs表記とv0.1実装の混同 | 未実装機能をrelease済みと誤認させる | 全pageへ公開プレビューと対応実装を表示し、Phase 8 / 9を現在の制約として明記する |
+| UI日本語化でaccessible nameとtestが乖離 | keyboard / screen reader操作の退行 | visible copyとaccessible copyを同じ用語表で管理し、component / 3-browser E2Eを更新する |
+| Pages artifactとmain sourceの乖離 | 古い手順が公開される | review済みmainから再buildし、`gh-pages`は生成物だけを保持する |
 
-## 18. Deferred Work
+## 19. Deferred Work
 
 - Node座標の永続化と自由配置（[ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md)により意図的に非対応。変更する場合はsuperseding ADRを起こす）。
 - 兄弟Nodeの並び替えドラッグ（Phase 12の対象外。将来のauthoring拡張で再検討する）。
@@ -318,10 +362,13 @@ Exit Criteria:
 - account / authentication implementation。
 - cloud sync / collaboration。
 - AI / plugin / mobile / desktop app。
+- 英語 / 日本語のruntime切り替えとlocale selector。
+- custom domain、Docs search backend、analytics / CMS。
+- 正式なGranvas v1.0 release migration。
 
 認証実装を開始する場合のproviderはSupabase Authに決定済みだが、roadmapへの追加はv0.1完了後に別steering / ADRで行う。
 
-## 19. Phase運用規則
+## 20. Phase運用規則
 
 - 新しいPhase名と番号は、実装開始前にこの文書へ記載する。
 - Phase番号は採番順とし、再利用しない。実行順は§3のstatus表で管理する。

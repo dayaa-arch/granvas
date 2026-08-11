@@ -20,6 +20,10 @@ import {
   WorkspaceStatusBar,
   type WorkspaceSnapshotDto,
 } from '@/modules/workspace'
+import {
+  graphEditErrorMessageJa,
+  transferErrorMessageJa,
+} from '@/app/presentationMessages'
 
 import './App.css'
 
@@ -54,21 +58,34 @@ function isDirty(snapshot: WorkspaceSnapshotDto): boolean {
 function authoringSuccessMessage(command: Readonly<{ type: string }>): string {
   switch (command.type) {
     case 'set-node-certainty':
-      return 'Node certainty updated.'
+      return 'Nodeの確信度を更新しました。'
     case 'create-node':
-      return 'Node created from the Graph.'
+      return 'グラフからNodeを作成しました。'
     case 'connect-nodes':
-      return 'Relation created from the Graph.'
+      return 'グラフからRelationを作成しました。'
     case 'reparent-node':
-      return 'Node parentage updated.'
+      return 'Nodeの親子構造を更新しました。'
     case 'set-group-membership':
-      return 'Node added to the Group.'
+      return 'NodeをGroupへ追加しました。'
     case 'delete-node':
-      return 'Node structure deleted.'
+      return 'Nodeと関連する構造を削除しました。'
     case 'delete-relation':
-      return 'Relation deleted.'
+      return 'Relationを削除しました。'
     default:
-      return 'Graph edit applied.'
+      return 'グラフの変更をテキストへ反映しました。'
+  }
+}
+
+function graphStatusLabel(status: 'idle' | 'projecting' | 'ready' | 'error'): string {
+  switch (status) {
+    case 'idle':
+      return '待機中'
+    case 'projecting':
+      return '更新中'
+    case 'ready':
+      return '更新済み'
+    case 'error':
+      return '更新エラー'
   }
 }
 
@@ -226,7 +243,7 @@ function App({ application }: AppProps) {
             graphNodeId: edit.graphNodeId,
             nodeType: edit.value,
           },
-      edit.field === 'label' ? 'Node label updated.' : 'Node type updated.',
+      edit.field === 'label' ? 'Nodeのラベルを更新しました。' : 'NodeのTypeを更新しました。',
     )
   }
 
@@ -253,7 +270,7 @@ function App({ application }: AppProps) {
 
     if (result.type === 'rejected') {
       setProjectionPending(false)
-      setNotice({ tone: 'error', message: result.reason.message })
+      setNotice({ tone: 'error', message: graphEditErrorMessageJa(result.reason.code) })
       return
     }
 
@@ -277,7 +294,7 @@ function App({ application }: AppProps) {
     await flushEditorSource()
     const preview = workspace.previewGraphDelete(target)
     if (preview.type === 'rejected') {
-      setNotice({ tone: 'error', message: preview.reason.message })
+      setNotice({ tone: 'error', message: graphEditErrorMessageJa(preview.reason.code) })
     }
     return preview
   }
@@ -296,7 +313,7 @@ function App({ application }: AppProps) {
     }
 
     if (result.type === 'error') {
-      setNotice({ tone: 'error', message: result.message })
+      setNotice({ tone: 'error', message: transferErrorMessageJa(result.code) })
       return
     }
 
@@ -307,7 +324,7 @@ function App({ application }: AppProps) {
 
     if (replacement.type === 'confirmation-required') {
       const confirmed = window.confirm(
-        'Importing this project will replace your unsaved changes. Continue?',
+        'このプロジェクトを読み込むと、未ダウンロードの変更が失われます。続けますか？',
       )
 
       if (!confirmed) {
@@ -330,7 +347,7 @@ function App({ application }: AppProps) {
     setFitViewKey((current) => current + 1)
     setNotice({
       tone: 'success',
-      message: `Imported ${result.project.name}.granvas`,
+      message: `${result.project.name}.granvasを読み込みました。`,
     })
   }
 
@@ -357,14 +374,17 @@ function App({ application }: AppProps) {
 
         if (result.type === 'error') {
           applySnapshot(
-            workspace.markProjectDownloadFailed(request.ticket, result.message),
+            workspace.markProjectDownloadFailed(
+              request.ticket,
+              transferErrorMessageJa(result.code),
+            ),
           )
-          setNotice({ tone: 'error', message: result.message })
+          setNotice({ tone: 'error', message: transferErrorMessageJa(result.code) })
           return
         }
 
         applySnapshot(workspace.markProjectDownloaded(request.ticket))
-        setNotice({ tone: 'success', message: `Downloaded ${result.file.fileName}` })
+        setNotice({ tone: 'success', message: `${result.file.fileName}をダウンロードしました。` })
         closeDownloadDialog()
         return
       }
@@ -382,19 +402,19 @@ function App({ application }: AppProps) {
       })
 
       if (result.type === 'error') {
-        setNotice({ tone: 'error', message: result.message })
+        setNotice({ tone: 'error', message: transferErrorMessageJa(result.code) })
         return
       }
 
       setNotice({
         tone: 'success',
-        message: `Downloaded ${result.file.fileName}`,
+        message: `${result.file.fileName}をダウンロードしました。`,
       })
       closeDownloadDialog()
-    } catch (error) {
+    } catch {
       setNotice({
         tone: 'error',
-        message: error instanceof Error ? error.message : 'Download failed.',
+        message: 'ダウンロード中に予期しない問題が発生しました。現在のテキストは変更されていません。',
       })
     } finally {
       setDownloadBusy(false)
@@ -414,7 +434,7 @@ function App({ application }: AppProps) {
       data-version={application.version}
     >
       <header className="topbar">
-        <h1 className="sr-only">Granvas workspace</h1>
+        <h1 className="sr-only">Granvas ワークスペース</h1>
         <div className="topbar__identity">
           <span className="brand-mark" aria-hidden="true">
             <span />
@@ -423,13 +443,13 @@ function App({ application }: AppProps) {
           </span>
           <div>
             <span className="brand-name">Granvas</span>
-            <span className="brand-tagline">Write thoughts. See structure.</span>
+            <span className="brand-tagline">思考を書く。構造が見える。</span>
           </div>
         </div>
-        <div className="topbar__actions" aria-label="Project actions">
+        <div className="topbar__actions" aria-label="プロジェクト操作">
           <button className="button button--quiet" type="button" onClick={() => void handleImport()}>
             <span aria-hidden="true">↥</span>
-            Import Project
+            プロジェクトを読み込む
           </button>
           <button
             ref={downloadButtonRef}
@@ -438,7 +458,7 @@ function App({ application }: AppProps) {
             onClick={() => void openDownloadDialog()}
           >
             <span aria-hidden="true">↓</span>
-            Download
+            ダウンロード
           </button>
         </div>
       </header>
@@ -448,13 +468,13 @@ function App({ application }: AppProps) {
           <div className="workspace-panel">
             <div className="workspace-panel__header">
               <div>
-                <span className="workspace-panel__eyebrow">Source of truth</span>
-                <h2>Text</h2>
+                <span className="workspace-panel__eyebrow">唯一の正本</span>
+                <h2>テキスト</h2>
               </div>
               <span className="workspace-panel__meta">Granvas Notation</span>
             </div>
             <div className="workspace-panel__body">
-              <Suspense fallback={<div className="panel-loading">Loading editor…</div>}>
+              <Suspense fallback={<div className="panel-loading">エディタを読み込んでいます…</div>}>
                 <GranvasEditor
                   ref={editorRef}
                   source={editorSource}
@@ -471,16 +491,16 @@ function App({ application }: AppProps) {
           <div className="workspace-panel">
             <div className="workspace-panel__header">
               <div>
-                <span className="workspace-panel__eyebrow">Live projection</span>
-                <h2>Graph</h2>
+                <span className="workspace-panel__eyebrow">現在の投影</span>
+                <h2>グラフ</h2>
               </div>
               <span className={`projection-state projection-state--${graphStatus}`}>
                 <span aria-hidden="true" />
-                {graphStatus === 'projecting' ? 'Updating' : graphStatus}
+                {graphStatusLabel(graphStatus)}
               </span>
             </div>
             <div className="workspace-panel__body">
-              <Suspense fallback={<div className="panel-loading">Loading graph…</div>}>
+              <Suspense fallback={<div className="panel-loading">グラフを読み込んでいます…</div>}>
                 <ReactFlowGraphView
                   graph={graph}
                   selectedNodeId={snapshot.selectedGraphNodeId}
@@ -524,7 +544,7 @@ function App({ application }: AppProps) {
           role={notice.tone === 'error' ? 'alert' : 'status'}
         >
           <span>{notice.message}</span>
-          <button type="button" aria-label="Dismiss notification" onClick={() => setNotice(undefined)}>
+          <button type="button" aria-label="通知を閉じる" onClick={() => setNotice(undefined)}>
             ×
           </button>
         </div>

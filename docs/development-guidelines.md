@@ -159,6 +159,16 @@ Common
 - dialogはfocus trap、Escape、focus returnを実装する。
 - layoutは960px幅で破綻させず、1280px以上を推奨体験とする。
 
+### 9.1 UI Language
+
+- 製品UIは日本語を標準とする。
+- visible text、accessible name、tooltip、dialog、`aria-live`、diagnostic、errorの用語を一致させる。
+- `Text / Graph / Import / Download / certainty`などの表示名は`docs/glossary.md`を正本とする。
+- Notation token、Node Type、Explicit ID、format名、code上のUbiquitous Languageは翻訳しない。
+- Domain / Applicationのmachine-readable error codeを安定contractとして維持し、presentation formatterが日本語表示文へ変換する。
+- unknown errorは安全な日本語fallbackを表示し、stack、local path、機密情報を露出しない。
+- 単一日本語UIのために汎用i18n frameworkを導入しない。locale切替が要求された時点で別Phase / ADRとして設計する。
+
 ## 10. Security
 
 - `eval`、`new Function`、dynamic script injectionを禁止する。
@@ -214,7 +224,19 @@ Common
 - p95 budgetを超える変更は原因と計測結果をPRへ記載する。
 - 大きなfileを扱う前に5 MiB hard limitを検証する。
 
-## 14. Git / Review
+## 14. Official Documentation
+
+- 日本語公式利用ガイドのsourceは`docs-site/`へ置き、engineering `docs/`と分離する。
+- 実装済みcapabilityだけを利用可能として記載し、未実装・計画中・公開プレビューを明示する。
+- screenshotはproduction buildから取得し、個人情報、local path、credentialを含めない。
+- semantic HTML、skip link、heading hierarchy、alt、focus indicator、keyboard navigationをtestする。
+- 1280px以上と390px相当のviewportでvisual QAする。
+- tracking、analytics、remote font、cookie、third-party runtime script、form backendを追加しない。
+- `bun run docs:build`で`/granvas/` baseのartifactを生成し、`bun run docs:verify`でentry、asset、`.nojekyll`を検証する。
+- mainのreview済みsourceから生成したartifactだけを`gh-pages`へ公開する。
+- `.github/workflows/`へcustom Pages workflowを追加しない。
+
+## 15. Git / Review
 
 - 1 commitは説明可能な変更単位にする。
 - generated output、secret、local environment fileをcommitしない。
@@ -223,7 +245,7 @@ Common
 - architecture boundary違反、document/code不整合、data loss riskをblockerとする。
 - public release前にOSS licenseを決定する。
 
-## 15. Commands
+## 16. Commands
 
 ```bash
 bun install
@@ -233,9 +255,11 @@ bunx eslint .
 bun run test:run
 bunx playwright test
 bun run build
+bun run docs:build
+bun run docs:verify
 ```
 
-## 16. Completion Checklist
+## 17. Completion Checklist
 
 - [ ] Acceptance Criteriaを満たす。
 - [ ] relevant unit / component / E2E testが通る。
@@ -243,3 +267,5 @@ bun run build
 - [ ] module boundaryに違反しない。
 - [ ] security / accessibility / performanceへの影響を確認した。
 - [ ] 永続文書、ADR、steering tasklistを更新した。
+- [ ] UI copy変更時はvisible textとaccessible nameを日本語で確認した。
+- [ ] official Docs変更時はlocal build、responsive、keyboard、公開後live URLを確認した。

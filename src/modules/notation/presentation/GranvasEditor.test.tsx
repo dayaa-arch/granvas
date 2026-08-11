@@ -30,7 +30,7 @@ describe('GranvasEditor', () => {
       />,
     )
 
-    expect(await screen.findByRole('textbox', { name: 'Granvas text editor' })).toHaveTextContent(
+    expect(await screen.findByRole('textbox', { name: 'Granvas テキストエディタ' })).toHaveTextContent(
       '[?problem @risk] Unsafe',
     )
     await waitFor(() => {
@@ -44,11 +44,11 @@ describe('GranvasEditor', () => {
       ).toEqual(['?', '!'])
       expect(container.querySelector('.cm-gnv-diagnostic')).toHaveAttribute(
         'title',
-        'GNV005_UNRESOLVED_REFERENCE: Reference is unresolved.',
+        'GNV005_UNRESOLVED_REFERENCE: 参照先のNodeを解決できません。',
       )
       expect(container.querySelector('.cm-gnv-gutter-marker')).toHaveAttribute(
         'title',
-        'GNV005_UNRESOLVED_REFERENCE: Reference is unresolved.',
+        'GNV005_UNRESOLVED_REFERENCE: 参照先のNodeを解決できません。',
       )
     })
     expect(onCursorChange).toHaveBeenCalledWith({ offset: 0, line: 1, column: 0 })
@@ -65,7 +65,7 @@ describe('GranvasEditor', () => {
       />,
     )
     const editor = await screen.findByRole('textbox', {
-      name: 'Granvas text editor',
+      name: 'Granvas テキストエディタ',
     })
 
     fireEvent.compositionEnd(editor)
@@ -87,7 +87,7 @@ describe('GranvasEditor', () => {
       />,
     )
     const editor = await screen.findByRole('textbox', {
-      name: 'Granvas text editor',
+      name: 'Granvas テキストエディタ',
     })
 
     act(() => {

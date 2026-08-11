@@ -17,7 +17,7 @@ describe('DownloadDialog', () => {
       />,
     )
 
-    const name = screen.getByRole('textbox', { name: 'File name' })
+    const name = screen.getByRole('textbox', { name: 'ファイル名' })
     await waitFor(() => expect(name).toHaveFocus())
     expect(screen.getByRole('radio', { name: /SVG/ })).toBeDisabled()
     expect(screen.getByRole('radio', { name: /PNG/ })).toBeDisabled()
@@ -40,14 +40,16 @@ describe('DownloadDialog', () => {
       />,
     )
 
-    fireEvent.change(screen.getByRole('textbox', { name: 'File name' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'ファイル名' }), {
       target: { value: 'shared graph' },
     })
     fireEvent.click(screen.getByRole('radio', { name: /SVG/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'Download' }))
+    expect(screen.getByRole('radio', { name: /PNG/ })).toBeDisabled()
+    expect(screen.getByRole('radio', { name: /PDF/ })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'ダウンロード' }))
 
     expect(screen.getByRole('note')).toHaveTextContent(
-      'visual formats include the valid projection only',
+      '画像形式には有効に解釈できたグラフだけが含まれます',
     )
     expect(onDownload).toHaveBeenCalledWith({
       name: 'shared graph',

@@ -16,6 +16,7 @@ Graph編集は「Graphの状態を変える」のではなく「現在のTextへ
 ```mermaid
 flowchart LR
     User["User"] --> App["Vercel-hosted React SPA"]
+    User --> Docs["GitHub Pages official guide"]
     App --> Workspace["Workspace Application"]
     Workspace --> Document["Document Context"]
     Workspace --> Notation["Notation Context"]
@@ -28,27 +29,29 @@ flowchart LR
 
 v0.1にserver-side component、database、authentication、remote APIは存在しない。Vercelはstatic assetのhostingだけを担当する。
 
+公式利用ガイドはproduct runtimeから独立した静的siteとしてGitHub Pagesへ公開する。product applicationのstate、file、projectionへ接続せず、tracking、analytics、remote font、backend requestを持たない。
+
 ## 3. 画面設計
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│ Granvas   Write thoughts. See structure.  Import  Download  │
+│ Granvas   思考を書く。構造が見える。 読み込む ダウンロード │
 ├──────────────────────────────┬───────────────────────────────┤
-│ Text Editor                  │ Graph                         │
+│ テキスト                     │ グラフ                        │
 │                              │                               │
 │ [problem] ...                │      ┌ Problem ┐             │
 │   -> [cause] ...             │      └────┬────┘             │
 │                              │           ▼                  │
 │                              │       ┌ Cause ┐              │
 ├──────────────────────────────┴───────────────────────────────┤
-│ Unsaved · Ln 2, Col 5 · 2 nodes / 1 edge · 0 diagnostics   │
+│ 未ダウンロード · 2行 5列 · Node 2件 / Edge 1件 · 診断 0件 │
 └──────────────────────────────────────────────────────────────┘
 ```
 
 ### 3.1 Top Bar
 
-- `Import Project`: `.granvas`を選択する。
-- `Download`: file nameと `.granvas` / SVG / PNG / PDFを選択するdialogを開く。
+- `プロジェクトを読み込む`: `.granvas`を選択する。
+- `ダウンロード`: file nameと `.granvas` / SVG / PNG / PDFを選択するdialogを開く。
 - account / cloud / share UIは表示しない。
 
 ### 3.2 Text Editor
@@ -86,6 +89,16 @@ v0.1にserver-side component、database、authentication、remote APIは存在�
 - diagnostics件数とvisual formatがvalid projectionだけを含む旨の通知。
 - Graphが空の場合はvisual formatをdisabledにする。
 - Escapeでcancelし、終了後はDownload buttonへfocusを戻す。
+
+### 3.5 UI Language
+
+- 製品UIは日本語を標準とする。
+- visible text、accessible name、tooltip、dialog、`aria-live`、diagnostic、transfer / graph edit errorを日本語化する。
+- Notation token、Node Type、Explicit ID、format名、製品名は翻訳しない。
+- `Saved / Unsaved`は自動保存と誤解させないよう`ダウンロード済み / 未ダウンロード`と表現する。
+- `certainty`は`確信度`、`neutral / tentative / confirmed / rejected`は`指定なし / 未確定 / 確定 / 棄却`とする。
+- Domain / Applicationが返すmachine-readable codeを維持し、presentationがcodeを日本語表示文へ変換する。
+- runtime locale switchと多言語化frameworkはv0.1に導入しない。
 
 ## 4. Bounded Context
 
@@ -393,3 +406,23 @@ v0.1にHTTP APIは存在しない。将来認証を追加する場合は`src/mod
 | `unresolved-reference` | 参照先のNodeを解決できない |
 | `unsupported-structure` | 現在の記法で表現できない構造（nested Groupなど） |
 | `invalid-value` | 空ラベル、ID規則を満たさないtypeなど |
+
+## 11. 公式利用ガイド配布
+
+公式利用ガイドのsourceはmain branchの`docs-site/`に置き、review済みsourceから生成した静的artifactを`gh-pages` branchのrootへ公開する。
+
+```mermaid
+flowchart LR
+    Source["main / docs-site"] --> Build["docs build /granvas base"]
+    Build --> Branch["gh-pages root + .nojekyll"]
+    Branch --> Pages["dayaa-arch.github.io/granvas"]
+    Pages --> Reader["日本語利用者"]
+```
+
+- サイト名は`Granvas 1.0 公式ドキュメント`、release状態は`公開プレビュー`とする。
+- 対応実装を`Granvas v0.1 開発版（Phase 12完了時点）`として明示し、Phase 8 / 9の未完了機能を区別する。
+- 画面構成、Notation、確信度、Text / Graph navigation、Graph authoring、Project Download / Import、keyboard、FAQ、現在の制約を含める。
+- screenshotは日本語UIのproduction buildから取得し、画像だけに意味を依存させない。
+- semantic HTML、skip link、heading、alt、focus indicator、responsive layoutを備える。
+- `.github/workflows/`へcustom Pages workflowを追加せず、GitHub Pagesのlegacy branch sourceを使う。
+- product applicationのVercel static hostingは変更しない。

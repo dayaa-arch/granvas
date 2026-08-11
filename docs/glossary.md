@@ -5,10 +5,10 @@
 
 ## 1. 言語規則
 
-- Product UIでは、ユーザー操作を`Import Project`と`Download`で表現する。
+- Product UIは日本語を標準とし、ユーザー操作を`プロジェクトを読み込む`と`ダウンロード`で表現する。
 - Codeでは、domain conceptに英語名を使用する。
 - `Node`、`Relation`、`Group`、`Layout`はNotationとGraphで意味が異なる場合があるため、必要に応じ`Parsed`、`Graph`、`Positioned`を付ける。
-- `Save`は自動保存と誤解されるため、v0.1のUIでは`.granvas Download`を使う。
+- `Save` / `保存済み`は自動保存と誤解されるため、v0.1のUIでは`.granvasのダウンロード`、`ダウンロード済み / 未ダウンロード`を使う。
 - Graph上の操作は`編集`と呼び、`移動`や`配置`とは呼ばない。座標を保存しないため、位置の操作という語は誤解を生む。
 - `Certainty`は`確信度`と訳す。`ステータス`や`状態`は`DirtyState`と衝突するため使わない。
 
@@ -20,12 +20,28 @@
 | Project | Project | `GranvasDocument` | 現在編集中の単一sourceとlifecycle |
 | 正本 | Source of Truth | `DocumentSource` | 意味構造を再生成できる唯一のText |
 | 投影 | Projection | `WorkspaceProjectionDto` | Textから導出されたGraph / SourceMap / Diagnosticsの同一revision集合 |
-| Import Project | Import Project | `ImportProject` | `.granvas`をactive Projectとして読み込む操作 |
-| Download | Download | `DownloadCurrentProject` | 選択formatのfileをuser deviceへ生成する操作 |
+| プロジェクトを読み込む | Import Project | `ImportProject` | `.granvas`をactive Projectとして読み込む操作 |
+| ダウンロード | Download | `DownloadCurrentProject` | 選択formatのfileをuser deviceへ生成する操作 |
 | 再編集可能なProject | Editable Project | `ProjectFile` | sourceを保持する`.granvas` file |
 | 派生成果物 | Derived Artifact | `RenderedFileDto` | SVG / PNG / PDFのread-only graph output |
-| 未ダウンロード | Unsaved / Dirty | `DirtyState.Dirty` | clean baseline以降にsourceが変更された状態 |
-| ダウンロード済み | Clean | `DirtyState.Clean` | imported sourceまたは最後の`.granvas` download revisionと一致する状態 |
+| 未ダウンロード | Unsaved / Dirty | `DirtyState.Dirty` | clean baseline以降にsourceが変更され、`.granvas`として未ダウンロードの状態 |
+| ダウンロード済み | Clean | `DirtyState.Clean` | imported sourceまたは最後の`.granvas` download revisionと一致する状態。browserへの自動保存を意味しない |
+| 公式利用ガイド | Official Documentation | `docs-site` | 日本語UIの使い方と現在の制約を説明するGitHub Pages site |
+| 公開プレビュー | Public Preview | — | 正式release前の公式Docs公開状態。対応実装と未完了機能を併記する |
+
+## 2.1 UI Translation Terms
+
+| UI日本語 | Internal / English | 用途 |
+| --- | --- | --- |
+| テキスト | Text | 正本を編集する左pane |
+| グラフ | Graph | Textから導出される右pane |
+| 構造を変更 | Move by meaning / Semantic Drag | 親子関係・Group所属を変更し、座標を保存しない操作 |
+| 確信度 | Certainty | Typeと独立した確からしさ |
+| 指定なし | Neutral | certainty markerなし |
+| 未確定 | Tentative | `?` marker |
+| 確定 | Confirmed | `!` marker |
+| 棄却 | Rejected | `~` marker。Graphから消さない |
+| 診断 | Diagnostic | 入力を妨げずに問題と回復結果を示す情報 |
 
 ## 3. Notation Terms
 

@@ -103,18 +103,18 @@ describe('ReactFlowGraphView', () => {
 
     expect(
       await screen.findByRole('button', {
-        name: 'neutral certainty, problem: Customer information is scattered',
+        name: '指定なし、problem：Customer information is scattered',
       }),
     ).toBeVisible()
     expect(
       screen.getByRole('button', {
-        name: 'tentative certainty, idea: Unify notes',
+        name: '未確定、idea：Unify notes',
       }),
     ).toBeVisible()
     expect(screen.getByText('Discovery')).toBeVisible()
-    expect(screen.getByRole('toolbar', { name: 'Author graph' })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Add child' })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Fit View' })).toBeVisible()
+    expect(screen.getByRole('toolbar', { name: 'グラフを編集' })).toBeVisible()
+    expect(screen.getByRole('button', { name: '子Nodeを追加' })).toBeVisible()
+    expect(screen.getByRole('button', { name: '全体を表示' })).toBeVisible()
   })
 
   it('shows all certainty states without relying on color and exposes certainty names', async () => {
@@ -130,7 +130,7 @@ describe('ReactFlowGraphView', () => {
     )
 
     await screen.findByRole('button', {
-      name: 'confirmed certainty, todo: Validated action',
+      name: '確定、todo：Validated action',
     })
     expect(screen.getByText('?')).toBeVisible()
     expect(screen.getByText('✓')).toBeVisible()
@@ -154,7 +154,7 @@ describe('ReactFlowGraphView', () => {
       />,
     )
     const node = await screen.findByRole('button', {
-      name: 'tentative certainty, idea: Unify notes',
+      name: '未確定、idea：Unify notes',
     })
 
     fireEvent.click(node)
@@ -179,7 +179,7 @@ describe('ReactFlowGraphView', () => {
 
     fireEvent.doubleClick(await screen.findByText('Unify notes'))
     const input = await screen.findByRole('textbox', {
-      name: 'Edit label for Unify notes',
+      name: 'Unify notesのラベルを編集',
     })
     fireEvent.change(input, { target: { value: 'Unified knowledge' } })
     fireEvent.compositionStart(input)
@@ -198,7 +198,7 @@ describe('ReactFlowGraphView', () => {
     await waitFor(() =>
       expect(
         screen.getByRole('button', {
-          name: 'tentative certainty, idea: Unify notes',
+          name: '未確定、idea：Unify notes',
         }),
       ).toHaveFocus(),
     )
@@ -217,12 +217,12 @@ describe('ReactFlowGraphView', () => {
       />,
     )
     const node = await screen.findByRole('button', {
-      name: 'neutral certainty, problem: Customer information is scattered',
+      name: '指定なし、problem：Customer information is scattered',
     })
 
     fireEvent.keyDown(node, { key: 'F2', shiftKey: true })
     const input = await screen.findByRole('textbox', {
-      name: 'Edit type for Customer information is scattered',
+      name: 'Customer information is scatteredのTypeを編集',
     })
     fireEvent.change(input, { target: { value: 'question' } })
     fireEvent.keyDown(input, { key: 'Escape' })
@@ -248,7 +248,7 @@ describe('ReactFlowGraphView', () => {
 
     fireEvent.change(
       await screen.findByLabelText(
-        'Certainty for Customer information is scattered',
+        '「Customer information is scattered」の確信度',
       ),
       { target: { value: 'confirmed' } },
     )
@@ -258,13 +258,13 @@ describe('ReactFlowGraphView', () => {
       certainty: 'confirmed',
     })
 
-    fireEvent.click(screen.getByRole('button', { name: '+ New node' }))
-    expect(await screen.findByRole('dialog', { name: 'Create Node' })).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: '＋ Nodeを作成' }))
+    expect(await screen.findByRole('dialog', { name: 'Nodeを作成' })).toBeVisible()
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'Idea' } })
-    fireEvent.change(screen.getByLabelText('Label'), {
+    fireEvent.change(screen.getByLabelText('ラベル'), {
       target: { value: 'New thought 😀' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+    fireEvent.click(screen.getByRole('button', { name: '反映' }))
 
     await waitFor(() =>
       expect(onAuthoringCommand).toHaveBeenCalledWith({
@@ -299,19 +299,19 @@ describe('ReactFlowGraphView', () => {
       />,
     )
     const node = await screen.findByRole('button', {
-      name: 'tentative certainty, idea: Unify notes',
+      name: '未確定、idea：Unify notes',
     })
     node.focus()
     fireEvent.keyDown(node, { key: 'Delete' })
 
     expect(
-      await screen.findByRole('dialog', { name: 'Confirm deletion' }),
+      await screen.findByRole('dialog', { name: '削除内容を確認' }),
     ).toBeVisible()
     expect(onDeletePreview).toHaveBeenCalledWith({
       type: 'node',
       graphNodeId: 'node-idea',
     })
-    expect(await screen.findByText('2 Node(s)')).toBeVisible()
+    expect(await screen.findByText('Node 2件')).toBeVisible()
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     await waitFor(() => expect(node).toHaveFocus())
   })

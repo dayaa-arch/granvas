@@ -1,18 +1,18 @@
 export const DEFAULT_PROJECT_SOURCE = `@layout flow TB
 
-# New product idea
+# 新しいプロダクトのアイデア
 
-Write thoughts. See structure.
+文章を書きながら、課題とアイデアの関係を整理する。
 
-[problem @scattered] Customer information is scattered
-  -> [cause] Excel files are fragmented
-  -> [cause] Team knowledge is siloed
+[problem @scattered] 顧客情報が分散している
+  -> [cause] Excelファイルが部署ごとに分かれている
+  -> [cause] 担当者だけが知識を持っている
 
-[idea @unify] AI unifies notes and structure
-[todo @interview] User interviews
+[idea @unify] AIでメモと構造を統合する
+[todo @interview] ユーザーインタビューを行う
 
-@unify -> @scattered : solves
+@unify -> @scattered : 解決する
 
-{Discovery}
+{調査}
   @scattered
   @interview`

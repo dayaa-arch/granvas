@@ -5,8 +5,10 @@
 
 Granvas is a public, work-in-progress visual thinking editor intended for an open-source v0.1 release. It lets you describe ideas and relationships in plain text, then projects the current text into a live graph you can read and edit — with the text staying the single source of truth.
 
+日本語での使い方は、[Granvas 1.0 公式ドキュメント](https://dayaa-arch.github.io/granvas/)で案内します。サイトは公開プレビューで、現在のGranvas v0.1開発版に実装済みの範囲と今後の予定を区別して説明します。
+
 > [!IMPORTANT]
-> **Early development:** Phase 12 (Graph Authoring) is implemented and verified. The current web app supports text editing, live graph projection, certainty markers, Text/Graph navigation, Graph-side Node creation and editing, Edge connection, semantic drag, deletion preview, `.granvas` Import/Download, and SVG Download. PNG/PDF export and release hardening remain incomplete, so this repository is not yet an end-user v0.1 release.
+> **Early development:** Phase 13 (Japanese UI & Official Documentation) is implemented and under review. The current web app supports Japanese text editing, live graph projection, certainty markers, Text/Graph navigation, Graph-side Node creation and editing, Edge connection, semantic drag, deletion preview, `.granvas` Import/Download, and SVG Download. PNG/PDF export and release hardening remain incomplete, so this repository is not yet an end-user v0.1 release.
 
 ## Why Granvas?
 
@@ -193,6 +195,8 @@ Open the local URL printed by Vite. The current app displays the Granvas split e
 | Run the three-browser E2E suite | `bun run e2e` |
 | Create a production build | `bun run build` |
 | Preview the production build | `bun run preview` |
+| Build the official documentation | `bun run docs:build` |
+| Preview the official documentation | `bun run docs:preview` |
 
 If Playwright's browser binaries are not installed yet, run:
 
@@ -258,9 +262,10 @@ License selection and the addition of `LICENSE` are required before the public v
 - [x] Phase 10 — Notation Certainty: tentative/confirmed/rejected markers for nodes and relations.
 - [x] Phase 11 — Source Edit Core: token spans, edit planning, and inline label/Type editing on the graph.
 - [x] Phase 12 — Graph Authoring: semantic drag, node creation, edge connection, deletion preview, and nested-child promotion.
+- [ ] Phase 13 — Japanese UI & Official Documentation: implementation complete; review and GitHub Pages publication pending.
 - [ ] Phase 8 — Visual Export: PNG/PDF and full-graph format verification.
 - [ ] Phase 9 — Release Hardening: performance, accessibility, security, OSS, CI, and Vercel production.
 
-Phase numbers are assignment order, not execution order. Phases 10–12 were added on 2026-08-11 and run before Phases 8–9; the list above is in execution order.
+Phase numbers are assignment order, not execution order. Phases 10–13 were added on 2026-08-11 and run before Phases 8–9; the list above is in execution order.
 
 The [development roadmap](docs/development-roadmap.md) is the source of truth for Phase names, status, history, milestone mapping, and exit criteria.

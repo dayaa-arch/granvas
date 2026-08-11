@@ -28,6 +28,7 @@ v0.1 の開発では、本書を実装判断の基準とする。仕様変更が
 | --- | --- | --- |
 | 2026-08-10 | 初版 | — |
 | 2026-08-11 | Authoring Core を v0.1 scope へ追加。Notation に確信度マーカーを導入し v0.2 とする。Graph を read-only projection から意味編集可へ改訂する。座標の非永続化は維持する。 | [ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md) / [ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md) / [ADR-0003](adr/0003-certainty-markers-in-granvas-notation.md) |
+| 2026-08-11 | 製品UIを日本語へ統一し、実装済みの使い方を説明する公式利用ガイドをGitHub Pagesへ公開するPhase 13を追加。v1.0 Docsは公開プレビューとし、product target v0.1を維持する。 | [ADR-0004](adr/0004-official-documentation-on-github-pages.md) |
 
 Phase の名称・順序・進捗は `docs/development-roadmap.md` を正本とする。
 
@@ -110,6 +111,8 @@ v0.1 は `Text ⇄ Graph` の双方向編集を含む。ただしこれは正本
 - 未ダウンロード変更の状態表示と離脱警告
 - Pan / Zoom / Fit View
 - OSS としてローカルで起動でき、Vercel へ配備可能な Web アプリ
+- visible text、accessible name、通知、diagnostic、error、初期サンプルを含む日本語UI
+- 実装済みの利用方法と現在の制約を説明する日本語の公式利用ガイドをGitHub Pagesへ静的公開
 
 
 
@@ -131,6 +134,8 @@ v0.1 は `Text ⇄ Graph` の双方向編集を含む。ただしこれは正本
 - 完全な Markdown 互換
 - Obsidian / Notion の代替
 - リアルタイム共同作業
+- 英語 / 日本語のruntime切り替えとlocale selector
+- custom domain、Docs search backend、analytics、CMS
 
 将来認証を導入する場合の認証基盤は **Supabase Auth** とする。ただし v0.1 では Supabase SDK、認証 UI、session、環境変数、保護 route を導入しない。
 
@@ -1194,6 +1199,7 @@ Edge 作成や Group 所属変更で `@id` が必要になった場合、Granvas
 - 推奨 viewport: 1280px 以上
 - 最低想定 width: 960px
 - Mobile optimization は v0.1 の対象外
+- Product UI language: 日本語
 
 
 
@@ -1201,17 +1207,17 @@ Edge 作成や Group 所属変更で `@id` が必要になった場合、Granvas
 
 ```text
 ┌──────────────────────────────────────────────────────────┐
-│ Granvas                   Write thoughts. See structure. │
+│ Granvas                   思考を書く。構造が見える。    │
 ├────────────────────────────┬─────────────────────────────┤
 │                            │                             │
-│        TEXT EDITOR         │            GRAPH            │
+│         テキスト           │           グラフ            │
 │                            │                             │
 │ [problem] ...              │        ┌ Problem ┐         │
 │   -> [cause] ...           │       /           \        │
 │                            │   ┌ Cause ┐    ┌ Cause ┐   │
 │                            │                             │
 ├────────────────────────────┴─────────────────────────────┤
-│ Unsaved           Ln 4, Col 8       8 nodes / 7 edges   │
+│ 未ダウンロード      4行 8列       Node 8件 / Edge 7件   │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -1228,9 +1234,9 @@ Divider はドラッグで変更可能。
 最低限以下を表示する。
 
 - Granvas logo / name
-- `Write thoughts. See structure.`
-- Import Project
-- Download
+- `思考を書く。構造が見える。`
+- `プロジェクトを読み込む`
+- `ダウンロード`
 
 v0.1 では account / cloud / share UI は持たない。
 
@@ -1352,6 +1358,20 @@ Editor cursor movement:
 
 v0.1 では専用 diagnostics panel は optional とし、editor 内表示を優先する。
 
+## 6.8 UI Language
+
+v0.1の製品UIは日本語を標準とする。
+
+- visible text、accessible name、tooltip、dialog、`aria-live`、diagnostic、transfer error、Graph edit rejectionを日本語で表示する。
+- `Text / Graph`は`テキスト / グラフ`、`Import Project / Download`は`プロジェクトを読み込む / ダウンロード`とする。
+- `Saved / Unsaved`は自動保存を連想させるため使用せず、`ダウンロード済み / 未ダウンロード`とする。
+- `certainty`は`確信度`、`neutral / tentative / confirmed / rejected`は`指定なし / 未確定 / 確定 / 棄却`とする。
+- Graph上の意味操作は位置の移動と誤解させないよう`構造を変更`と表現する。
+- Granvas Notation token、Node Type、Explicit ID、format名、製品名は翻訳しない。
+- Parser / Applicationのmachine-readable error codeは変更せず、presentation formatterがcodeを日本語表示文へ変換する。
+- 初期Projectは日本語の散文・label・relation label・Group名を使用し、5 Nodes / 3 Relations / 1 Group / 0 diagnosticsのcanonical構造を維持する。
+- runtime locale switch、多言語化framework、locale selectorはv0.1に導入しない。
+
 ---
 
 
@@ -1428,6 +1448,28 @@ Download action は modal を開き、file name と次の format をユーザー
 - PNGは2x scaleを基本とし、生成bitmapが8192 × 8192 pixelsを超える場合は上限内へ縮小して通知する。
 - PDFはsingle-page、white backgroundとし、graph boundsに合わせたpage sizeを使用する。
 - browserがdownload開始を受理したときsuccessを通知する。生成またはdownload開始に失敗した場合はerrorを表示し、dirty stateを変更しない。
+
+## 7.6 Official Documentation Publication
+
+日本語の公式利用ガイドをGitHub Pagesのproject siteとして公開する。
+
+```text
+URL: https://dayaa-arch.github.io/granvas/
+Site title: Granvas 1.0 公式ドキュメント
+Release state: 公開プレビュー
+対応実装: Granvas v0.1 開発版（Phase 12完了時点）
+```
+
+- `1.0`は公式Docsの公開候補versionであり、本Phaseだけでproduct applicationを正式v1.0 releaseへ変更しない。
+- Phase 8のPNG / PDF、Phase 9のrelease hardening / Vercel productionが未完了であることを全pageから確認できるようにする。
+- main branchの`docs-site/`をsource of truthとし、review済みmainから生成したartifactを`gh-pages` branch rootへ公開する。
+- Pages artifactはproject base path`/granvas/`を使用し、rootへ`.nojekyll`を含める。
+- `.github/workflows/`へcustom Pages workflowを追加しない。
+- product applicationのVercel static hostingとofficial DocsのGitHub Pages hostingを分離する。
+- 画面構成、Notation、確信度、Text / Graph navigation、Graph authoring、Project Download / Import、keyboard、diagnostics、FAQ、現在の制約を日本語で説明する。
+- screenshotは日本語UIのproduction buildから取得し、altと本文を伴う。
+- semantic HTML、skip link、heading hierarchy、focus indicator、responsive navigationを備える。
+- analytics、tracking、remote font、cookie、third-party runtime script、form backendを追加しない。
 
 ---
 
@@ -2268,7 +2310,8 @@ PDF generation adapter（library選定時はADR必須）
 ## Hosting
 
 ```text
-Vercel static deployment
+Product: Vercel static deployment
+Official Docs: GitHub Pages (`gh-pages` branch root)
 ```
 
 Vercel 固有 SDK は application / domain に導入しない。v0.1 は静的 SPA として build し、server function を使用しない。
@@ -3067,7 +3110,7 @@ AbortSignal
 
 Phaseの名称、順序、進捗、履歴対応は`docs/development-roadmap.md`を正本とする。Milestoneは複数Phaseを束ねるrelease checkpointであり、Phase番号とは別に管理する。
 
-Phase番号は採番順であり実行順ではない。実行順は **0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 10 → 11 → 12 → 8 → 9** とする。Phase 10〜12は2026-08-11のscope変更（§0.1）で追加され、Phase 8〜9より先に実行する。
+Phase番号は採番順であり実行順ではない。実行順は **0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 10 → 11 → 12 → 13 → 8 → 9** とする。Phase 10〜13は2026-08-11のscope変更（§0.1）で追加され、Phase 8〜9より先に実行する。
 
 ## Phase 0: Documentation Baseline
 
@@ -3177,6 +3220,19 @@ Status: Complete — Issue #23 / PR #24
 - 全操作の round-trip / `rejected` test
 - Graph 編集 E2E
 
+## Phase 13: Japanese UI & Official Documentation
+
+Status: In Progress — Issue #26
+
+- visible text / accessible name / diagnostic / error / initial Projectの日本語化
+- 日本語UIに対応したcomponent test / three-browser E2E
+- `docs-site/`の日本語公式利用ガイド
+- production buildからの実画面screenshot
+- `/granvas/` baseのdocs build / artifact verification
+- `gh-pages` branch rootからのGitHub Pages公開
+- `Granvas 1.0 公式ドキュメント — 公開プレビュー`と対応実装v0.1の明示
+- custom GitHub Actions workflowなし
+
 ## Phase 8: Visual Export
 
 Status: Not Started
@@ -3238,6 +3294,9 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [x] Graph編集がUndo 1回で戻る
 - [x] Graph編集後も`.granvas`に座標が含まれない
 - [ ] すべての編集操作へkeyboardから到達できる
+- [ ] visible text、accessible name、diagnostic、error、初期Projectが日本語で提供される
+- [ ] 日本語の公式利用ガイドが実装済みの利用方法と現在の制約を説明する
+- [ ] 公式利用ガイドがGitHub PagesのHTTPS URLで公開される
 
 
 
@@ -3450,6 +3509,7 @@ Granvas = User-owned-file Text Editor
         + Editable Graph Projection（座標は非永続）
         + Project Import / Multi-format Download
         + Vercel Static Hosting
+        + Japanese Official Documentation / GitHub Pages
 ```
 
 Architecture:
