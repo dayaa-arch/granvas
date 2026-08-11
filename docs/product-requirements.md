@@ -37,6 +37,7 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 4. **未確定を捨てない。** 仮説・検証済み・棄却を記法で表現でき、棄却したものは図から消えず棄却として残る。
 5. **ユーザーがProjectを所有する。** v0.1の継続可能な保存形式は `.granvas` とする。
 6. **アカウント不要。** v0.1は認証・クラウド同期・backend APIに依存しない。
+7. **日本語で迷わせない。** 製品UIと公式利用ガイドは日本語を標準とし、Notationのcode tokenとユーザー操作の説明を明確に分ける。
 
 原則 1 と 3 の帰結として、Graph からテキスト全文を再生成することは行わない。通常文が破壊されるためである。Graph 操作は現在のテキストに対する最小の編集列として適用する。
 
@@ -63,6 +64,8 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 - `.granvas`をImportし、保存時点から編集を再開できること。
 - 未ダウンロード変更のdirty表示と、破棄操作・離脱時の警告。
 - Vercel上で利用でき、ローカルでも起動できるOSS Webアプリ。
+- visible text、accessible name、通知、error、初期サンプルを含む日本語UI。
+- 実装済みの使い方と現在の制約を説明する、GitHub Pages上の日本語公式利用ガイド。
 
 ### 5.2 スコープ外
 
@@ -164,6 +167,18 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 - asset load後、編集・Import・Download中のoutbound requestが発生しない。
 - telemetryを送信しない。
 
+### US-08: 日本語で使い方を理解する
+
+日本語利用者として、製品の操作とGranvas Notationを日本語のUIと公式利用ガイドから理解したい。
+
+受け入れ条件:
+
+- visible text、accessible name、通知、diagnostic、errorが日本語で表示される。
+- 初期Projectの散文とlabelが日本語で、Notation token、Type、Explicit IDはgrammar互換のASCIIを維持する。
+- 公式利用ガイドから画面構成、Notation、Graph編集、`.granvas` Download / Import、keyboard操作を学べる。
+- 公式利用ガイドは未実装機能を利用可能と表示せず、対応実装とrelease状態を明示する。
+- 公式利用ガイドはtracking、analytics、remote font、cookie、backendを使用しない。
+
 ## 7. 機能要件
 
 | ID | 要件 |
@@ -188,6 +203,8 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | FR-018 | 実行できないGraph操作を理由付きで拒否し、sourceを変更しない |
 | FR-019 | Graph編集後も`.granvas`にNode座標を含めない |
 | FR-020 | v0.1として有効な既存`.granvas`を同じ構造へ解析する（後方互換） |
+| FR-021 | 製品UIのvisible text、accessible name、通知、diagnostic、errorを日本語で提供する |
+| FR-022 | 日本語の公式利用ガイドをGitHub Pagesへ静的公開し、実装済みの利用方法と現在の制約を説明する |
 
 ## 8. 非機能要件
 
@@ -204,6 +221,8 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | NFR-009 | Graph編集の確定操作からGraph paintまでp95 350ms以下を目標とする |
 | NFR-010 | 編集計画の生成をp95 20ms以下の同期pure functionに収める |
 | NFR-011 | Graph編集が通常文と無関係な行を変更しないことをtestで保証する |
+| NFR-012 | 公式利用ガイドをresponsiveかつkeyboardで利用可能にし、semantic HTML、heading、alt、focusを備える |
+| NFR-013 | 公式利用ガイドへtracking、analytics、remote font、cookie、runtime backend requestを追加しない |
 
 ## 9. 成功の定義
 
@@ -222,4 +241,5 @@ v0.1の成功は、ユーザーがCanonical Demo相当の文章を自然に入�
 - source codeを公開し、ローカル起動手順をREADMEへ記載する。
 - public release前にOSS licenseを決定し、`LICENSE`を配置する。
 - production hostingはVercelを使用する。
+- 公式利用ガイドはGitHub Pagesのproject siteとして公開し、product applicationのVercel hostingと分離する。
 - v0.1では課金、広告、telemetry、利用者アカウントを導入しない。

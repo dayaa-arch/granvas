@@ -23,15 +23,32 @@ const formats: readonly Readonly<{
   value: DownloadFormat
   label: string
   description: string
+  available: boolean
 }>[] = Object.freeze([
   {
     value: 'granvas',
     label: '.granvas',
-    description: 'Editable project',
+    description: '再編集できるプロジェクト',
+    available: true,
   },
-  { value: 'svg', label: 'SVG', description: 'Scalable graph' },
-  { value: 'png', label: 'PNG', description: '2× image' },
-  { value: 'pdf', label: 'PDF', description: 'Single page' },
+  {
+    value: 'svg',
+    label: 'SVG',
+    description: '拡大できるグラフ',
+    available: true,
+  },
+  {
+    value: 'png',
+    label: 'PNG',
+    description: 'Phase 8で対応予定',
+    available: false,
+  },
+  {
+    value: 'pdf',
+    label: 'PDF',
+    description: 'Phase 8で対応予定',
+    available: false,
+  },
 ])
 
 export function DownloadDialog({
@@ -119,13 +136,13 @@ export function DownloadDialog({
       >
         <div className="download-dialog__heading">
           <div>
-            <span className="download-dialog__eyebrow">Export</span>
-            <h2 id="download-dialog-title">Download your work</h2>
+            <span className="download-dialog__eyebrow">書き出し</span>
+            <h2 id="download-dialog-title">作業内容をダウンロード</h2>
           </div>
           <button
             className="download-dialog__close"
             type="button"
-            aria-label="Close Download dialog"
+            aria-label="ダウンロードダイアログを閉じる"
             onClick={onClose}
             disabled={busy}
           >
@@ -134,7 +151,7 @@ export function DownloadDialog({
         </div>
 
         <p id="download-dialog-description" className="download-dialog__intro">
-          Keep an editable project or share the current valid graph.
+          再編集できるプロジェクトを手元に残すか、現在の有効なグラフを共有形式で書き出します。
         </p>
 
         <form
@@ -144,7 +161,7 @@ export function DownloadDialog({
           }}
         >
           <label className="download-dialog__label" htmlFor="download-file-name">
-            File name
+            ファイル名
           </label>
           <input
             ref={nameInputRef}
@@ -157,10 +174,12 @@ export function DownloadDialog({
           />
 
           <fieldset className="download-dialog__formats">
-            <legend>Format</legend>
+            <legend>形式</legend>
             <div className="download-dialog__format-grid">
               {formats.map((option) => {
-                const disabled = option.value !== 'granvas' && !canDownloadVisual
+                const disabled =
+                  !option.available ||
+                  (option.value !== 'granvas' && !canDownloadVisual)
 
                 return (
                   <label
@@ -185,8 +204,7 @@ export function DownloadDialog({
 
           {diagnosticsCount > 0 ? (
             <p className="download-dialog__notice" role="note">
-              {diagnosticsCount} diagnostic{diagnosticsCount === 1 ? '' : 's'} — visual
-              formats include the valid projection only.
+              診断が{diagnosticsCount}件あります。画像形式には有効に解釈できたグラフだけが含まれます。
             </p>
           ) : null}
 
@@ -197,10 +215,10 @@ export function DownloadDialog({
               onClick={onClose}
               disabled={busy}
             >
-              Cancel
+              キャンセル
             </button>
             <button className="button button--primary" type="submit" disabled={busy}>
-              {busy ? 'Preparing…' : 'Download'}
+              {busy ? '準備しています…' : 'ダウンロード'}
             </button>
           </div>
         </form>

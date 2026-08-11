@@ -44,13 +44,13 @@ export function WorkspaceSplitPane({
       ref={containerRef}
       style={{ '--text-pane-ratio': `${textRatio}%` } as React.CSSProperties}
     >
-      <section className="workspace-split__pane" aria-label="Text pane">
+      <section className="workspace-split__pane" aria-label="テキストペイン">
         {textPane}
       </section>
       <div
         className="workspace-split__divider"
         role="separator"
-        aria-label="Resize Text and Graph panes"
+        aria-label="テキストとグラフの表示幅を変更"
         aria-orientation="vertical"
         aria-valuemin={MIN_TEXT_RATIO}
         aria-valuemax={MAX_TEXT_RATIO}
@@ -90,7 +90,7 @@ export function WorkspaceSplitPane({
       >
         <span aria-hidden="true" />
       </div>
-      <section className="workspace-split__pane" aria-label="Graph pane">
+      <section className="workspace-split__pane" aria-label="グラフペイン">
         {graphPane}
       </section>
     </div>

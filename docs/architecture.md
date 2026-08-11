@@ -9,6 +9,8 @@
 
 Granvas v0.1は、Vercelで配信するclient-onlyのReact SPAである。Domain-Driven Design、Layered Architecture、Modular Monolithを採用し、TextからGraphへのprojectionとユーザー所有fileによる永続化をbrowser内で完結させる。
 
+日本語の公式利用ガイドはproduct SPAとは別の静的artifactとしてGitHub Pagesへ配信する。公式Docsはproduct runtimeやContextへ接続せず、Vercel hosting方針を変更しない。
+
 ```mermaid
 flowchart TD
     Browser["Browser"] --> App["React SPA"]
@@ -16,6 +18,7 @@ flowchart TD
     Modules --> Worker["Dagre Web Worker"]
     App --> Files["User-owned .granvas / SVG / PNG / PDF"]
     Vercel["Vercel Static Hosting"] --> Browser
+    Pages["GitHub Pages Official Guide"] --> Browser
 ```
 
 ## 2. Technology Stack
@@ -32,6 +35,7 @@ flowchart TD
 | Unit / Component test | Vitest 4 / React Testing Library | domain・application・presentationを分離してtestする |
 | E2E | Playwright | Chromium / Firefox / WebKitを対象にする |
 | Hosting | Vercel | static deployment、server functionなし |
+| Documentation hosting | GitHub Pages | `gh-pages` branch rootから静的利用ガイドを公開する |
 
 PDF生成libraryは未選定である。導入前に、browser support、vector text、bundle size、license、CSP compatibilityを比較したADRを作成する。
 
@@ -43,6 +47,16 @@ PDF生成libraryは未選定である。導入前に、browser support、vector 
 - SPAのdirect access / reloadがindex entryへ解決されるようVercel routingを設定する。
 - production asset load後のoutbound requestは0とする。
 - secretを必要とするruntime機能はv0.1に存在しない。
+
+### 3.1 Official Documentation Deployment
+
+- main branchの`docs-site/`を公式利用ガイドのsourceとする。
+- build artifactはproject Pagesのbase path `/granvas/`を使用する。
+- review済みmainから生成したartifactだけを`gh-pages` branch rootへ配置する。
+- rootへ`.nojekyll`を含め、GitHub Pagesのlegacy branch sourceとして公開する。
+- repositoryへcustom GitHub Actions workflowを追加しない。Pages platformが内部で行うdeploymentはrepository-owned workflowと区別する。
+- official Docsはruntime backend、analytics、tracking、remote font、cookieを使用しない。
+- product SPAのVercel deploymentとDocsのGitHub Pages deploymentを相互依存させない。
 
 ## 4. Bounded Context
 
@@ -197,6 +211,8 @@ Graph側の操作をTextへ書き戻す経路の設計。根拠は[ADR-0002](adr
 - file nameはpath separator、control character、予約文字を除去する。
 - Vercel responseへCSPを設定する。
 - dependency追加時はlicense、supply-chain、bundle sizeをreviewする。
+- official Docsへthird-party script、tracking pixel、remote font、form送信を追加しない。
+- Pages artifactへ`.steering/`、engineering `docs/`、secret、local pathを混入させない。
 
 最低限のproduction CSP:
 
@@ -231,6 +247,7 @@ projection rebuildの既定debounceは120ms。Graph編集はdebounceしない。
 - minimum viewportは960px、recommendedは1280px以上。
 - WCAG 2.2 AAを適合目標とする。
 - keyboard-only navigationとfocus managementをrelease gateにする。
+- official Docsはsemantic HTML、skip link、heading hierarchy、画像alt、focus indicator、responsive navigationを備える。
 
 ## 14. Future Authentication
 
@@ -266,6 +283,7 @@ ADRは`docs/adr/`に置き、`docs/adr/README.md`を索引とする。
 - [ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md) Semantic node drag without coordinate persistence。
 - [ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md) Source edit plan as a Notation domain concern。
 - [ADR-0003](adr/0003-certainty-markers-in-granvas-notation.md) Certainty markers in Granvas Notation。
+- [ADR-0004](adr/0004-official-documentation-on-github-pages.md) Official documentation on GitHub Pages。
 
 未起票:
 

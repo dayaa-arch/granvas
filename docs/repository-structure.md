@@ -29,6 +29,18 @@ granvas/
 │   ├── development-guidelines.md
 │   ├── glossary.md
 │   └── development-roadmap.md
+├── docs-site/
+│   ├── index.html
+│   ├── public/
+│   │   ├── .nojekyll
+│   │   ├── 404.html
+│   │   └── images/
+│   └── src/
+│       ├── docs.ts
+│       └── styles.css
+├── scripts/
+│   └── verify-pages-build.mjs
+├── dist-pages/                  # generated / ignored
 ├── examples/
 │   └── canonical-demo.granvas
 ├── public/
@@ -238,6 +250,19 @@ App bootstrapから具象をimportする場合だけ、専用aliasまたは明�
 - 変更単位の要求・設計・taskは`.steering/YYYYMMDD-title/`。
 - architecture decisionは`docs/adr/`。
 - 図は関連MarkdownへMermaidまたはASCIIで直接記載する。
+- `docs-site/`は日本語の公式利用ガイドsource。product / engineeringの正本である`docs/`と混在させない。
+- `docs-site/public/`はPages rootへそのままcopyする`.nojekyll`、404、screenshotなどのstatic assetを置く。
+- `docs-site/src/`は公式利用ガイドのpresentation-only CSS / TypeScriptを置く。product moduleをimportしない。
+- `dist-pages/`は`bun run docs:build`で生成する一時artifactで、mainへcommitしない。
+- `gh-pages` branchはreview済みmainから生成したartifactだけを保持し、source of truthにしない。
+
+## 9.1 Official Documentation Boundary
+
+- official Docsはproduct SPAとは別entry / build artifactとする。
+- official Docsから`src/modules/`、application state、browser file adapterをimportしない。
+- product sourceからcopyを自動抽出せず、capability記述をroadmap / specificationとreviewで照合する。
+- screenshotは日本語UIのproduction buildから生成し、`docs-site/public/images/`へ配置する。
+- Pages artifactへ`.steering/`やengineering `docs/`をcopyしない。
 
 ## 10. Future Identity Context
 

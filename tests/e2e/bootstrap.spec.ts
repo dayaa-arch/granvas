@@ -5,47 +5,47 @@ test('boots the canonical Text and Graph workspace', async ({ page }) => {
 
   await expect(page.getByRole('main', { name: 'Granvas' })).toBeVisible()
   await expect(
-    page.getByRole('heading', { name: 'Granvas workspace', level: 1 }),
+    page.getByRole('heading', { name: 'Granvas ワークスペース', level: 1 }),
   ).toBeAttached()
-  await expect(page.getByRole('region', { name: 'Text pane' })).toBeVisible()
-  await expect(page.getByRole('region', { name: 'Graph pane' })).toBeVisible()
-  await expect(page.getByRole('textbox', { name: 'Granvas text editor' })).toContainText(
-    '[problem @scattered] Customer information is scattered',
+  await expect(page.getByRole('region', { name: 'テキストペイン' })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'グラフペイン' })).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Granvas テキストエディタ' })).toContainText(
+    '[problem @scattered] 顧客情報が分散している',
   )
   await expect(
     page.getByRole('button', {
-      name: 'neutral certainty, problem: Customer information is scattered',
+      name: '指定なし、problem：顧客情報が分散している',
     }),
   ).toBeVisible()
   await expect(
     page.getByRole('button', {
-      name: 'neutral certainty, idea: AI unifies notes and structure',
+      name: '指定なし、idea：AIでメモと構造を統合する',
     }),
   ).toBeVisible()
-  await expect(page.getByLabel('Workspace status')).toContainText('5 nodes')
-  await expect(page.getByLabel('Workspace status')).toContainText('3 edges')
-  await expect(page.getByLabel('Workspace status')).toContainText('0 diagnostics')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('Node 5件')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('Relation 3件')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('診断 0件')
 })
 
 test('updates the current Graph and synchronizes Text and Node selection', async ({
   page,
 }) => {
   await page.goto('/')
-  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
   const source = '[idea @fresh] Fresh idea\n  -> [todo] Ship it'
 
   await editor.fill(source)
   const freshNode = page.getByRole('button', {
-    name: 'neutral certainty, idea: Fresh idea',
+    name: '指定なし、idea：Fresh idea',
   })
   await expect(freshNode).toBeVisible()
   await expect(
     page.getByRole('button', {
-      name: 'neutral certainty, problem: Customer information is scattered',
+      name: '指定なし、problem：顧客情報が分散している',
     }),
   ).toHaveCount(0)
-  await expect(page.getByLabel('Workspace status')).toContainText('2 nodes')
-  await expect(page.getByLabel('Workspace status')).toContainText('1 edge')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('Node 2件')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('Relation 1件')
 
   await freshNode.click()
   await expect
@@ -53,7 +53,7 @@ test('updates the current Graph and synchronizes Text and Node selection', async
     .toBe('[idea @fresh] Fresh idea')
 
   const todoNode = page.getByRole('button', {
-    name: 'neutral certainty, todo: Ship it',
+    name: '指定なし、todo：Ship it',
   })
   await todoNode.focus()
   await todoNode.press('Enter')
@@ -70,16 +70,16 @@ test('updates the current Graph and synchronizes Text and Node selection', async
   await editor.fill('[idea @valid] Still valid\n@missing -> @valid')
   await expect(
     page.getByRole('button', {
-      name: 'neutral certainty, idea: Still valid',
+      name: '指定なし、idea：Still valid',
     }),
   ).toBeVisible()
-  await expect(page.getByLabel('Workspace status')).toContainText('1 diagnostic')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('診断 1件')
 })
 
 test('imports a .granvas project through the browser picker', async ({ page }) => {
   await page.goto('/')
   const chooserPromise = page.waitForEvent('filechooser')
-  await page.getByRole('button', { name: 'Import Project' }).click()
+  await page.getByRole('button', { name: 'プロジェクトを読み込む' }).click()
   const chooser = await chooserPromise
   await chooser.setFiles({
     name: 'imported.granvas',
@@ -89,14 +89,14 @@ test('imports a .granvas project through the browser picker', async ({ page }) =
 
   await expect(
     page.getByRole('button', {
-      name: 'neutral certainty, idea: Imported thought',
+      name: '指定なし、idea：Imported thought',
     }),
   ).toBeVisible()
-  await expect(page.getByRole('textbox', { name: 'Granvas text editor' })).toContainText(
+  await expect(page.getByRole('textbox', { name: 'Granvas テキストエディタ' })).toContainText(
     '[idea @imported] Imported thought',
   )
-  await expect(page.getByLabel('Workspace status')).toContainText('Saved')
-  await expect(page.getByRole('status')).toContainText('Imported imported.granvas')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('ダウンロード済み')
+  await expect(page.getByRole('status')).toContainText('imported.granvasを読み込みました')
 })
 
 test('supports keyboard resizing and an accessible Download dialog', async ({
@@ -104,20 +104,20 @@ test('supports keyboard resizing and an accessible Download dialog', async ({
 }) => {
   await page.goto('/')
   const separator = page.getByRole('separator', {
-    name: 'Resize Text and Graph panes',
+    name: 'テキストとグラフの表示幅を変更',
   })
   await expect(separator).toHaveAttribute('aria-valuenow', '55')
   await separator.press('ArrowRight')
   await expect(separator).toHaveAttribute('aria-valuenow', '57')
 
-  const downloadButton = page.getByRole('button', { name: 'Download' })
+  const downloadButton = page.getByRole('button', { name: 'ダウンロード' })
   await downloadButton.click()
-  const dialog = page.getByRole('dialog', { name: 'Download your work' })
+  const dialog = page.getByRole('dialog', { name: '作業内容をダウンロード' })
   await expect(dialog).toBeVisible()
-  await expect(page.getByRole('textbox', { name: 'File name' })).toBeFocused()
+  await expect(page.getByRole('textbox', { name: 'ファイル名' })).toBeFocused()
   await expect(page.getByRole('radio', { name: /SVG/ })).toBeEnabled()
-  await expect(page.getByRole('radio', { name: /PNG/ })).toBeEnabled()
-  await expect(page.getByRole('radio', { name: /PDF/ })).toBeEnabled()
+  await expect(page.getByRole('radio', { name: /PNG/ })).toBeDisabled()
+  await expect(page.getByRole('radio', { name: /PDF/ })).toBeDisabled()
   await dialog.press('Escape')
   await expect(dialog).toHaveCount(0)
   await expect(downloadButton).toBeFocused()
@@ -127,10 +127,10 @@ test('downloads BOM-free .granvas source and marks that revision saved', async (
   page,
 }) => {
   await page.goto('/')
-  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
   const source = '😀 project — saved locally'
   await editor.fill(source)
-  await expect(page.getByLabel('Workspace status')).toContainText('Unsaved')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('未ダウンロード')
   expect(
     await page.evaluate(() => {
       const event = new Event('beforeunload', { cancelable: true })
@@ -138,11 +138,11 @@ test('downloads BOM-free .granvas source and marks that revision saved', async (
     }),
   ).toBe(true)
 
-  await page.getByRole('button', { name: 'Download' }).click()
+  await page.getByRole('button', { name: 'ダウンロード' }).click()
   const downloadPromise = page.waitForEvent('download')
   await page
     .getByRole('dialog')
-    .getByRole('button', { name: 'Download', exact: true })
+    .getByRole('button', { name: 'ダウンロード', exact: true })
     .click()
   const download = await downloadPromise
 
@@ -155,10 +155,10 @@ test('downloads BOM-free .granvas source and marks that revision saved', async (
   const bytes = Buffer.concat(chunks)
   expect([...bytes.subarray(0, 3)]).not.toEqual([0xef, 0xbb, 0xbf])
   expect(bytes.toString('utf8')).toBe(source)
-  await expect(page.getByLabel('Workspace status')).toContainText('Saved')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('ダウンロード済み')
 
   const chooserPromise = page.waitForEvent('filechooser')
-  await page.getByRole('button', { name: 'Import Project' }).click()
+  await page.getByRole('button', { name: 'プロジェクトを読み込む' }).click()
   const chooser = await chooserPromise
   await chooser.setFiles({
     name: 'roundtrip.granvas',
@@ -166,20 +166,20 @@ test('downloads BOM-free .granvas source and marks that revision saved', async (
     buffer: bytes,
   })
   await expect(editor).toContainText(source)
-  await expect(page.getByLabel('Workspace status')).toContainText('Saved')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('ダウンロード済み')
 
   await editor.fill(`${source}\n[idea @resumed] Resume editing`)
   await expect(
     page.getByRole('button', {
-      name: 'neutral certainty, idea: Resume editing',
+      name: '指定なし、idea：Resume editing',
     }),
   ).toBeVisible()
-  await expect(page.getByLabel('Workspace status')).toContainText('Unsaved')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('未ダウンロード')
 })
 
 test('projects certainty markers without color-only distinctions', async ({ page }) => {
   await page.goto('/')
-  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
   const source = `@layout flow TB
 
 # 解約の分析
@@ -202,22 +202,22 @@ test('projects certainty markers without color-only distinctions', async ({ page
 
   await editor.fill(source)
 
-  await expect(page.getByLabel('Workspace status')).toContainText('6 nodes')
-  await expect(page.getByLabel('Workspace status')).toContainText('5 edges')
-  await expect(page.getByLabel('Workspace status')).toContainText('0 diagnostics')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('Node 6件')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('Relation 5件')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('診断 0件')
   await expect(
     page.getByRole('button', {
-      name: 'tentative certainty, hypothesis: 価格が高い',
+      name: '未確定、hypothesis：価格が高い',
     }),
   ).toBeVisible()
   await expect(
     page.getByRole('button', {
-      name: 'confirmed certainty, idea: 初回設定を3ステップにする',
+      name: '確定、idea：初回設定を3ステップにする',
     }),
   ).toBeVisible()
   await expect(
     page.getByRole('button', {
-      name: 'rejected certainty, idea: 値下げする',
+      name: '棄却、idea：値下げする',
     }),
   ).toBeVisible()
   await expect(page.locator('.graph-node--certainty-neutral')).toHaveCount(2)
@@ -230,7 +230,7 @@ test('projects certainty markers without color-only distinctions', async ({ page
   await expect(page.locator('.graph-edge--certainty-rejected')).toHaveCount(1)
   await expect(
     page.locator(
-      '[aria-label="rejected certainty relation from 解約が増えている to UI が古い"]',
+      '[aria-label="棄却のRelation：解約が増えているからUI が古い"]',
     ),
   ).toHaveCount(1)
   await expect(
@@ -245,27 +245,31 @@ test('edits Node label and Type as minimal Text patches and undoes in one step',
   page,
 }) => {
   await page.goto('/')
-  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
   await editor.fill(
     'Intro prose must stay\n[?idea @editable]  Before  \nClosing prose must stay',
   )
 
   const beforeNode = page.getByRole('button', {
-    name: 'tentative certainty, idea: Before',
+    name: '未確定、idea：Before',
   })
   await expect(beforeNode).toBeVisible()
-  await beforeNode.locator('.graph-node__label').dblclick()
+  // CodeMirror groups adjacent changes for 500 ms. Cross that boundary so the
+  // setup fill and the Graph-originated patch remain separate Undo entries.
+  await page.waitForTimeout(600)
+  await beforeNode.focus()
+  await beforeNode.press('F2')
   const labelEditor = page.getByRole('textbox', {
-    name: 'Edit label for Before',
+    name: 'Beforeのラベルを編集',
   })
   await labelEditor.fill('After 😀')
   await labelEditor.press('Enter')
 
   const afterNode = page.getByRole('button', {
-    name: 'tentative certainty, idea: After 😀',
+    name: '未確定、idea：After 😀',
   })
   await expect(afterNode).toBeVisible()
-  await expect(page.getByRole('status')).toContainText('Node label updated')
+  await expect(page.getByRole('status')).toContainText('Nodeのラベルを更新しました')
   await expect
     .poll(() => editor.locator('.cm-line').allTextContents())
     .toEqual([
@@ -288,14 +292,14 @@ test('edits Node label and Type as minimal Text patches and undoes in one step',
   await beforeNode.focus()
   await beforeNode.press('Shift+F2')
   const typeEditor = page.getByRole('textbox', {
-    name: 'Edit type for Before',
+    name: 'BeforeのTypeを編集',
   })
   await typeEditor.fill('Problem_Main')
   await typeEditor.press('Enter')
 
   await expect(
     page.getByRole('button', {
-      name: 'tentative certainty, problem_main: Before',
+      name: '未確定、problem_main：Before',
     }),
   ).toBeVisible()
   await expect
@@ -311,41 +315,41 @@ test('creates Nodes, changes certainty, and connects Nodes from Graph controls',
   page,
 }) => {
   await page.goto('/')
-  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
   await editor.fill('Intro prose\n[Problem] Root\n[Idea] Target\nClosing prose')
 
   let root = page.getByRole('button', {
-    name: 'neutral certainty, problem: Root',
+    name: '指定なし、problem：Root',
   })
   await root.focus()
   await root.press('Enter')
-  await page.getByLabel('Certainty for Root').selectOption('confirmed')
+  await page.getByLabel('「Root」の確信度').selectOption('confirmed')
   root = page.getByRole('button', {
-    name: 'confirmed certainty, problem: Root',
+    name: '確定、problem：Root',
   })
   await expect(root).toBeVisible()
 
-  await page.getByRole('button', { name: 'Add child' }).click()
-  const childDialog = page.getByRole('dialog', { name: 'Add child Node' })
+  await page.getByRole('button', { name: '子Nodeを追加' }).click()
+  const childDialog = page.getByRole('dialog', { name: '子Nodeを追加' })
   await childDialog.getByLabel('Type').fill('Cause')
-  await childDialog.getByLabel('Label').fill('Child 😀')
-  await childDialog.getByRole('button', { name: 'Apply' }).click()
+  await childDialog.getByLabel('ラベル').fill('Child 😀')
+  await childDialog.getByRole('button', { name: '反映' }).click()
   await expect(
     page.getByRole('button', {
-      name: 'neutral certainty, cause: Child 😀',
+      name: '指定なし、cause：Child 😀',
     }),
   ).toBeVisible()
 
   await root.click()
-  await page.getByRole('button', { name: 'Connect' }).click()
-  const connectDialog = page.getByRole('dialog', { name: 'Connect Nodes' })
-  await connectDialog.getByLabel('Target Node').selectOption({ label: 'Target' })
-  await connectDialog.getByLabel('Relation label (optional)').fill('supports')
-  await connectDialog.getByLabel('Certainty').selectOption('tentative')
-  await connectDialog.getByRole('button', { name: 'Apply' }).click()
+  await page.getByRole('button', { name: '接続' }).click()
+  const connectDialog = page.getByRole('dialog', { name: 'Nodeを接続' })
+  await connectDialog.getByLabel('接続先のNode').selectOption({ label: 'Target' })
+  await connectDialog.getByLabel('Relationラベル（任意）').fill('supports')
+  await connectDialog.getByLabel('確信度').selectOption('tentative')
+  await connectDialog.getByRole('button', { name: '反映' }).click()
 
-  await expect(page.getByLabel('Workspace status')).toContainText('3 nodes')
-  await expect(page.getByLabel('Workspace status')).toContainText('2 edges')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('Node 3件')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('Relation 2件')
   await expect
     .poll(() => editor.locator('.cm-line').allTextContents())
     .toEqual([
@@ -357,13 +361,13 @@ test('creates Nodes, changes certainty, and connects Nodes from Graph controls',
       '@root ?-> @target : supports',
     ])
 
-  await page.getByRole('button', { name: '+ New node' }).click()
-  const createDialog = page.getByRole('dialog', { name: 'Create Node' })
+  await page.getByRole('button', { name: '＋ Nodeを作成' }).click()
+  const createDialog = page.getByRole('dialog', { name: 'Nodeを作成' })
   await expect(createDialog.getByLabel('Type')).toBeFocused()
-  await createDialog.getByLabel('Label').fill('Top level')
-  await createDialog.getByRole('button', { name: 'Apply' }).click()
+  await createDialog.getByLabel('ラベル').fill('Top level')
+  await createDialog.getByRole('button', { name: '反映' }).click()
   await expect(
-    page.getByRole('button', { name: 'neutral certainty, node: Top level' }),
+    page.getByRole('button', { name: '指定なし、node：Top level' }),
   ).toBeVisible()
 })
 
@@ -371,16 +375,16 @@ test('uses semantic drag and keyboard Move to change parentage and Group members
   page,
 }) => {
   await page.goto('/')
-  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
   await editor.fill(
     '[Problem] Root\n[Idea] Other\n{Discovery}\n  [Node] Member\nClosing prose',
   )
 
   const root = page.getByRole('button', {
-    name: 'neutral certainty, problem: Root',
+    name: '指定なし、problem：Root',
   })
   let other = page.getByRole('button', {
-    name: 'neutral certainty, idea: Other',
+    name: '指定なし、idea：Other',
   })
   await other.dragTo(root, {
     sourcePosition: { x: 120, y: 44 },
@@ -392,36 +396,36 @@ test('uses semantic drag and keyboard Move to change parentage and Group members
 
   const beforeCycle = await editor.locator('.cm-line').allTextContents()
   await root.click()
-  await page.getByRole('button', { name: 'Move' }).click()
-  let moveDialog = page.getByRole('dialog', { name: 'Move Node by meaning' })
-  await moveDialog.getByLabel('Meaning target').selectOption({ label: 'Other' })
-  await moveDialog.getByRole('button', { name: 'Apply' }).click()
+  await page.getByRole('button', { name: '構造を変更' }).click()
+  let moveDialog = page.getByRole('dialog', { name: 'Nodeの構造を変更' })
+  await moveDialog.getByLabel('構造の変更先').selectOption({ label: 'Other' })
+  await moveDialog.getByRole('button', { name: '反映' }).click()
   await expect(page.getByRole('alert')).toContainText(
-    'cannot be reparented to itself or one of its descendants',
+    '自分自身または子孫を親にはできません',
   )
   await expect
     .poll(() => editor.locator('.cm-line').allTextContents())
     .toEqual(beforeCycle)
 
   other = page.getByRole('button', {
-    name: 'neutral certainty, idea: Other',
+    name: '指定なし、idea：Other',
   })
   await other.click()
-  await page.getByRole('button', { name: 'Move' }).click()
-  moveDialog = page.getByRole('dialog', { name: 'Move Node by meaning' })
-  await moveDialog.getByLabel('Meaning target').selectOption({
+  await page.getByRole('button', { name: '構造を変更' }).click()
+  moveDialog = page.getByRole('dialog', { name: 'Nodeの構造を変更' })
+  await moveDialog.getByLabel('構造の変更先').selectOption({
     label: 'Discovery',
   })
-  await moveDialog.getByRole('button', { name: 'Apply' }).click()
+  await moveDialog.getByRole('button', { name: '反映' }).click()
   await expect
     .poll(() => editor.locator('.cm-line').allTextContents())
     .toContain('  @other')
 
   await other.click()
-  await page.getByRole('button', { name: 'Move' }).click()
-  moveDialog = page.getByRole('dialog', { name: 'Move Node by meaning' })
-  await moveDialog.getByLabel('Meaning target').selectOption('detach')
-  await moveDialog.getByRole('button', { name: 'Apply' }).click()
+  await page.getByRole('button', { name: '構造を変更' }).click()
+  moveDialog = page.getByRole('dialog', { name: 'Nodeの構造を変更' })
+  await moveDialog.getByLabel('構造の変更先').selectOption('detach')
+  await moveDialog.getByRole('button', { name: '反映' }).click()
   await expect
     .poll(() => editor.locator('.cm-line').allTextContents())
     .toContain('[Idea @other] Other')
@@ -433,19 +437,19 @@ test('previews deletion impact and preserves children when deleting a Nested Rel
   page,
 }) => {
   await page.goto('/')
-  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
   await editor.fill(
     '[Problem @root] Root\n  ?-> [Cause @child] Child\n    !-> [Evidence] Grand\n@root -> @other\n[Idea @other] Other\n{Group}\n  @root\nClosing prose',
   )
 
   const nestedEdge = page.locator(
-    '[aria-label="tentative certainty relation from Root to Child"]',
+    '[aria-label="未確定のRelation：RootからChild"]',
   )
   await nestedEdge.focus()
   await nestedEdge.press('Delete')
-  let dialog = page.getByRole('dialog', { name: 'Confirm deletion' })
-  await expect(dialog).toContainText('Child is promoted to the scope root')
-  await dialog.getByRole('button', { name: 'Delete' }).click()
+  let dialog = page.getByRole('dialog', { name: '削除内容を確認' })
+  await expect(dialog).toContainText('Childを子孫ごとスコープのルートへ昇格します')
+  await dialog.getByRole('button', { name: '削除' }).click()
   await expect
     .poll(() => editor.locator('.cm-line').allTextContents())
     .toContain('[Cause @child] Child')
@@ -454,15 +458,15 @@ test('previews deletion impact and preserves children when deleting a Nested Rel
     .toContain('  !-> [Evidence] Grand')
 
   const root = page.getByRole('button', {
-    name: 'neutral certainty, problem: Root',
+    name: '指定なし、problem：Root',
   })
   await root.focus()
   await root.press('Delete')
-  dialog = page.getByRole('dialog', { name: 'Confirm deletion' })
-  await expect(dialog).toContainText('1 Node(s)')
-  await expect(dialog).toContainText('1 Cross Relation(s)')
-  await expect(dialog).toContainText('1 Group reference(s)')
-  await dialog.getByRole('button', { name: 'Delete' }).click()
+  dialog = page.getByRole('dialog', { name: '削除内容を確認' })
+  await expect(dialog).toContainText('Node 1件')
+  await expect(dialog).toContainText('Cross Relation 1件')
+  await expect(dialog).toContainText('Group参照 1件')
+  await dialog.getByRole('button', { name: '削除' }).click()
 
   await expect(root).toHaveCount(0)
   await expect(editor).toContainText('[Cause @child] Child')

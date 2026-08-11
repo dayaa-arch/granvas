@@ -12,7 +12,7 @@ describe('WorkspaceSplitPane', () => {
       />,
     )
     const divider = screen.getByRole('separator', {
-      name: 'Resize Text and Graph panes',
+      name: 'テキストとグラフの表示幅を変更',
     })
 
     expect(divider).toHaveAttribute('aria-valuenow', '55')
@@ -34,10 +34,10 @@ describe('WorkspaceSplitPane', () => {
       />,
     )
 
-    expect(screen.getByRole('region', { name: 'Text pane' })).toHaveTextContent(
+    expect(screen.getByRole('region', { name: 'テキストペイン' })).toHaveTextContent(
       'Editor body',
     )
-    expect(screen.getByRole('region', { name: 'Graph pane' })).toHaveTextContent(
+    expect(screen.getByRole('region', { name: 'グラフペイン' })).toHaveTextContent(
       'Graph body',
     )
   })

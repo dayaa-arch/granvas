@@ -22,7 +22,9 @@ import {
 } from 'react'
 
 import type {
+  DiagnosticCodeDto,
   DiagnosticDto,
+  DiagnosticLevelDto,
   SourceRangeDto,
 } from '@/modules/notation/application/ParseNotation'
 import type { SourceEditDto } from '@/modules/notation/application/PlanNotationEdit'
@@ -51,6 +53,35 @@ export type GranvasEditorHandle = Readonly<{
 }>
 
 const setDiagnostics = StateEffect.define<readonly DiagnosticDto[]>()
+
+const diagnosticMessagesJa: Readonly<Record<DiagnosticCodeDto, string>> =
+  Object.freeze({
+    GNV001_INCOMPLETE_NODE: 'Node宣言が入力途中です。',
+    GNV002_EMPTY_LABEL: 'Nodeのラベルを入力してください。',
+    GNV003_INVALID_ID: 'Explicit IDの形式が正しくありません。',
+    GNV004_DUPLICATE_ID: '同じExplicit IDが複数のNodeで使われています。',
+    GNV005_UNRESOLVED_REFERENCE: '参照先のNodeを解決できません。',
+    GNV006_INVALID_INDENT: 'Notationのインデントが正しくありません。',
+    GNV007_TAB_INDENT: 'Tabによるインデントには対応していません。2個単位のspaceを使用してください。',
+    GNV008_ORPHAN_RELATION: 'Nested Relationの親Nodeが見つかりません。',
+    GNV009_INVALID_LAYOUT: 'Layout directiveの形式が正しくありません。',
+    GNV010_DUPLICATE_LAYOUT: 'Layout directiveが複数あります。最後の有効な指定を使用します。',
+    GNV011_NESTED_GROUP_UNSUPPORTED: 'Groupのネストには対応していません。',
+    GNV012_EMPTY_RELATION_LABEL: '空のRelationラベルを省略しました。',
+    GNV013_EMPTY_GROUP_NAME: 'Group名を入力してください。',
+    GNV014_INVALID_CERTAINTY_MARKER: '確信度マーカーはNode Typeの前に1個だけ指定してください。',
+  })
+
+const diagnosticLevelLabelsJa: Readonly<Record<DiagnosticLevelDto, string>> =
+  Object.freeze({
+    info: '情報',
+    warning: '警告',
+    error: 'エラー',
+  })
+
+function diagnosticMessageJa(diagnostic: DiagnosticDto): string {
+  return diagnosticMessagesJa[diagnostic.code]
+}
 
 type DiagnosticPresentationState = Readonly<{
   decorations: DecorationSet
@@ -124,6 +155,7 @@ function diagnosticDecorations(
   const ranges = diagnostics.flatMap((diagnostic) => {
     const from = Math.max(0, Math.min(diagnostic.range.from, state.doc.length))
     const to = Math.max(from, Math.min(diagnostic.range.to, state.doc.length))
+    const message = diagnosticMessageJa(diagnostic)
 
     if (from === to) {
       return []
@@ -133,8 +165,8 @@ function diagnosticDecorations(
       Decoration.mark({
         class: `cm-gnv-diagnostic cm-gnv-diagnostic--${diagnostic.level}`,
         attributes: {
-          title: `${diagnostic.code}: ${diagnostic.message}`,
-          'aria-label': `${diagnostic.level}: ${diagnostic.message}`,
+          title: `${diagnostic.code}: ${message}`,
+          'aria-label': `${diagnosticLevelLabelsJa[diagnostic.level]}: ${message}`,
         },
       }).range(from, to),
     ]
@@ -187,10 +219,11 @@ class DiagnosticGutterMarker extends GutterMarker {
   toDOM(): Node {
     const marker = document.createElement('span')
     marker.className = `cm-gnv-gutter-marker cm-gnv-gutter-marker--${this.#diagnostic.level}`
-    marker.title = `${this.#diagnostic.code}: ${this.#diagnostic.message}`
+    const message = diagnosticMessageJa(this.#diagnostic)
+    marker.title = `${this.#diagnostic.code}: ${message}`
     marker.setAttribute(
       'aria-label',
-      `${this.#diagnostic.level}: ${this.#diagnostic.message}`,
+      `${diagnosticLevelLabelsJa[this.#diagnostic.level]}: ${message}`,
     )
     marker.textContent = '•'
     return marker
@@ -332,10 +365,10 @@ export const GranvasEditor = forwardRef<
           keymap.of([...defaultKeymap, ...historyKeymap]),
           EditorView.lineWrapping,
           EditorView.contentAttributes.of({
-            'aria-label': 'Granvas text editor',
+            'aria-label': 'Granvas テキストエディタ',
             spellcheck: 'true',
           }),
-          placeholder('Write thoughts. See structure.'),
+          placeholder('文章を書きながら、思考の構造を見つける。'),
           syntaxField,
           diagnosticField,
           diagnosticGutter,

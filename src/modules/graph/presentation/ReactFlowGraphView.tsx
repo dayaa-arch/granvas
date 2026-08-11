@@ -182,6 +182,51 @@ const certaintyMarker: Readonly<Record<GraphCertaintyDto, string | undefined>> =
   rejected: '×',
 }
 
+const certaintyLabelsJa: Readonly<Record<GraphCertaintyDto, string>> =
+  Object.freeze({
+    neutral: '指定なし',
+    tentative: '未確定',
+    confirmed: '確定',
+    rejected: '棄却',
+  })
+
+const ariaLabelConfigJa = Object.freeze({
+  'node.a11yDescription.default':
+    'EnterまたはSpaceキーでNodeを選択します。',
+  'node.a11yDescription.keyboardDisabled':
+    'このNodeはキーボードで移動できません。',
+  'edge.a11yDescription.default':
+    'EnterまたはSpaceキーでRelationを選択します。',
+  'controls.ariaLabel': 'グラフの表示操作',
+  'controls.zoomIn.ariaLabel': '拡大',
+  'controls.zoomOut.ariaLabel': '縮小',
+  'controls.fitView.ariaLabel': '全体を表示',
+  'controls.interactive.ariaLabel': '操作モードを切り替え',
+  'minimap.ariaLabel': 'グラフのミニマップ',
+  'handle.ariaLabel': 'Relationの接続点',
+})
+
+function editFieldLabelJa(field: GraphNodeEditField): string {
+  return field === 'label' ? 'ラベル' : 'Type'
+}
+
+function graphRejectionMessageJa(code: string): string {
+  switch (code) {
+    case 'cyclic-parent':
+      return '自分自身または子孫を親にはできません。'
+    case 'invalid-value':
+      return '入力内容がGranvas Notationの規則を満たしていません。'
+    case 'unresolved-reference':
+      return '参照先のNodeを解決できません。'
+    case 'unsupported-structure':
+      return '現在の構造には、この操作を安全に適用できません。'
+    case 'unknown-target':
+      return '対象が現在のグラフに見つかりません。'
+    default:
+      return '削除する範囲を確認できませんでした。'
+  }
+}
+
 function edgeStyle(certainty: GraphCertaintyDto) {
   switch (certainty) {
     case 'tentative':
@@ -222,14 +267,14 @@ const ThoughtNodeView = memo(function ThoughtNodeView({
       {data.editing ? (
         <label className="graph-node__inline-edit">
           <span className="sr-only">
-            Edit {data.editing.field} for {data.label}
+            {data.label}の{editFieldLabelJa(data.editing.field)}を編集
           </span>
           <input
             data-graph-inline-editor="true"
             className={`graph-node__inline-input graph-node__inline-input--${data.editing.field}`}
             value={data.editing.draft}
             disabled={data.editing.busy}
-            aria-label={`Edit ${data.editing.field} for ${data.label}`}
+            aria-label={`${data.label}の${editFieldLabelJa(data.editing.field)}を編集`}
             onChange={(event) => data.changeDraft(event.currentTarget.value)}
             onCompositionStart={() => data.setComposing(true)}
             onCompositionEnd={() => data.setComposing(false)}
@@ -258,7 +303,7 @@ const ThoughtNodeView = memo(function ThoughtNodeView({
         <>
           <span
             className="graph-node__type"
-            title="Double-click or press Shift+F2 to edit type"
+            title="ダブルクリックまたはShift+F2でTypeを編集"
             onDoubleClick={(event) => {
               event.stopPropagation()
               data.beginEdit('type')
@@ -268,7 +313,7 @@ const ThoughtNodeView = memo(function ThoughtNodeView({
           </span>
           <span
             className="graph-node__label"
-            title="Double-click or press F2 to edit label"
+            title="ダブルクリックまたはF2でラベルを編集"
             onDoubleClick={(event) => {
               event.stopPropagation()
               data.beginEdit('label')
@@ -436,15 +481,15 @@ function AuthorDialog({
   const title =
     dialog.type === 'create'
       ? dialog.parentGraphNodeId
-        ? 'Add child Node'
+        ? '子Nodeを追加'
         : dialog.graphGroupId
-          ? 'Add Node to Group'
-          : 'Create Node'
+          ? 'GroupへNodeを追加'
+          : 'Nodeを作成'
       : dialog.type === 'connect'
-        ? 'Connect Nodes'
+        ? 'Nodeを接続'
         : dialog.type === 'move'
-          ? 'Move Node by meaning'
-          : 'Confirm deletion'
+          ? 'Nodeの構造を変更'
+          : '削除内容を確認'
 
   return (
     <div className="graph-dialog-backdrop" role="presentation">
@@ -462,7 +507,7 @@ function AuthorDialog({
             <button
               className="graph-dialog__close"
               type="button"
-              aria-label="Close dialog"
+              aria-label="ダイアログを閉じる"
               disabled={busy}
               onClick={onCancel}
             >
@@ -483,7 +528,7 @@ function AuthorDialog({
                 />
               </label>
               <label>
-                <span>Label</span>
+                <span>ラベル</span>
                 <input
                   value={label}
                   required
@@ -498,7 +543,7 @@ function AuthorDialog({
           {dialog.type === 'connect' ? (
             <div className="graph-dialog__fields">
               <label>
-                <span>Target Node</span>
+                <span>接続先のNode</span>
                 <select
                   value={targetNodeId}
                   required
@@ -506,7 +551,7 @@ function AuthorDialog({
                   onChange={(event) => setTargetNodeId(event.currentTarget.value)}
                 >
                   <option value="" disabled>
-                    Select a Node
+                    Nodeを選択
                   </option>
                   {graph?.nodes.map((node) => (
                     <option key={node.id} value={node.id}>
@@ -516,7 +561,7 @@ function AuthorDialog({
                 </select>
               </label>
               <label>
-                <span>Relation label (optional)</span>
+                <span>Relationラベル（任意）</span>
                 <input
                   value={relationLabel}
                   disabled={busy}
@@ -524,7 +569,7 @@ function AuthorDialog({
                 />
               </label>
               <label>
-                <span>Certainty</span>
+                <span>確信度</span>
                 <select
                   value={certainty}
                   disabled={busy}
@@ -532,10 +577,10 @@ function AuthorDialog({
                     setCertainty(event.currentTarget.value as GraphCertaintyDto)
                   }
                 >
-                  <option value="neutral">Neutral</option>
-                  <option value="tentative">Tentative</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="neutral">指定なし</option>
+                  <option value="tentative">未確定</option>
+                  <option value="confirmed">確定</option>
+                  <option value="rejected">棄却</option>
                 </select>
               </label>
             </div>
@@ -544,14 +589,14 @@ function AuthorDialog({
           {dialog.type === 'move' ? (
             <div className="graph-dialog__fields">
               <label>
-                <span>Meaning target</span>
+                <span>構造の変更先</span>
                 <select
                   value={moveTarget}
                   disabled={busy}
                   onChange={(event) => setMoveTarget(event.currentTarget.value)}
                 >
-                  <option value="detach">Detach to scope root</option>
-                  <optgroup label="Parent Node">
+                  <option value="detach">親子関係を解除</option>
+                  <optgroup label="親にするNode">
                     {graph?.nodes
                       .filter(({ id }) => id !== dialog.graphNodeId)
                       .map((node) => (
@@ -561,7 +606,7 @@ function AuthorDialog({
                       ))}
                   </optgroup>
                   {graph?.groups.length ? (
-                    <optgroup label="Add to Group">
+                    <optgroup label="追加先のGroup">
                       {graph.groups.map((group) => (
                         <option key={group.id} value={`group:${group.id}`}>
                           {group.name}
@@ -572,24 +617,24 @@ function AuthorDialog({
                 </select>
               </label>
               <p className="graph-dialog__hint">
-                This changes parentage or Group membership. Canvas coordinates are never saved.
+                親子関係またはGroup所属を変更します。キャンバス上の座標は保存されません。
               </p>
             </div>
           ) : null}
 
           {dialog.type === 'delete' ? (
             <div className="graph-dialog__impact" aria-live="polite">
-              {!preview ? <p>Checking affected structure…</p> : null}
+              {!preview ? <p>影響する構造を確認しています…</p> : null}
               {preview?.type === 'rejected' ? (
-                <p role="alert">{preview.reason.message}</p>
+                <p role="alert">{graphRejectionMessageJa(preview.reason.code)}</p>
               ) : null}
               {preview?.type === 'available' && preview.impact.type === 'node' ? (
                 <>
-                  <p>This deletion removes:</p>
+                  <p>次の構造を削除します。</p>
                   <ul>
-                    <li>{preview.impact.nodeCount} Node(s)</li>
-                    <li>{preview.impact.relationCount} Cross Relation(s)</li>
-                    <li>{preview.impact.groupReferenceCount} Group reference(s)</li>
+                    <li>Node {preview.impact.nodeCount}件</li>
+                    <li>Cross Relation {preview.impact.relationCount}件</li>
+                    <li>Group参照 {preview.impact.groupReferenceCount}件</li>
                   </ul>
                   <p className="graph-dialog__labels">
                     {preview.impact.nodeLabels.join(', ')}
@@ -600,11 +645,10 @@ function AuthorDialog({
               preview.impact.type === 'relation' ? (
                 preview.impact.relationKind === 'nested' ? (
                   <p>
-                    The Relation is removed. {preview.impact.promotedNodeLabel ?? 'The child'}
-                    {' '}is promoted to the scope root with descendants preserved.
+                    {`Relationを削除し、${preview.impact.promotedNodeLabel ?? '子Node'}を子孫ごとスコープのルートへ昇格します。`}
                   </p>
                 ) : (
-                  <p>Only this Cross Relation declaration is removed.</p>
+                  <p>このCross Relation宣言だけを削除します。</p>
                 )
               ) : null}
             </div>
@@ -612,7 +656,7 @@ function AuthorDialog({
 
           <div className="graph-dialog__actions">
             <button type="button" disabled={busy} onClick={onCancel}>
-              Cancel
+              キャンセル
             </button>
             <button
               className={dialog.type === 'delete' ? 'is-danger' : ''}
@@ -622,7 +666,7 @@ function AuthorDialog({
                 (dialog.type === 'delete' && preview?.type !== 'available')
               }
             >
-              {busy ? 'Applying…' : dialog.type === 'delete' ? 'Delete' : 'Apply'}
+              {busy ? '反映しています…' : dialog.type === 'delete' ? '削除' : '反映'}
             </button>
           </div>
         </form>
@@ -690,7 +734,7 @@ function GraphCanvas({
         type: 'rejected',
         reason: {
           code: 'preview-unavailable',
-          message: 'Delete preview is unavailable.',
+          message: '削除範囲を確認できません。',
         },
       })
       return
@@ -766,11 +810,15 @@ function GraphCanvas({
       ({ id }) => `overlay:${id}` === candidateId,
     )
     if (candidateNode) {
-      setAuthoringStatus(`Drop on ${candidateNode.label} to make it the parent.`)
+      setAuthoringStatus(
+        `「${candidateNode.label}」へドロップすると親Nodeにします。`,
+      )
     } else if (candidateGroup) {
-      setAuthoringStatus(`Drop on ${candidateGroup.name} to add Group membership.`)
+      setAuthoringStatus(
+        `「${candidateGroup.name}」へドロップするとGroupへ追加します。`,
+      )
     } else {
-      setAuthoringStatus('Drop on blank canvas to detach to the scope root.')
+      setAuthoringStatus('空白へドロップすると親子関係を解除します。')
     }
   }
 
@@ -790,17 +838,19 @@ function GraphCanvas({
         graphNodeId: draggedNode.id,
         parentGraphNodeId: candidateNode.id,
       })
-      setAuthoringStatus(`${draggedNode.data.label} reparent requested.`)
+      setAuthoringStatus(`「${draggedNode.data.label}」の親を変更しました。`)
     } else if (candidateGroup) {
       submitPointerCommand({
         type: 'set-group-membership',
         graphNodeId: draggedNode.id,
         graphGroupId: candidateGroup.id,
       })
-      setAuthoringStatus(`${draggedNode.data.label} Group membership requested.`)
+      setAuthoringStatus(
+        `「${draggedNode.data.label}」をGroupへ追加しました。`,
+      )
     } else {
       submitPointerCommand({ type: 'reparent-node', graphNodeId: draggedNode.id })
-      setAuthoringStatus(`${draggedNode.data.label} detach requested.`)
+      setAuthoringStatus(`「${draggedNode.data.label}」の親子関係を解除しました。`)
     }
     setDropCandidateId(undefined)
   }
@@ -813,7 +863,7 @@ function GraphCanvas({
       sourceGraphNodeId: connection.source,
       targetGraphNodeId: connection.target,
     })
-    setAuthoringStatus('Relation creation requested.')
+    setAuthoringStatus('Relationを作成しました。')
   }
 
   const handleConnectEnd = (
@@ -985,8 +1035,8 @@ function GraphCanvas({
       ariaRole: inlineEdit?.graphNodeId === node.id ? 'group' : 'button',
       ariaLabel:
         inlineEdit?.graphNodeId === node.id
-          ? `Editing ${inlineEdit.field} for ${node.label}`
-          : `${node.certainty} certainty, ${node.type}: ${node.label}`,
+          ? `「${node.label}」の${editFieldLabelJa(inlineEdit.field)}を編集中`
+          : `${certaintyLabelsJa[node.certainty]}、${node.type}：${node.label}`,
       style: { width: node.width, height: node.height },
     }))
 
@@ -1011,7 +1061,7 @@ function GraphCanvas({
           selectable: true,
           selected: edge.id === selectedEdgeId,
           className: `graph-edge graph-edge--certainty-${edge.certainty}`,
-          ariaLabel: `${edge.certainty} certainty relation from ${sourceLabel} to ${targetLabel}${edge.label ? `: ${edge.label}` : ''}`,
+          ariaLabel: `${certaintyLabelsJa[edge.certainty]}のRelation：${sourceLabel}から${targetLabel}${edge.label ? `、${edge.label}` : ''}`,
           markerEnd: { type: MarkerType.ArrowClosed, color: '#738093' },
           style: edgeStyle(edge.certainty),
           labelStyle: {
@@ -1094,13 +1144,13 @@ function GraphCanvas({
       }}
       data-graph-status={status}
     >
-      <div className="graph-author-toolbar" role="toolbar" aria-label="Author graph">
+      <div className="graph-author-toolbar" role="toolbar" aria-label="グラフを編集">
         <button
           type="button"
           disabled={status !== 'ready'}
           onClick={() => openAuthorDialog({ type: 'create' })}
         >
-          + New node
+          ＋ Nodeを作成
         </button>
         {selectedNode ? (
           <>
@@ -1116,7 +1166,7 @@ function GraphCanvas({
                 })
               }
             >
-              Add child
+              子Nodeを追加
             </button>
             <button
               type="button"
@@ -1127,7 +1177,7 @@ function GraphCanvas({
                 })
               }
             >
-              Connect
+              接続
             </button>
             <button
               type="button"
@@ -1135,12 +1185,14 @@ function GraphCanvas({
                 openAuthorDialog({ type: 'move', graphNodeId: selectedNode.id })
               }
             >
-              Move
+              構造を変更
             </button>
             <label className="graph-author-toolbar__certainty">
-              <span className="sr-only">Certainty for {selectedNode.label}</span>
+              <span className="sr-only">
+                「{selectedNode.label}」の確信度
+              </span>
               <select
-                aria-label={`Certainty for ${selectedNode.label}`}
+                aria-label={`「${selectedNode.label}」の確信度`}
                 value={selectedNode.certainty}
                 onChange={(event) =>
                   submitPointerCommand({
@@ -1150,10 +1202,10 @@ function GraphCanvas({
                   })
                 }
               >
-                <option value="neutral">Neutral</option>
-                <option value="tentative">Tentative</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="rejected">Rejected</option>
+                <option value="neutral">指定なし</option>
+                <option value="tentative">未確定</option>
+                <option value="confirmed">確定</option>
+                <option value="rejected">棄却</option>
               </select>
             </label>
             <button
@@ -1166,13 +1218,13 @@ function GraphCanvas({
                 })
               }
             >
-              Delete
+              削除
             </button>
           </>
         ) : null}
         {selectedEdge ? (
           <>
-            <span className="graph-author-toolbar__selection">Selected relation</span>
+            <span className="graph-author-toolbar__selection">Relationを選択中</span>
             <button
               className="is-danger"
               type="button"
@@ -1183,7 +1235,7 @@ function GraphCanvas({
                 })
               }
             >
-              Delete
+              削除
             </button>
           </>
         ) : null}
@@ -1241,7 +1293,8 @@ function GraphCanvas({
         minZoom={0.2}
         maxZoom={2}
         proOptions={{ hideAttribution: true }}
-        aria-label="Editable thought graph"
+        aria-label="編集できる思考グラフ"
+        ariaLabelConfig={ariaLabelConfigJa}
       >
         <FitViewEffect fitViewKey={fitViewKey} />
         <Background
@@ -1253,7 +1306,7 @@ function GraphCanvas({
         <Controls
           showInteractive={false}
           position="bottom-right"
-          aria-label="Graph viewport controls"
+          aria-label="グラフの表示操作"
         />
       </ReactFlow>
       {nodes.length === 0 ? (
@@ -1261,8 +1314,10 @@ function GraphCanvas({
           <span className="graph-empty__mark" aria-hidden="true">
             G
           </span>
-          <strong>{status === 'projecting' ? 'Building graph…' : 'No graph yet'}</strong>
-          <span>Write a node declaration in the Text pane.</span>
+          <strong>
+            {status === 'projecting' ? 'グラフを組み立てています…' : 'まだグラフがありません'}
+          </strong>
+          <span>テキストペインにNode宣言を書いてください。</span>
         </div>
       ) : null}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
