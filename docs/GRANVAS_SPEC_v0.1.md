@@ -3168,7 +3168,7 @@ Status: Complete — Issue #21 / PR #22
 
 ## Phase 12: Graph Authoring
 
-Status: Complete — Issue #23 / PR作成時に追記
+Status: Complete — Issue #23 / PR #24
 
 - 意味ドラッグ / 循環拒否 / drop 先ハイライト
 - Node 作成 / Edge 接続 / `@id` 自動採番

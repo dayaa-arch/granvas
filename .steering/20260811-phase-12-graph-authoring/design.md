@@ -3,6 +3,7 @@
 > 作成日: 2026-08-11
 > ステータス: 承認済み
 > Issue: [#23](https://github.com/dayaa-arch/granvas/issues/23)
+> PR: [#24](https://github.com/dayaa-arch/granvas/pull/24)
 > Related: `requirements.md`、ADR-0001、ADR-0002
 
 ## 1. 実装方針

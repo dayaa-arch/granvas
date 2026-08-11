@@ -3,6 +3,7 @@
 > 作成日: 2026-08-11
 > ステータス: 承認済み
 > Issue: [#23](https://github.com/dayaa-arch/granvas/issues/23)
+> PR: [#24](https://github.com/dayaa-arch/granvas/pull/24)
 > Related: `docs/development-roadmap.md` Phase 12、`docs/GRANVAS_SPEC_v0.1.md` §5.4、ADR-0001、ADR-0002
 
 ## 1. 目的

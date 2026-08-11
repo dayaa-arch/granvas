@@ -53,7 +53,7 @@ flowchart LR
 | 7 | Presentation Shell | 完了 | 8 | `.steering/20260810-phase-7-presentation-shell/` | [Issue #15](https://github.com/dayaa-arch/granvas/issues/15) / [PR #16](https://github.com/dayaa-arch/granvas/pull/16) |
 | 10 | Notation Certainty | 完了 | 9 | `.steering/20260811-phase-10-notation-certainty/` | [Issue #19](https://github.com/dayaa-arch/granvas/issues/19) / [PR #20](https://github.com/dayaa-arch/granvas/pull/20) |
 | 11 | Source Edit Core | 完了 | 10 | `.steering/20260811-phase-11-source-edit-core/` | [Issue #21](https://github.com/dayaa-arch/granvas/issues/21) / [PR #22](https://github.com/dayaa-arch/granvas/pull/22) |
-| 12 | Graph Authoring | 完了 | 11 | `.steering/20260811-phase-12-graph-authoring/` | [Issue #23](https://github.com/dayaa-arch/granvas/issues/23) / PR作成時に追記 |
+| 12 | Graph Authoring | 完了 | 11 | `.steering/20260811-phase-12-graph-authoring/` | [Issue #23](https://github.com/dayaa-arch/granvas/issues/23) / [PR #24](https://github.com/dayaa-arch/granvas/pull/24) |
 | 8 | Visual Export | 未着手 | 12 | 作業開始時に新規作成 | 未起票 |
 | 9 | Release Hardening | 未着手 | 13 | 作業開始時に新規作成 | 未起票 |
 

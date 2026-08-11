@@ -1,8 +1,9 @@
 # Phase 12 Graph Authoring タスクリスト
 
 > 作成日: 2026-08-11
-> ステータス: 検証完了・PR準備中
+> ステータス: PR #24 merge準備中
 > Issue: [#23](https://github.com/dayaa-arch/granvas/issues/23)
+> PR: [#24](https://github.com/dayaa-arch/granvas/pull/24)
 
 ## 1. 準備
 
@@ -87,8 +88,8 @@
 
 - [x] README、roadmap、統合仕様書、初回tasklistをPhase 12完了へ同期する。
 - [x] tasklistを最終状態へ更新する。
-- [ ] 意図した変更だけをcommit / pushする。
-- [ ] PRへ要求、設計、検証結果、残課題を記載する。
+- [x] 意図した変更だけをcommit / pushする。
+- [x] PRへ要求、設計、検証結果、残課題を記載する。
 - [ ] greenを確認してPRをmainへmergeし、Issue closeとbranch削除を確認する。
 - [ ] clean mainがorigin/mainと一致することを確認する。
 
