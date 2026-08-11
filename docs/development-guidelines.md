@@ -1,6 +1,6 @@
 # Granvas 開発ガイドライン
 
-> Status: Release Candidate Hardening
+> Status: Release Candidate
 > Updated: 2026-08-11
 
 ## 1. 開発の基準

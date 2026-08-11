@@ -3,7 +3,7 @@
 > **Write thoughts. See structure.**  
 > 文章を書くように、思考のグラフを書く。
 
-- Status: Release Candidate Hardening
+- Status: Release Candidate
 - Target: Granvas v0.1
 - Notation: Granvas Notation v0.2（v0.1 に対し後方互換）
 - Architecture: Domain-Driven Design + Layered Architecture + Modular Monolith
@@ -3249,7 +3249,7 @@ Status: Complete — Issue #29 / PR #30
 
 ## Phase 9: Release Hardening
 
-Status: In Progress — Issue #31
+Status: Complete — Issue #31 / PR #32
 
 - performance / accessibility / security gates
 - 15-scenario three-browser E2E
@@ -3338,11 +3338,11 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [x] 主要 E2E 10 scenario がChromium / Firefox / WebKitで通る
 - [x] 17章のperformance budgetを満たす
 - [x] WCAG 2.2 AA自動検査とkeyboard E2Eが通る
-- [ ] productionでruntime outbound requestがなく、CSP testが通る
+- [x] productionでruntime outbound requestがなく、CSP testが通る
 - [x] TypeScript error 0
 - [x] lint error 0
 - [x] production build success
-- [ ] Vercel production deploymentでdirect access / reloadが動作する
+- [x] Vercel production deploymentでdirect access / reloadが動作する
 - [x] OSS licenseが決定され、`LICENSE`が存在する
 
 ---

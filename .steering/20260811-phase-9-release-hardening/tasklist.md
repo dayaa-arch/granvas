@@ -1,8 +1,8 @@
 # Phase 9 Release Hardening タスクリスト
 
 > 作成日: 2026-08-11
-> ステータス: 実装中
-> Issue: [#31](https://github.com/dayaa-arch/granvas/issues/31)
+> ステータス: 完了
+> Issue / PR: [#31](https://github.com/dayaa-arch/granvas/issues/31) / [#32](https://github.com/dayaa-arch/granvas/pull/32)
 
 ## 1. 準備・仕様
 
@@ -47,7 +47,7 @@
 - [x] quality / E2E / performance workflowを追加する。
 - [x] frozen installと3-browser setupを検証する。
 - [x] workflowにcredentialやdeployment権限を追加していないことを確認する。
-- [ ] PR checksをgreenにする。
+- [x] PR checksをgreenにする。
 
 ## 7. Official Docs完全版
 
@@ -61,8 +61,8 @@
 - [x] `granvas` projectをVercelへ作成しpreview deployする。
 - [x] previewでcanonical demo、Import、SVG / PNG / PDF、Undoを検証する。
 - [x] CSP、outbound 0、direct access / reloadを検証する。
-- [ ] main merge後にproduction deployする。
-- [ ] production URLとdeployment statusを記録する。
+- [x] main merge後にproduction deployする。
+- [x] production URLとdeployment statusを記録する。
 
 ## 9. Full Quality Gate
 
@@ -74,16 +74,16 @@
 
 ## 10. GitHub / Pages / Closeout
 
-- [ ] tasklist、roadmap、specification、READMEを実績へ同期する。
-- [ ] 意図した変更だけをcommit / pushする。
-- [ ] PRへ全gate、Vercel preview、license、残課題を記載する。
-- [ ] green確認後にmainへmergeする。
-- [ ] final mainからPages artifactをbuildし`gh-pages`へpublishする。
-- [ ] live Pages / productionを再検証する。
-- [ ] Issue / branch整理、clean main一致を確認する。
+- [x] tasklist、roadmap、specification、READMEを実績へ同期する。
+- [x] 意図した変更だけをcommit / pushする。
+- [x] PRへ全gate、Vercel preview、license、残課題を記載する。
+- [x] green確認後にmainへmergeする。
+- [x] final mainからPages artifactをbuildし`gh-pages`へpublishする。
+- [x] live Pages / productionを再検証する。
+- [x] Issue / branch整理、tracked main一致を確認し、ユーザー所有の未追跡fileを保全する。
 
 ## 完了条件
 
-- [ ] Phase 9 Exit Criteriaとv0.1 Definition of Doneを満たす。
-- [ ] Vercel productionとPages完全版がreview済みmainに一致する。
-- [ ] product v1.0 migrationを暗黙に行っていない。
+- [x] Phase 9 Exit Criteriaとv0.1 Definition of Doneを満たす。
+- [x] Vercel productionとPages完全版がreview済みmainに一致する。
+- [x] product v1.0 migrationを暗黙に行っていない。

@@ -21,7 +21,7 @@ const requiredFragments = [
   'Granvas 1.0 公式ドキュメント — 完全版',
   '完全版',
   'Granvas v0.1 Release Candidate',
-  'https://granvas-taigahr12-gmailcoms-projects.vercel.app',
+  'https://granvas.vercel.app',
   'MIT License',
   'SECURITY.md',
   'CONTRIBUTING.md',

@@ -5,7 +5,7 @@
 
 Granvas is an open-source visual thinking editor available as a v0.1 Release Candidate. It lets you describe ideas and relationships in plain text, then projects the current text into a live graph you can read and edit — with the text staying the single source of truth.
 
-ブラウザーでは[Granvas v0.1 Release Candidate](https://granvas-taigahr12-gmailcoms-projects.vercel.app)を利用できます。日本語での使い方は、[Granvas 1.0 公式ドキュメント — 完全版](https://dayaa-arch.github.io/granvas/)で案内します。Docs edition 1.0とproduct version v0.1.0は別のversion軸です。
+ブラウザーでは[Granvas v0.1 Release Candidate](https://granvas.vercel.app)を利用できます。日本語での使い方は、[Granvas 1.0 公式ドキュメント — 完全版](https://dayaa-arch.github.io/granvas/)で案内します。Docs edition 1.0とproduct version v0.1.0は別のversion軸です。
 
 > [!IMPORTANT]
 > **Release Candidate:** Phases 0–13, including Visual Export and Release Hardening, are complete for the v0.1 scope. The static Vercel app supports Japanese text editing, live graph projection, certainty markers, Text/Graph navigation, Graph-side authoring, `.granvas` Import/Download, and viewport-independent SVG/PNG/PDF Download. This is not a product v1.0 declaration.

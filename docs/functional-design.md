@@ -1,6 +1,6 @@
 # Granvas 機能設計書
 
-> Status: Draft / Approval Candidate  
+> Status: Release Candidate
 > Target: v0.1  
 > Updated: 2026-08-11
 > Related: `docs/product-requirements.md`, `docs/GRANVAS_SPEC_v0.1.md`, `docs/adr/`

@@ -1,6 +1,6 @@
 # Granvas 技術仕様書
 
-> Status: Release Candidate Hardening
+> Status: Release Candidate
 > Target: v0.1  
 > Updated: 2026-08-11
 > Related: `docs/adr/`
