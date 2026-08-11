@@ -1,7 +1,7 @@
 # Phase 11 Source Edit Core タスクリスト
 
 > 作成日: 2026-08-11
-> ステータス: 実装・検証完了、PR準備中（Issue #21）
+> ステータス: 完了（Issue #21 / PR #22）
 
 ## 1. 準備
 
@@ -68,11 +68,11 @@
 ## 7. 文書・GitHub完了処理
 
 - [x] README、roadmap、統合仕様書、初回tasklistをPhase 11実装・検証完了へ同期する。
-- [ ] tasklistを最終状態へ更新する。
-- [ ] 意図した変更だけをcommit / pushする。
-- [ ] PRへ要求、設計、検証結果、残課題を記載する。
-- [ ] greenを確認してPRをmainへmergeし、Issue closeとbranch削除を確認する。
-- [ ] clean mainがorigin/mainと一致することを確認する。
+- [x] tasklistを最終状態へ更新する。
+- [x] 意図した変更だけをcommit / pushする。
+- [x] PRへ要求、設計、検証結果、残課題を記載する。
+- [x] greenを確認してPRをmainへmergeし、Issue closeとbranch削除を確認する。
+- [x] clean mainがorigin/mainと一致することを確認する。
 
 ## 完了条件
 
@@ -80,4 +80,4 @@
 - [x] Text全文再生成、Graph DomainへのSourceRange混入、Workspaceでの記法組み立てが存在しない。
 - [x] Graphラベル / Type編集がText最小差分・Undo 1回・current revisionで成立する。
 - [x] 全品質gateと実ブラウザ検証がgreenである。
-- [ ] PR経由でmainへmerge済みである。
+- [x] PR経由でmainへmerge済みである。

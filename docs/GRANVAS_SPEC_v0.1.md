@@ -3149,7 +3149,7 @@ Status: Complete — Issue #19 / PR #20
 
 ## Phase 11: Source Edit Core
 
-Status: Implementation Complete — Issue #21（PR準備中）
+Status: Complete — Issue #21 / PR #22
 
 - token spans / `NotationEditor` / `SourceEditPlan`
 - `ProjectionSourceMapDto` の key 対応
