@@ -1,6 +1,6 @@
 # Granvas リポジトリ構造定義書
 
-> Status: Draft / Approval Candidate  
+> Status: Release Candidate Hardening
 > Target: v0.1  
 > Updated: 2026-08-10
 
@@ -12,6 +12,9 @@
 
 ```text
 granvas/
+├── .github/
+│   └── workflows/
+│       └── quality.yml
 ├── .steering/
 │   └── YYYYMMDD-development-title/
 │       ├── requirements.md
@@ -80,7 +83,10 @@ granvas/
 │   │   │   │   └── ports/
 │   │   │   ├── infrastructure/
 │   │   │   │   ├── browser/
-│   │   │   │   └── exporters/
+│   │   │   │   ├── canvas/
+│   │   │   │   ├── pdf/
+│   │   │   │   ├── svg/
+│   │   │   │   └── CompositeGraphExportAdapter.ts
 │   │   │   ├── presentation/
 │   │   │   └── index.ts
 │   │   └── workspace/
@@ -97,7 +103,10 @@ granvas/
 │   ├── fixtures/
 │   └── performance/
 ├── AGENTS.md
+├── CONTRIBUTING.md
+├── LICENSE
 ├── README.md
+├── SECURITY.md
 ├── package.json
 ├── bun.lock
 ├── tsconfig.json
@@ -106,6 +115,12 @@ granvas/
 ```
 
 ## 3. Directory Responsibilities
+
+### 3.0 Release / CI
+
+- `.github/workflows/quality.yml`はquality gateだけを実行し、deploymentやcredentialを持たない。
+- `examples/`は公開してよい`.granvas` fixtureだけを置く。
+- `LICENSE`、`CONTRIBUTING.md`、`SECURITY.md`はOSS配布contractとしてrootに置く。
 
 ### 3.1 `src/app`
 

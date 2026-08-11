@@ -1,7 +1,8 @@
 {
   "name": "granvas",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "packageManager": "bun@1.3.14",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,8 +17,11 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:graph-performance": "GRANVAS_GRAPH_PERFORMANCE=1 vitest run src/modules/graph/infrastructure/dagre/layoutGraphWithDagre.performance.test.ts",
-    "test:coverage": "vitest run --coverage",
-    "e2e": "playwright test"
+    "test:performance": "vitest run --config vitest.performance.config.ts",
+    "test:coverage": "vitest run --coverage --coverage.provider=istanbul --exclude '**/*.performance.test.ts' --exclude 'tests/performance/**' --testTimeout=15000",
+    "e2e": "playwright test",
+    "release:verify": "bun scripts/verify-release-build.mjs",
+    "licenses:verify": "bun scripts/verify-dependency-licenses.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.4",
@@ -33,6 +37,7 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^7.0.1",
@@ -41,7 +46,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-istanbul": "4.1.10",
     "eslint": "^10.8.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",

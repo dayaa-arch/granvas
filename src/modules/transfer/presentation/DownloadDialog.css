@@ -145,6 +145,10 @@
   box-shadow: inset 0 0 0 1px var(--accent-400);
 }
 
+.download-format.is-selected span {
+  color: var(--ink-600);
+}
+
 .download-format:has(input:focus-visible) {
   box-shadow: 0 0 0 3px var(--focus-ring);
 }

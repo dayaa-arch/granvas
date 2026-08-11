@@ -58,9 +58,9 @@ flowchart LR
 | 12 | Graph Authoring | 完了 | 11 | `.steering/20260811-phase-12-graph-authoring/` | [Issue #23](https://github.com/dayaa-arch/granvas/issues/23) / [PR #24](https://github.com/dayaa-arch/granvas/pull/24) |
 | 13 | Japanese UI & Official Documentation | 完了 | 12 | `.steering/20260811-phase-13-japanese-ui-official-documentation/` | [Issue #26](https://github.com/dayaa-arch/granvas/issues/26) / [PR #27](https://github.com/dayaa-arch/granvas/pull/27) / [PR #28](https://github.com/dayaa-arch/granvas/pull/28) |
 | 8 | Visual Export | 完了 | 13 | `.steering/20260811-phase-8-visual-export/` | [Issue #29](https://github.com/dayaa-arch/granvas/issues/29) / [PR #30](https://github.com/dayaa-arch/granvas/pull/30) |
-| 9 | Release Hardening | 未着手 | 14 | 作業開始時に新規作成 | 未起票 |
+| 9 | Release Hardening | 実装中 | 14 | `.steering/20260811-phase-9-release-hardening/` | [Issue #31](https://github.com/dayaa-arch/granvas/issues/31) |
 
-現在の完了地点は**Phase 8 Visual Export**であり、SVG / PNG / PDFのviewport非依存full Graph出力を提供する。次工程は**Phase 9 Release Hardening**で、GitHub Actions、OSS release files、performance / accessibility / security監査、Vercel production、公式Docs完全版を扱う。
+現在は**Phase 9 Release Hardening**を実行中である。Phase 8までの機能をproduct v0.1 Release Candidateとして監査し、GitHub Actions、OSS release files、performance / accessibility / security gate、Vercel production、公式Docs edition 1.0完全版を完成させる。
 
 ### 3.1 Scope Change: 2026-08-11
 
@@ -317,13 +317,13 @@ Goal: OSSとしてVercel上で安全かつ再現可能に利用できるrelease 
 
 Deliverables:
 
-- [ ] 500 lines / 200 nodes / 300 edges / 10 groupsのperformance benchmark。
-- [ ] input paint、Parser、layout、Graph paintのp95検証。
-- [ ] Graph編集操作のplan生成 → 再投影のp95検証。
-- [ ] keyboard-only E2EとWCAG 2.2 AA自動検査。
-- [ ] CSP、outbound request、bundle dependencyのsecurity検証。
-- [ ] canonical example、CONTRIBUTING、SECURITY、OSS license。
-- [ ] typecheck / lint / test / build / E2E用GitHub Actions（後回しの明示指示あり）。
+- [x] 500 lines / 200 nodes / 300 edges / 10 groupsのperformance benchmark。
+- [x] input paint、Parser、layout、Graph paintのp95検証。
+- [x] Graph編集操作のplan生成 → 再投影のp95検証。
+- [x] keyboard-only E2EとWCAG 2.2 AA自動検査。
+- [x] CSP、outbound request、bundle dependencyのsecurity検証。
+- [x] canonical example、CONTRIBUTING、SECURITY、OSS license。
+- [x] typecheck / lint / test / build / E2E用GitHub Actions（後回しの明示指示あり）。
 - [ ] Vercel production deployment、direct access / reload検証。
 - [ ] `docs/GRANVAS_SPEC_v0.1.md`のDefinition of Done完了。
 
@@ -349,7 +349,7 @@ Exit Criteria:
 | Node削除の連鎖範囲が想定より広い | 意図しない構造の喪失 | 削除対象を事前提示し、Undo 1回で復元できることを保証する |
 | `spans`追加によるParser公開契約の肥大 | 維持コストの増加 | 編集に必要なspanだけを公開し、用途をADR-0002に限定して記録する |
 | certaintyマーカーによる既存文書の解析変化 | 後方互換の破壊 | `?` `!` `~` はtype先頭文字として現在invalidであることを前提とし、Phase 3の全fixtureが無改変で通ることをExit Criteriaにする |
-| v1.0 Docs表記とv0.1実装の混同 | 未実装機能をrelease済みと誤認させる | 全pageへ公開プレビューと対応実装を表示し、Phase 8 / 9を現在の制約として明記する |
+| Docs edition 1.0とproduct v0.1の混同 | product v1.0と誤認させる | 全pageへ完全版と対応実装v0.1 Release Candidateを併記し、ADR-0006でversion軸を分離する |
 | UI日本語化でaccessible nameとtestが乖離 | keyboard / screen reader操作の退行 | visible copyとaccessible copyを同じ用語表で管理し、component / 3-browser E2Eを更新する |
 | Pages artifactとmain sourceの乖離 | 古い手順が公開される | review済みmainから再buildし、`gh-pages`は生成物だけを保持する |
 

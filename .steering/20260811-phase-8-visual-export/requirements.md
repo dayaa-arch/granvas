@@ -1,7 +1,7 @@
 # Phase 8 Visual Export 要求
 
 > 作成日: 2026-08-11
-> ステータス: PRレビュー中
+> ステータス: 完了
 > Roadmap: `docs/development-roadmap.md` Phase 8
 > Issue: [#29](https://github.com/dayaa-arch/granvas/issues/29)
 > PR: [#30](https://github.com/dayaa-arch/granvas/pull/30)

@@ -1,6 +1,6 @@
 # Granvas 開発ガイドライン
 
-> Status: Draft / Approval Candidate  
+> Status: Release Candidate Hardening
 > Updated: 2026-08-11
 
 ## 1. 開発の基準
@@ -229,14 +229,14 @@ Common
 ## 14. Official Documentation
 
 - 日本語公式利用ガイドのsourceは`docs-site/`へ置き、engineering `docs/`と分離する。
-- 実装済みcapabilityだけを利用可能として記載し、未実装・計画中・公開プレビューを明示する。
+- 実装済みcapabilityだけを利用可能として記載し、Docs edition 1.0とproduct v0.1 Release Candidateを区別する。
 - screenshotはproduction buildから取得し、個人情報、local path、credentialを含めない。
 - semantic HTML、skip link、heading hierarchy、alt、focus indicator、keyboard navigationをtestする。
 - 1280px以上と390px相当のviewportでvisual QAする。
 - tracking、analytics、remote font、cookie、third-party runtime script、form backendを追加しない。
 - `bun run docs:build`で`/granvas/` baseのartifactを生成し、`bun run docs:verify`でentry、asset、`.nojekyll`を検証する。
 - mainのreview済みsourceから生成したartifactだけを`gh-pages`へ公開する。
-- `.github/workflows/`へcustom Pages workflowを追加しない。
+- `.github/workflows/quality.yml`はquality verificationだけを行い、custom Pages / Vercel deployment workflowを追加しない。
 
 ## 15. Git / Review
 
@@ -245,7 +245,8 @@ Common
 - lockfileはdependency変更と同じcommitへ含める。
 - PRには要求、設計、test結果、残課題を記載する。
 - architecture boundary違反、document/code不整合、data loss riskをblockerとする。
-- public release前にOSS licenseを決定する。
+- public releaseはMIT `LICENSE`、`CONTRIBUTING.md`、`SECURITY.md`、canonical exampleを必須とする。
+- CIはfrozen Bun installとlocal同等のquality commandを実行し、credential / write permissionを持たない。
 
 ## 16. Commands
 

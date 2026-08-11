@@ -10,12 +10,14 @@ type Header = {
 }
 
 type VercelConfig = {
+  $schema?: string
   framework?: string
   buildCommand?: string
   outputDirectory?: string
   rewrites?: Array<{ source: string; destination: string }>
   headers?: Array<{ source: string; headers: Header[] }>
   functions?: unknown
+  crons?: unknown
 }
 
 const config = vercelConfig as VercelConfig
@@ -29,6 +31,7 @@ describe('Vercel deployment contract', () => {
       rewrites: [{ source: '/(.*)', destination: '/index.html' }],
     })
     expect(config.functions).toBeUndefined()
+    expect(config.crons).toBeUndefined()
   })
 
   it('sets the required production security headers', () => {
@@ -36,13 +39,16 @@ describe('Vercel deployment contract', () => {
     const headerMap = new Map(headers.map(({ key, value }) => [key, value]))
     const csp = headerMap.get('Content-Security-Policy') ?? ''
 
-    expect(csp).toContain("default-src 'self'")
-    expect(csp).toContain("connect-src 'none'")
-    expect(csp).toContain("object-src 'none'")
-    expect(csp).toContain("base-uri 'none'")
-    expect(csp).toContain("frame-ancestors 'none'")
+    expect(csp).toBe(
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
+    )
     expect(csp).not.toContain('supabase')
     expect(headerMap.get('X-Content-Type-Options')).toBe('nosniff')
     expect(headerMap.get('Referrer-Policy')).toBe('no-referrer')
+    expect([...headerMap.keys()].sort()).toEqual([
+      'Content-Security-Policy',
+      'Referrer-Policy',
+      'X-Content-Type-Options',
+    ])
   })
 })

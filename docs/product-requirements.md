@@ -1,6 +1,6 @@
 # Granvas プロダクト要求定義書
 
-> Status: Draft / Approval Candidate  
+> Status: Release Candidate Hardening
 > Target: v0.1  
 > Updated: 2026-08-11
 > Source of Truth: `docs/ideas/initial-requirements.md`
@@ -205,6 +205,7 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | FR-020 | v0.1として有効な既存`.granvas`を同じ構造へ解析する（後方互換） |
 | FR-021 | 製品UIのvisible text、accessible name、通知、diagnostic、errorを日本語で提供する |
 | FR-022 | 日本語の公式利用ガイドをGitHub Pagesへ静的公開し、実装済みの利用方法と現在の制約を説明する |
+| FR-023 | Vercel productionのstatic SPAと公式Docs完全版からv0.1 Release Candidateを利用できる |
 
 ## 8. 非機能要件
 
@@ -223,6 +224,8 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | NFR-011 | Graph編集が通常文と無関係な行を変更しないことをtestで保証する |
 | NFR-012 | 公式利用ガイドをresponsiveかつkeyboardで利用可能にし、semantic HTML、heading、alt、focusを備える |
 | NFR-013 | 公式利用ガイドへtracking、analytics、remote font、cookie、runtime backend requestを追加しない |
+| NFR-014 | Parser p95 50ms、layout p95 200ms、SourceEditPlan p95 20msのrelease benchmarkを満たす |
+| NFR-015 | WCAG 2.2 A / AA自動検査、keyboard-only E2E、runtime outbound 0、security header監査をrelease gateにする |
 
 ## 9. 成功の定義
 
@@ -239,7 +242,8 @@ v0.1の成功は、ユーザーがCanonical Demo相当の文章を自然に入�
 ## 10. ビジネス・配布要件
 
 - source codeを公開し、ローカル起動手順をREADMEへ記載する。
-- public release前にOSS licenseを決定し、`LICENSE`を配置する。
+- MIT licenseで公開し、rootへ`LICENSE`、`CONTRIBUTING.md`、`SECURITY.md`を配置する。
 - production hostingはVercelを使用する。
 - 公式利用ガイドはGitHub Pagesのproject siteとして公開し、product applicationのVercel hostingと分離する。
+- GitHub Actionsは品質検証だけを行い、Vercel / Pages deployment credentialやwrite permissionを持たない。
 - v0.1では課金、広告、telemetry、利用者アカウントを導入しない。

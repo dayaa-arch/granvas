@@ -7,7 +7,7 @@ describe('createApplication', () => {
   it('creates the deterministic application metadata', () => {
     expect(createApplication()).toMatchObject({
       productName: 'Granvas',
-      version: '0.1',
+      version: '0.1.0',
     })
     expect(createApplication().graphLayout).toBeInstanceOf(
       DagreGraphLayoutWorkerAdapter,

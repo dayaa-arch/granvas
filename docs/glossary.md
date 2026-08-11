@@ -1,6 +1,6 @@
 # Granvas ユビキタス言語
 
-> Status: Draft / Approval Candidate  
+> Status: Release Candidate Hardening
 > Updated: 2026-08-11
 
 ## 1. 言語規則
@@ -28,6 +28,7 @@
 | ダウンロード済み | Clean | `DirtyState.Clean` | imported sourceまたは最後の`.granvas` download revisionと一致する状態。browserへの自動保存を意味しない |
 | 公式利用ガイド | Official Documentation | `docs-site` | 日本語UIの使い方と現在の制約を説明するGitHub Pages site |
 | 公開プレビュー | Public Preview | — | 正式release前の公式Docs公開状態。対応実装と未完了機能を併記する |
+| 完全版 | Complete Edition | — | Phase 8 / 9の実績とproduction URLに一致するDocs edition 1.0の公開状態 |
 
 ## 2.1 UI Translation Terms
 
@@ -134,5 +135,7 @@
 | Term | Definition |
 | --- | --- |
 | Vercel | v0.1のstatic Web hosting。server functionは使用しない |
+| Release Candidate | v0.1 Definition of Doneと公開検証を満たした正式release直前のproduct状態 |
+| Docs edition 1.0 | 公式利用ガイドのedition。product v1.0を意味しない |
 | Supabase Auth | 将来認証を実装する場合に採用するprovider。v0.1には含めない |
 | Identity Context | 将来追加する認証境界。Supabase adapterをinfrastructureに隔離する |

@@ -3,7 +3,7 @@
 > **Write thoughts. See structure.**  
 > 文章を書くように、思考のグラフを書く。
 
-- Status: Draft / Approval Candidate
+- Status: Release Candidate Hardening
 - Target: Granvas v0.1
 - Notation: Granvas Notation v0.2（v0.1 に対し後方互換）
 - Architecture: Domain-Driven Design + Layered Architecture + Modular Monolith
@@ -30,6 +30,7 @@ v0.1 の開発では、本書を実装判断の基準とする。仕様変更が
 | 2026-08-11 | Authoring Core を v0.1 scope へ追加。Notation に確信度マーカーを導入し v0.2 とする。Graph を read-only projection から意味編集可へ改訂する。座標の非永続化は維持する。 | [ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md) / [ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md) / [ADR-0003](adr/0003-certainty-markers-in-granvas-notation.md) |
 | 2026-08-11 | 製品UIを日本語へ統一し、実装済みの使い方を説明する公式利用ガイドをGitHub Pagesへ公開するPhase 13を追加。v1.0 Docsは公開プレビューとし、product target v0.1を維持する。 | [ADR-0004](adr/0004-official-documentation-on-github-pages.md) |
 | 2026-08-11 | Phase 8のvisual exportを具体化。certaintyを含む共通sceneからSVG / Canvas PNG / single-page PDFを生成し、PDFには`pdf-lib`でCanvas PNGを埋め込む。 | [ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md) |
+| 2026-08-11 | Phase 9のrelease契約を具体化。productはv0.1 Release Candidate、公式Docsはedition 1.0完全版とし、MIT、quality-only Actions、Vercel production、release evidenceを追加する。 | [ADR-0006](adr/0006-promote-official-documentation-to-complete-edition.md) |
 
 Phase の名称・順序・進捗は `docs/development-roadmap.md` を正本とする。
 
@@ -1459,16 +1460,16 @@ Download action は modal を開き、file name と次の format をユーザー
 
 ```text
 URL: https://dayaa-arch.github.io/granvas/
-Site title: Granvas 1.0 公式ドキュメント
-Release state: 公開プレビュー
-対応実装: Granvas v0.1 開発版（Phase 8完了時点）
+Site title: Granvas 1.0 公式ドキュメント — 完全版
+Release state: 完全版
+対応実装: Granvas v0.1 Release Candidate
 ```
 
-- `1.0`は公式Docsの公開候補versionであり、本Phaseだけでproduct applicationを正式v1.0 releaseへ変更しない。
-- Phase 8のSVG / PNG / PDFが利用可能であることと、Phase 9のrelease hardening / Vercel productionが未完了であることを全pageから確認できるようにする。
+- `1.0`は公式Docsのeditionであり、product applicationを正式v1.0 releaseへ変更しない。
+- Phase 8 / 9の完了機能、Vercel production URL、MIT / SECURITY / CONTRIBUTING、quality gateを全pageから確認できるようにする。
 - main branchの`docs-site/`をsource of truthとし、review済みmainから生成したartifactを`gh-pages` branch rootへ公開する。
 - Pages artifactはproject base path`/granvas/`を使用し、rootへ`.nojekyll`を含める。
-- `.github/workflows/`へcustom Pages workflowを追加しない。
+- `.github/workflows/quality.yml`は検証だけを行い、custom Pages / Vercel deployment jobを追加しない。
 - product applicationのVercel static hostingとofficial DocsのGitHub Pages hostingを分離する。
 - 画面構成、Notation、確信度、Text / Graph navigation、Graph authoring、Project Download / Import、keyboard、diagnostics、FAQ、現在の制約を日本語で説明する。
 - screenshotは日本語UIのproduction buildから取得し、altと本文を伴う。
@@ -3248,12 +3249,12 @@ Status: Complete — Issue #29 / PR #30
 
 ## Phase 9: Release Hardening
 
-Status: Not Started
+Status: In Progress — Issue #31
 
 - performance / accessibility / security gates
-- six-scenario three-browser E2E
+- 15-scenario three-browser E2E
 - examples / CONTRIBUTING / SECURITY / OSS license
-- GitHub Actions（ユーザー指示により後回し）
+- quality-only GitHub Actions
 - Vercel production deployment / CSP / direct access
 - v0.1 Definition of Done audit
 
@@ -3267,37 +3268,37 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 
 ## Product
 
-- [ ] 左 Text / 右 Graph の分割 UI が動作する
-- [ ] 分割比率を変更できる
-- [ ] 普通の文章を自由に書ける
-- [ ] Node declaration を Graph 化できる
-- [ ] Nested Relation を Graph 化できる
-- [ ] Explicit ID / Cross Relation が動作する
-- [ ] Group が表示される
-- [ ] TB / LR layout が動作する
-- [ ] syntax highlight と全初期 diagnostic code が表示される
-- [ ] Pan / Zoom / Fit View が動作し、通常更新でviewportを不必要にresetしない
-- [ ] Graph Node click で Text へ移動できる
-- [ ] keyboardでGraph NodeからTextへ移動できる
-- [ ] Text cursor から Graph Node を highlight できる
-- [ ] IME compositionで文字欠落や確定後の不正projectionが起きない
-- [ ] incomplete notationでも現在source内のvalidなGraphが消えない
-- [ ] `.granvas`をDownload / Importし、保存時点から編集を再開できる
+- [x] 左 Text / 右 Graph の分割 UI が動作する
+- [x] 分割比率を変更できる
+- [x] 普通の文章を自由に書ける
+- [x] Node declaration を Graph 化できる
+- [x] Nested Relation を Graph 化できる
+- [x] Explicit ID / Cross Relation が動作する
+- [x] Group が表示される
+- [x] TB / LR layout が動作する
+- [x] syntax highlight と全初期 diagnostic code が表示される
+- [x] Pan / Zoom / Fit View が動作し、通常更新でviewportを不必要にresetしない
+- [x] Graph Node click で Text へ移動できる
+- [x] keyboardでGraph NodeからTextへ移動できる
+- [x] Text cursor から Graph Node を highlight できる
+- [x] IME compositionで文字欠落や確定後の不正projectionが起きない
+- [x] incomplete notationでも現在source内のvalidなGraphが消えない
+- [x] `.granvas`をDownload / Importし、保存時点から編集を再開できる
 - [x] SVG / PNG / PDFを選択してfull graphをDownloadできる
-- [ ] dirty状態のImport / New / 離脱でデータ消失警告が出る
-- [ ] Download / Import失敗時に現在sourceが維持される
+- [x] dirty状態のImport / New / 離脱でデータ消失警告が出る
+- [x] Download / Import失敗時に現在sourceが維持される
 - [x] certainty marker と relation operator の4状態が解析・表示される
 - [x] 既存の`.granvas`が確信度導入後も同じ構造へ解析される
 - [x] `rejected`なNode / EdgeがGraphから消えず棄却として表示される
 - [x] 確信度を色以外の手段で判別できる
 - [x] Graph上でNodeのラベル / Typeを編集できる
-- [ ] Graph上でNode作成・Edge接続・削除ができる
-- [ ] 意味ドラッグで親子関係とGroup所属を変更できる
-- [ ] 循環する親付け替えが拒否され、理由が通知される
+- [x] Graph上でNode作成・Edge接続・削除ができる
+- [x] 意味ドラッグで親子関係とGroup所属を変更できる
+- [x] 循環する親付け替えが拒否され、理由が通知される
 - [x] Graph編集がTextの該当箇所だけを書き換え、通常文を破壊しない
 - [x] Graph編集がUndo 1回で戻る
 - [x] Graph編集後も`.granvas`に座標が含まれない
-- [ ] すべての編集操作へkeyboardから到達できる
+- [x] すべての編集操作へkeyboardから到達できる
 - [x] visible text、accessible name、diagnostic、error、初期Projectが日本語で提供される
 - [x] 日本語の公式利用ガイドが実装済みの利用方法と現在の制約を説明する
 - [x] 公式利用ガイドがGitHub PagesのHTTPS URLで公開される
@@ -3306,15 +3307,15 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 
 ## Architecture
 
-- [ ] `presentation / application / domain / infrastructure` の責務が分離されている
-- [ ] Domain に UI / browser / SDK 依存がない
-- [ ] Application が infrastructure concrete class を参照していない
-- [ ] module internal direct import が禁止されている
-- [ ] `shared` に Granvas 固有 domain model が逃げていない
-- [ ] Graph Domain が Notation の `SourceRange` に依存していない
-- [ ] Transfer Context のbrowser / export具象がports越しに隔離されている
-- [ ] Workspace projectionが同一revisionのGraph / SourceMap / Diagnosticsだけを公開する
-- [ ] composition root が `src/app/bootstrap` に集約されている
+- [x] `presentation / application / domain / infrastructure` の責務が分離されている
+- [x] Domain に UI / browser / SDK 依存がない
+- [x] Application が infrastructure concrete class を参照していない
+- [x] module internal direct import が禁止されている
+- [x] `shared` に Granvas 固有 domain model が逃げていない
+- [x] Graph Domain が Notation の `SourceRange` に依存していない
+- [x] Transfer Context のbrowser / export具象がports越しに隔離されている
+- [x] Workspace projectionが同一revisionのGraph / SourceMap / Diagnosticsだけを公開する
+- [x] composition root が `src/app/bootstrap` に集約されている
 - [x] 編集規則が Notation domain の pure function として実装されている
 - [x] `NotationEditor` が React / CodeMirror / React Flow / DOM を参照していない
 - [x] Workspace が Notation 記法の文字列を組み立てていない
@@ -3325,24 +3326,24 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 
 ## Quality
 
-- [ ] Parser executable specificationが4章の全candidate・回復規則を網羅している
-- [ ] UTF-16 / emoji / CRLF / BOMを含むsource range testがある
+- [x] Parser executable specificationが4章の全candidate・回復規則を網羅している
+- [x] UTF-16 / emoji / CRLF / BOMを含むsource range testがある
 - [x] token spans のtestがある
-- [ ] `NotationEditor` の全コマンドにround-trip testがある
+- [x] `NotationEditor` の全コマンドにround-trip testがある
 - [x] 編集で通常文と無関係な行が変化しないことのtestがある
 - [x] Phase 3 の全 fixture が無改変で通る
-- [ ] application use case tests がある
-- [ ] Import / Download / dirty state / failure pathのtestがある
-- [ ] latest-wins / abort testがある
-- [ ] 主要 E2E 10 scenario がChromium / Firefox / WebKitで通る
-- [ ] 17章のperformance budgetを満たす
-- [ ] WCAG 2.2 AA自動検査とkeyboard E2Eが通る
+- [x] application use case tests がある
+- [x] Import / Download / dirty state / failure pathのtestがある
+- [x] latest-wins / abort testがある
+- [x] 主要 E2E 10 scenario がChromium / Firefox / WebKitで通る
+- [x] 17章のperformance budgetを満たす
+- [x] WCAG 2.2 AA自動検査とkeyboard E2Eが通る
 - [ ] productionでruntime outbound requestがなく、CSP testが通る
-- [ ] TypeScript error 0
-- [ ] lint error 0
-- [ ] production build success
+- [x] TypeScript error 0
+- [x] lint error 0
+- [x] production build success
 - [ ] Vercel production deploymentでdirect access / reloadが動作する
-- [ ] OSS licenseが決定され、`LICENSE`が存在する
+- [x] OSS licenseが決定され、`LICENSE`が存在する
 
 ---
 
