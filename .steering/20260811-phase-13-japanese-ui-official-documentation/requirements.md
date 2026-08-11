@@ -119,8 +119,8 @@ Granvasの製品UIを日本語へ統一したうえで、その実装内容に�
 - [x] 公式利用ガイドが実装済み操作を網羅し、未実装機能を利用可能と誤記していない。
 - [x] docs buildが再現可能で、project Pagesのsubpathからassetが読み込める。
 - [x] docsをdesktop / mobile / keyboardで確認し、主要link、heading、alt、focusが成立する。
-- [ ] `gh-pages` branchから`https://dayaa-arch.github.io/granvas/`へ公開され、HTTPSで取得できる。
-- [ ] repository homepageが公式利用ガイドを指す。
+- [x] `gh-pages` branchから`https://dayaa-arch.github.io/granvas/`へ公開され、HTTPSで取得できる。
+- [x] repository homepageが公式利用ガイドを指す。
 - [x] custom GitHub Actions workflow、backend、tracking、credentialを追加していない。
 
 ## 8. 対象外

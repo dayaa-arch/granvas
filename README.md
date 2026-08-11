@@ -8,7 +8,7 @@ Granvas is a public, work-in-progress visual thinking editor intended for an ope
 日本語での使い方は、[Granvas 1.0 公式ドキュメント](https://dayaa-arch.github.io/granvas/)で案内します。サイトは公開プレビューで、現在のGranvas v0.1開発版に実装済みの範囲と今後の予定を区別して説明します。
 
 > [!IMPORTANT]
-> **Early development:** Phase 13 (Japanese UI & Official Documentation) is implemented and under review. The current web app supports Japanese text editing, live graph projection, certainty markers, Text/Graph navigation, Graph-side Node creation and editing, Edge connection, semantic drag, deletion preview, `.granvas` Import/Download, and SVG Download. PNG/PDF export and release hardening remain incomplete, so this repository is not yet an end-user v0.1 release.
+> **Early development:** Phase 13 (Japanese UI & Official Documentation) is complete, and the official guide is published on GitHub Pages. The current web app supports Japanese text editing, live graph projection, certainty markers, Text/Graph navigation, Graph-side Node creation and editing, Edge connection, semantic drag, deletion preview, `.granvas` Import/Download, and SVG Download. PNG/PDF export and release hardening remain incomplete, so this repository is not yet an end-user v0.1 release.
 
 ## Why Granvas?
 
@@ -262,7 +262,7 @@ License selection and the addition of `LICENSE` are required before the public v
 - [x] Phase 10 — Notation Certainty: tentative/confirmed/rejected markers for nodes and relations.
 - [x] Phase 11 — Source Edit Core: token spans, edit planning, and inline label/Type editing on the graph.
 - [x] Phase 12 — Graph Authoring: semantic drag, node creation, edge connection, deletion preview, and nested-child promotion.
-- [ ] Phase 13 — Japanese UI & Official Documentation: implementation complete; review and GitHub Pages publication pending.
+- [x] Phase 13 — Japanese UI & Official Documentation: Japanese UI and the official GitHub Pages guide are published.
 - [ ] Phase 8 — Visual Export: PNG/PDF and full-graph format verification.
 - [ ] Phase 9 — Release Hardening: performance, accessibility, security, OSS, CI, and Vercel production.
 
