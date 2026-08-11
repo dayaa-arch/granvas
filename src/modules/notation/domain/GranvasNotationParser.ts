@@ -44,6 +44,29 @@ export type NotationDiagnostic = Readonly<{
   documentRevision: number
 }>
 
+export type NodeSourceSpans = Readonly<{
+  indent: SourceRange
+  certainty?: SourceRange
+  type: SourceRange
+  explicitId?: SourceRange
+  idInsertionPoint: number
+  label: SourceRange
+}>
+
+export type RelationSourceSpans = Readonly<{
+  operator: SourceRange
+  sourceRef?: SourceRange
+  targetRef?: SourceRange
+  label?: SourceRange
+  labelInsertionPoint: number
+}>
+
+export type GroupSourceSpans = Readonly<{
+  header: SourceRange
+  name: SourceRange
+  memberInsertionPoint: number
+}>
+
 export type ParsedNode = Readonly<{
   key: string
   explicitId?: string
@@ -51,6 +74,7 @@ export type ParsedNode = Readonly<{
   label: string
   certainty: NotationCertainty
   sourceRange: SourceRange
+  spans: NodeSourceSpans
 }>
 
 export type ParsedRelation = Readonly<{
@@ -61,6 +85,7 @@ export type ParsedRelation = Readonly<{
   label?: string
   certainty: NotationCertainty
   sourceRange: SourceRange
+  spans: RelationSourceSpans
 }>
 
 export type ParsedGroup = Readonly<{
@@ -68,6 +93,7 @@ export type ParsedGroup = Readonly<{
   name: string
   memberNodeKeys: readonly string[]
   sourceRange: SourceRange
+  spans: GroupSourceSpans
 }>
 
 export type ParsedLayout = Readonly<{
@@ -92,6 +118,9 @@ type MutableGroup = {
   memberNodeKeys: string[]
   memberNodeKeySet: Set<string>
   sourceRange: SourceRange
+  headerRange: SourceRange
+  nameRange: SourceRange
+  memberInsertionPoint: number
 }
 
 type OpenGroup = {
@@ -106,6 +135,7 @@ type PendingCrossRelation = {
   label?: string
   certainty: NotationCertainty
   sourceRange: SourceRange
+  spans: RelationSourceSpans
 }
 
 type PendingGroupReference = {
@@ -128,6 +158,13 @@ type NodeParseSuccess = {
   label: string
   explicitId?: string
   certainty: NotationCertainty
+  spans: Readonly<{
+    certainty?: Readonly<{ from: number; to: number }>
+    type: Readonly<{ from: number; to: number }>
+    explicitId?: Readonly<{ from: number; to: number }>
+    idInsertionPoint: number
+    label: Readonly<{ from: number; to: number }>
+  }>
 }
 
 const diagnosticMetadata: Readonly<
@@ -247,9 +284,14 @@ function parseNodeDeclaration(text: string): NodeParseFailure | NodeParseSuccess
 
   let certainty: NotationCertainty = 'neutral'
   const marker = rawHeader[0]
+  let certaintySpan: Readonly<{ from: number; to: number }> | undefined
+  let typeFrom: number
 
   if (marker === '?' || marker === '!' || marker === '~') {
-    header = rawHeader.slice(1).trimStart()
+    const rawMarkedHeader = rawHeader.slice(1)
+    header = rawMarkedHeader.trimStart()
+    typeFrom = 2 + (rawMarkedHeader.length - header.length)
+    certaintySpan = Object.freeze({ from: 1, to: 2 })
 
     if (
       header.length === 0 ||
@@ -272,6 +314,8 @@ function parseNodeDeclaration(text: string): NodeParseFailure | NodeParseSuccess
 
     certainty =
       marker === '?' ? 'tentative' : marker === '!' ? 'confirmed' : 'rejected'
+  } else {
+    typeFrom = 1 + rawHeader.indexOf(header)
   }
 
   const headerMatch = /^([A-Za-z][A-Za-z0-9_-]*)(?:[ \t]+@(.+))?$/.exec(header)
@@ -294,11 +338,31 @@ function parseNodeDeclaration(text: string): NodeParseFailure | NodeParseSuccess
     return { code: 'GNV002_EMPTY_LABEL' }
   }
 
+  const typeTo = typeFrom + headerMatch[1]!.length
+  const explicitIdToken = explicitId === undefined ? undefined : `@${explicitId}`
+  const explicitIdFrom =
+    explicitIdToken === undefined ? undefined : typeFrom + header.indexOf(explicitIdToken)
+  const labelFrom = closingBracket + 1 + remainder.indexOf(label)
+
   return {
     type: headerMatch[1]!.toLowerCase(),
     label,
     certainty,
     ...(explicitId === undefined ? {} : { explicitId }),
+    spans: Object.freeze({
+      ...(certaintySpan === undefined ? {} : { certainty: certaintySpan }),
+      type: Object.freeze({ from: typeFrom, to: typeTo }),
+      ...(explicitIdFrom === undefined || explicitIdToken === undefined
+        ? {}
+        : {
+            explicitId: Object.freeze({
+              from: explicitIdFrom,
+              to: explicitIdFrom + explicitIdToken.length,
+            }),
+          }),
+      idInsertionPoint: typeTo,
+      label: Object.freeze({ from: labelFrom, to: labelFrom + label.length }),
+    }),
   }
 }
 
@@ -389,6 +453,38 @@ export function parseGranvasNotation(
       certainty: parsed.certainty,
       ...(parsed.explicitId === undefined ? {} : { explicitId: parsed.explicitId }),
       sourceRange,
+      spans: Object.freeze({
+        indent: rangeForSegment(line, 0, line.indent),
+        ...(parsed.spans.certainty === undefined
+          ? {}
+          : {
+              certainty: rangeForSegment(
+                line,
+                textColumn + parsed.spans.certainty.from,
+                textColumn + parsed.spans.certainty.to,
+              ),
+            }),
+        type: rangeForSegment(
+          line,
+          textColumn + parsed.spans.type.from,
+          textColumn + parsed.spans.type.to,
+        ),
+        ...(parsed.spans.explicitId === undefined
+          ? {}
+          : {
+              explicitId: rangeForSegment(
+                line,
+                textColumn + parsed.spans.explicitId.from,
+                textColumn + parsed.spans.explicitId.to,
+              ),
+            }),
+        idInsertionPoint: line.from + textColumn + parsed.spans.idInsertionPoint,
+        label: rangeForSegment(
+          line,
+          textColumn + parsed.spans.label.from,
+          textColumn + parsed.spans.label.to,
+        ),
+      }),
     })
     nodes.push(node)
     return node
@@ -398,6 +494,9 @@ export function parseGranvasNotation(
     const candidate = classifyNotationCandidate(line, openGroup !== undefined)
 
     if (candidate.closesGroup) {
+      if (openGroup?.group) {
+        openGroup.group.memberInsertionPoint = line.from
+      }
       openGroup = undefined
     }
 
@@ -428,7 +527,8 @@ export function parseGranvasNotation(
 
       case 'group-header': {
         const match = /^\{(.*)\}[ \t]*$/.exec(line.content)
-        const name = match?.[1]?.trim() ?? ''
+        const rawName = match?.[1] ?? ''
+        const name = rawName.trim()
         let group: MutableGroup | undefined
 
         if (name.length === 0) {
@@ -440,6 +540,17 @@ export function parseGranvasNotation(
             memberNodeKeys: [],
             memberNodeKeySet: new Set<string>(),
             sourceRange,
+            headerRange: rangeForSegment(
+              line,
+              0,
+              line.content.lastIndexOf('}') + 1,
+            ),
+            nameRange: rangeForSegment(
+              line,
+              1 + rawName.indexOf(name),
+              1 + rawName.indexOf(name) + name.length,
+            ),
+            memberInsertionPoint: source.length,
           }
           mutableGroups.push(group)
         }
@@ -542,6 +653,14 @@ export function parseGranvasNotation(
             targetNodeKey: child.key,
             certainty: certaintyForRelationOperator(operator),
             sourceRange,
+            spans: Object.freeze({
+              operator: rangeForSegment(
+                line,
+                line.indent,
+                line.indent + operator.length,
+              ),
+              labelInsertionPoint: line.to,
+            }),
           }),
         )
         break
@@ -560,6 +679,22 @@ export function parseGranvasNotation(
 
         const rawLabel = match[4]
         const label = rawLabel?.trim()
+        const sourceRef = `@${match[1]!}`
+        const operator = match[2]!
+        const targetRef = `@${match[3]!}`
+        const operatorColumn = line.content.indexOf(operator, sourceRef.length)
+        const targetRefColumn = line.content.indexOf(
+          targetRef,
+          operatorColumn + operator.length,
+        )
+        const colonColumn = line.content.indexOf(
+          ':',
+          targetRefColumn + targetRef.length,
+        )
+        const labelColumn =
+          label === undefined || rawLabel === undefined || colonColumn < 0
+            ? undefined
+            : colonColumn + 1 + rawLabel.indexOf(label)
 
         if (rawLabel !== undefined && label?.length === 0) {
           addDiagnostic('GNV012_EMPTY_RELATION_LABEL', sourceRange)
@@ -569,9 +704,32 @@ export function parseGranvasNotation(
           key: createKey('edge', sourceRange.from),
           sourceId: match[1]!,
           targetId: match[3]!,
-          certainty: certaintyForRelationOperator(match[2]!),
+          certainty: certaintyForRelationOperator(operator),
           ...(label === undefined || label.length === 0 ? {} : { label }),
           sourceRange,
+          spans: Object.freeze({
+            operator: rangeForSegment(
+              line,
+              operatorColumn,
+              operatorColumn + operator.length,
+            ),
+            sourceRef: rangeForSegment(line, 0, sourceRef.length),
+            targetRef: rangeForSegment(
+              line,
+              targetRefColumn,
+              targetRefColumn + targetRef.length,
+            ),
+            ...(label === undefined || label.length === 0 || labelColumn === undefined
+              ? {}
+              : {
+                  label: rangeForSegment(
+                    line,
+                    labelColumn,
+                    labelColumn + label.length,
+                  ),
+                }),
+            labelInsertionPoint: line.to,
+          }),
         })
         break
       }
@@ -598,6 +756,10 @@ export function parseGranvasNotation(
         break
       }
     }
+  }
+
+  if (openGroup?.group) {
+    openGroup.group.memberInsertionPoint = source.length
   }
 
   const firstNodeByExplicitId = new Map<string, ParsedNode>()
@@ -636,6 +798,7 @@ export function parseGranvasNotation(
         certainty: pending.certainty,
         ...(pending.label === undefined ? {} : { label: pending.label }),
         sourceRange: pending.sourceRange,
+        spans: pending.spans,
       }),
     )
   }
@@ -657,6 +820,11 @@ export function parseGranvasNotation(
       name: group.name,
       memberNodeKeys: Object.freeze([...group.memberNodeKeys]),
       sourceRange: group.sourceRange,
+      spans: Object.freeze({
+        header: group.headerRange,
+        name: group.nameRange,
+        memberInsertionPoint: group.memberInsertionPoint,
+      }),
     }),
   )
 

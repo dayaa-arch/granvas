@@ -240,3 +240,69 @@ test('projects certainty markers without color-only distinctions', async ({ page
     page.locator('.graph-edge--certainty-confirmed .react-flow__edge-path'),
   ).toHaveCSS('stroke-width', '2.8px')
 })
+
+test('edits Node label and Type as minimal Text patches and undoes in one step', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  await editor.fill(
+    'Intro prose must stay\n[?idea @editable]  Before  \nClosing prose must stay',
+  )
+
+  const beforeNode = page.getByRole('button', {
+    name: 'tentative certainty, idea: Before',
+  })
+  await expect(beforeNode).toBeVisible()
+  await beforeNode.locator('.graph-node__label').dblclick()
+  const labelEditor = page.getByRole('textbox', {
+    name: 'Edit label for Before',
+  })
+  await labelEditor.fill('After 😀')
+  await labelEditor.press('Enter')
+
+  const afterNode = page.getByRole('button', {
+    name: 'tentative certainty, idea: After 😀',
+  })
+  await expect(afterNode).toBeVisible()
+  await expect(page.getByRole('status')).toContainText('Node label updated')
+  await expect
+    .poll(() => editor.locator('.cm-line').allTextContents())
+    .toEqual([
+      'Intro prose must stay',
+      '[?idea @editable]  After 😀  ',
+      'Closing prose must stay',
+    ])
+
+  await editor.focus()
+  await editor.press('ControlOrMeta+z')
+  await expect(beforeNode).toBeVisible()
+  await expect
+    .poll(() => editor.locator('.cm-line').allTextContents())
+    .toEqual([
+      'Intro prose must stay',
+      '[?idea @editable]  Before  ',
+      'Closing prose must stay',
+    ])
+
+  await beforeNode.focus()
+  await beforeNode.press('Shift+F2')
+  const typeEditor = page.getByRole('textbox', {
+    name: 'Edit type for Before',
+  })
+  await typeEditor.fill('Problem_Main')
+  await typeEditor.press('Enter')
+
+  await expect(
+    page.getByRole('button', {
+      name: 'tentative certainty, problem_main: Before',
+    }),
+  ).toBeVisible()
+  await expect
+    .poll(() => editor.locator('.cm-line').allTextContents())
+    .toEqual([
+      'Intro prose must stay',
+      '[?problem_main @editable]  Before  ',
+      'Closing prose must stay',
+    ])
+})

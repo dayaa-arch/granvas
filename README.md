@@ -6,7 +6,7 @@
 Granvas is a public, work-in-progress visual thinking editor intended for an open-source v0.1 release. It lets you describe ideas and relationships in plain text, then projects the current text into a live graph you can read and edit — with the text staying the single source of truth.
 
 > [!IMPORTANT]
-> **Early development:** Phase 10 (Notation Certainty) is complete. The current web app supports text editing, live graph projection, certainty markers, Text/Graph navigation, `.granvas` Import/Download, and SVG Download. The graph is still read-only today. Graph-side editing (Phases 11–12), PNG/PDF export, and release hardening remain incomplete, so this repository is not yet an end-user v0.1 release.
+> **Early development:** Phase 11 (Source Edit Core) is implemented and verified. The current web app supports text editing, live graph projection, certainty markers, Text/Graph navigation, inline Graph Node label/Type editing, `.granvas` Import/Download, and SVG Download. Node creation, connection, deletion, and semantic drag remain in Phase 12; PNG/PDF export and release hardening also remain incomplete, so this repository is not yet an end-user v0.1 release.
 
 ## Why Granvas?
 
@@ -37,7 +37,7 @@ Most of the individual syntax pieces have precedents — Mermaid, D2, nomnoml, a
 - Certainty markers for tentative, confirmed, and rejected thinking — rejected items stay on the canvas instead of disappearing.
 - Live Text → Graph projection with non-destructive diagnostics.
 - Graph Node → Text navigation and Text cursor → Graph highlighting.
-- Graph-side editing: rename nodes, create nodes and edges, delete, and drag to re-parent — every action rewrites the text as a minimal diff and undoes in one step.
+- Graph-side editing: rename Node labels and Types today; create nodes and edges, delete, and drag to re-parent in Phase 12. Every action rewrites the text as a minimal diff and undoes in one step.
 - Pan, zoom, and fit-to-view controls.
 - Editable project Import and Download using `.granvas` files.
 - Full-graph SVG, PNG, and PDF downloads.
@@ -178,7 +178,7 @@ bun install
 bun run dev
 ```
 
-Open the local URL printed by Vite. The current app displays the Granvas split editor with a live read-only graph.
+Open the local URL printed by Vite. The current app displays the Granvas split editor with a live graph where Node labels and Types can be edited inline.
 
 ### Available commands
 
@@ -256,7 +256,7 @@ License selection and the addition of `LICENSE` are required before the public v
 - [x] Phase 6 — Transfer Core.
 - [x] Phase 7 — Presentation Shell.
 - [x] Phase 10 — Notation Certainty: tentative/confirmed/rejected markers for nodes and relations.
-- [ ] Phase 11 — Source Edit Core: token spans, edit planning, and inline label editing on the graph.
+- [x] Phase 11 — Source Edit Core: token spans, edit planning, and inline label/Type editing on the graph.
 - [ ] Phase 12 — Graph Authoring: semantic drag, node creation, edge connection, and deletion.
 - [ ] Phase 8 — Visual Export: PNG/PDF and full-graph format verification.
 - [ ] Phase 9 — Release Hardening: performance, accessibility, security, OSS, CI, and Vercel production.

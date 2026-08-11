@@ -35,6 +35,17 @@ export type ThoughtGraph = Readonly<{
   groups: readonly GraphGroup[]
 }>
 
+export type GraphOccurrenceMap = Readonly<{
+  nodeKeys: Readonly<Record<string, string>>
+  edgeKeys: Readonly<Record<string, string>>
+  groupKeys: Readonly<Record<string, string>>
+}>
+
+export type ThoughtGraphProjection = Readonly<{
+  graph: ThoughtGraph
+  occurrenceMap: GraphOccurrenceMap
+}>
+
 export type ThoughtGraphNodeInput = Readonly<{
   key: string
   explicitId?: string
@@ -119,7 +130,9 @@ function assertUniqueKeys<T extends Readonly<{ key: string }>>(
   }
 }
 
-export function createThoughtGraph(input: CreateThoughtGraphInput): ThoughtGraph {
+export function createThoughtGraphProjection(
+  input: CreateThoughtGraphInput,
+): ThoughtGraphProjection {
   assertRevision(input.revision)
   assertUniqueKeys(input.nodes, 'duplicate-node-key')
   assertUniqueKeys(input.edges, 'duplicate-edge-key')
@@ -129,9 +142,11 @@ export function createThoughtGraph(input: CreateThoughtGraphInput): ThoughtGraph
     left.key.localeCompare(right.key),
   )
   const nodeIdByKey = new Map<string, string>()
+  const nodeKeys: Array<readonly [string, string]> = []
   const nodes = sortedNodeInputs.map((node) => {
     const id = graphId('node', node.key)
     nodeIdByKey.set(node.key, id)
+    nodeKeys.push([id, node.key])
     return Object.freeze({
       id,
       ...(node.explicitId === undefined ? {} : { explicitId: node.explicitId }),
@@ -141,6 +156,7 @@ export function createThoughtGraph(input: CreateThoughtGraphInput): ThoughtGraph
     })
   })
 
+  const edgeKeys: Array<readonly [string, string]> = []
   const edges = [...input.edges]
     .sort((left, right) => left.key.localeCompare(right.key))
     .map((edge) => {
@@ -154,8 +170,10 @@ export function createThoughtGraph(input: CreateThoughtGraphInput): ThoughtGraph
         )
       }
 
+      const id = graphId('edge', edge.key)
+      edgeKeys.push([id, edge.key])
       return Object.freeze({
-        id: graphId('edge', edge.key),
+        id,
         sourceNodeId,
         targetNodeId,
         certainty: edge.certainty,
@@ -163,6 +181,7 @@ export function createThoughtGraph(input: CreateThoughtGraphInput): ThoughtGraph
       })
     })
 
+  const groupKeys: Array<readonly [string, string]> = []
   const groups = [...input.groups]
     .sort((left, right) => left.key.localeCompare(right.key))
     .map((group) => {
@@ -181,17 +200,30 @@ export function createThoughtGraph(input: CreateThoughtGraphInput): ThoughtGraph
         memberNodeIds.add(memberNodeId)
       }
 
+      const id = graphId('group', group.key)
+      groupKeys.push([id, group.key])
       return Object.freeze({
-        id: graphId('group', group.key),
+        id,
         name: group.name,
         memberNodeIds: Object.freeze([...memberNodeIds].sort()),
       })
     })
 
   return Object.freeze({
-    revision: input.revision,
-    nodes: Object.freeze(nodes),
-    edges: Object.freeze(edges),
-    groups: Object.freeze(groups),
+    graph: Object.freeze({
+      revision: input.revision,
+      nodes: Object.freeze(nodes),
+      edges: Object.freeze(edges),
+      groups: Object.freeze(groups),
+    }),
+    occurrenceMap: Object.freeze({
+      nodeKeys: Object.freeze(Object.fromEntries(nodeKeys)),
+      edgeKeys: Object.freeze(Object.fromEntries(edgeKeys)),
+      groupKeys: Object.freeze(Object.fromEntries(groupKeys)),
+    }),
   })
+}
+
+export function createThoughtGraph(input: CreateThoughtGraphInput): ThoughtGraph {
+  return createThoughtGraphProjection(input).graph
 }

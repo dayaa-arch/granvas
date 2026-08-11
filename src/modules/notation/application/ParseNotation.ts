@@ -2,6 +2,8 @@ import {
   parseGranvasNotation,
   type DiagnosticCode,
   type DiagnosticLevel,
+  type GroupSourceSpans,
+  type NodeSourceSpans,
   type NotationCertainty,
   type NotationDiagnostic,
   type NotationParseResult,
@@ -9,6 +11,7 @@ import {
   type ParsedLayout,
   type ParsedNode,
   type ParsedRelation,
+  type RelationSourceSpans,
   type SourceRange,
 } from '@/modules/notation/domain/GranvasNotationParser'
 
@@ -17,6 +20,9 @@ export type DiagnosticCodeDto = DiagnosticCode
 export type DiagnosticLevelDto = DiagnosticLevel
 export type NotationCertaintyDto = NotationCertainty
 export type DiagnosticDto = NotationDiagnostic
+export type NodeSourceSpansDto = NodeSourceSpans
+export type RelationSourceSpansDto = RelationSourceSpans
+export type GroupSourceSpansDto = GroupSourceSpans
 export type ParsedNodeDto = ParsedNode
 export type ParsedRelationDto = ParsedRelation
 export type ParsedGroupDto = ParsedGroup

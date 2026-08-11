@@ -1,7 +1,12 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { GranvasEditor, type DiagnosticDto } from '@/modules/notation'
+import {
+  GranvasEditor,
+  type DiagnosticDto,
+  type GranvasEditorHandle,
+} from '@/modules/notation'
 
 describe('GranvasEditor', () => {
   it('renders source, syntax marks, line numbers, and soft diagnostics', async () => {
@@ -67,5 +72,35 @@ describe('GranvasEditor', () => {
     await waitFor(() =>
       expect(onSourceChange).toHaveBeenCalledWith('日本語の思考'),
     )
+  })
+
+  it('applies multiple patches as one transaction without re-entering source change', async () => {
+    const editorRef = createRef<GranvasEditorHandle>()
+    const onSourceChange = vi.fn()
+    render(
+      <GranvasEditor
+        ref={editorRef}
+        source="[idea] Before"
+        diagnostics={[]}
+        onSourceChange={onSourceChange}
+        onCursorChange={vi.fn()}
+      />,
+    )
+    const editor = await screen.findByRole('textbox', {
+      name: 'Granvas text editor',
+    })
+
+    act(() => {
+      editorRef.current?.applyEdits([
+        { from: 1, to: 5, insert: 'problem' },
+        { from: 7, to: 13, insert: 'After' },
+      ])
+    })
+
+    await waitFor(() => expect(editor).toHaveTextContent('[problem] After'))
+    expect(onSourceChange).not.toHaveBeenCalled()
+
+    fireEvent.keyDown(editor, { key: 'z', ctrlKey: true })
+    await waitFor(() => expect(editor).toHaveTextContent('[idea] Before'))
   })
 })

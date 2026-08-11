@@ -117,6 +117,11 @@ describe('Workspace Application', () => {
     expect(snapshot.projection?.sourceMap.revision).toBe(snapshot.document.revision)
     expect(snapshot.projection?.diagnostics).toBe(snapshot.diagnostics)
     expect(Object.keys(snapshot.projection?.sourceMap.nodeRanges ?? {})).toHaveLength(5)
+    expect(snapshot.projection?.sourceMap.nodeKeys).toEqual(
+      expect.objectContaining({
+        'graph-node:node:69': 'node:69',
+      }),
+    )
   })
 
   it('keeps valid occurrences in a diagnostic partial projection', async () => {
@@ -191,6 +196,94 @@ describe('Workspace Application', () => {
     expect(() => workspace.selectSourceOffset(-1)).toThrowError(
       expect.objectContaining({ code: 'invalid-source-offset' }),
     )
+  })
+
+  it('applies Node label and Type edits through occurrence keys and reselects the Node', async () => {
+    const source = 'Intro prose\r\n[?Idea @editable]  Before  \r\nClosing prose'
+    const workspace = createWorkspaceApplication({
+      graphLayout: immediateLayoutPort(),
+      source,
+    })
+    const opened = await workspace.openWorkspace()
+    const graphNodeId = opened.projection?.graph.nodes[0]?.id
+
+    expect(graphNodeId).toBeDefined()
+    expect(opened.projection?.sourceMap.nodeKeys[graphNodeId!]).toBe('node:13')
+
+    const labelResult = await workspace.applyGraphEdit({
+      type: 'set-node-label',
+      graphNodeId: graphNodeId!,
+      label: '  After 😀  ',
+    })
+
+    expect(labelResult.type).toBe('applied')
+    if (labelResult.type !== 'applied') {
+      throw new Error('Expected an applied Graph edit.')
+    }
+    expect(labelResult.edits).toHaveLength(1)
+    expect(labelResult.snapshot.document).toMatchObject({
+      revision: 1,
+      source: 'Intro prose\r\n[?Idea @editable]  After 😀  \r\nClosing prose',
+      status: { type: 'dirty' },
+    })
+    expect(labelResult.snapshot.projection?.graph.nodes[0]).toMatchObject({
+      id: graphNodeId,
+      label: 'After 😀',
+      type: 'idea',
+      certainty: 'tentative',
+    })
+    expect(labelResult.snapshot.selectedGraphNodeId).toBe(graphNodeId)
+
+    const typeResult = await workspace.applyGraphEdit({
+      type: 'set-node-type',
+      graphNodeId: graphNodeId!,
+      nodeType: 'Problem_Main',
+    })
+
+    expect(typeResult.type).toBe('applied')
+    if (typeResult.type !== 'applied') {
+      throw new Error('Expected an applied Graph edit.')
+    }
+    expect(typeResult.snapshot.document.source).toBe(
+      'Intro prose\r\n[?problem_main @editable]  After 😀  \r\nClosing prose',
+    )
+    expect(typeResult.snapshot.projection?.graph.nodes[0]).toMatchObject({
+      type: 'problem_main',
+      label: 'After 😀',
+    })
+  })
+
+  it('keeps Workspace state unchanged when a Graph edit is rejected', async () => {
+    const workspace = createWorkspaceApplication({
+      graphLayout: immediateLayoutPort(),
+      source: '[idea] Before',
+    })
+    const opened = await workspace.openWorkspace()
+    const graphNodeId = opened.projection!.graph.nodes[0]!.id
+    const before = workspace.getSnapshot()
+
+    const invalid = await workspace.applyGraphEdit({
+      type: 'set-node-label',
+      graphNodeId,
+      label: '   ',
+    })
+
+    expect(invalid).toMatchObject({
+      type: 'rejected',
+      reason: { code: 'invalid-value' },
+    })
+    expect(workspace.getSnapshot()).toEqual(before)
+
+    const missing = await workspace.applyGraphEdit({
+      type: 'set-node-type',
+      graphNodeId: 'graph-node:missing',
+      nodeType: 'problem',
+    })
+    expect(missing).toMatchObject({
+      type: 'rejected',
+      reason: { code: 'unknown-target' },
+    })
+    expect(workspace.getSnapshot()).toEqual(before)
   })
 
   it('requires confirmation before replacing a dirty project', async () => {

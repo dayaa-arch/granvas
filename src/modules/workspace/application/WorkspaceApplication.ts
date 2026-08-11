@@ -12,18 +12,23 @@ import {
   GraphApplicationError,
   createCancellationController,
   createGraphExportScene,
-  createThoughtGraph,
+  createThoughtGraphProjection,
   layoutThoughtGraph,
   type CancellationController,
   type GraphExportSceneDto,
   type GraphLayoutPort,
+  type GraphOccurrenceMapDto,
   type PositionedGraphDto,
-  type ThoughtGraphDto,
 } from '@/modules/graph'
 import {
+  applySourceEdits,
+  mapSourceOffsetThroughEdits,
   parseNotation,
+  planNotationEdit,
   type DiagnosticDto,
+  type NotationEditRejectionDto,
   type ParseResultDto,
+  type SourceEditDto,
   type SourceRangeDto,
 } from '@/modules/notation'
 
@@ -32,6 +37,9 @@ export type ProjectionSourceMapDto = Readonly<{
   nodeRanges: Readonly<Record<string, SourceRangeDto>>
   edgeRanges: Readonly<Record<string, SourceRangeDto>>
   groupRanges: Readonly<Record<string, SourceRangeDto>>
+  nodeKeys: Readonly<Record<string, string>>
+  edgeKeys: Readonly<Record<string, string>>
+  groupKeys: Readonly<Record<string, string>>
 }>
 
 export type WorkspaceProjectionDto = Readonly<{
@@ -59,6 +67,29 @@ export type SourceSelectionEffectDto = Readonly<{
   graphNodeId?: string
   sourceRange?: SourceRangeDto
 }>
+
+export type WorkspaceGraphEditCommandDto =
+  | Readonly<{
+      type: 'set-node-label'
+      graphNodeId: string
+      label: string
+    }>
+  | Readonly<{
+      type: 'set-node-type'
+      graphNodeId: string
+      nodeType: string
+    }>
+
+export type WorkspaceGraphEditResultDto =
+  | Readonly<{
+      type: 'applied'
+      snapshot: WorkspaceSnapshotDto
+      edits: readonly SourceEditDto[]
+    }>
+  | Readonly<{
+      type: 'rejected'
+      reason: NotationEditRejectionDto
+    }>
 
 export type ReplaceWorkspaceProjectInput = Readonly<{
   name: string
@@ -134,6 +165,9 @@ export interface WorkspaceApplication {
   ): Promise<ReplaceWorkspaceProjectResult>
   selectGraphNode(graphNodeId: string): SourceSelectionEffectDto
   selectSourceOffset(offset: number): SourceSelectionEffectDto
+  applyGraphEdit(
+    command: WorkspaceGraphEditCommandDto,
+  ): Promise<WorkspaceGraphEditResultDto>
   createDownloadInput(format: WorkspaceDownloadFormat): WorkspaceDownloadInputDto
   beginProjectDownload(): WorkspaceProjectDownloadRequestDto
   markProjectDownloaded(ticket: ProjectDownloadTicketDto): WorkspaceSnapshotDto
@@ -162,47 +196,75 @@ function freezeRecord(
   return Object.freeze(Object.fromEntries(entries))
 }
 
-function pairRanges(
-  occurrences: readonly Readonly<{ key: string; sourceRange: SourceRangeDto }>[],
-  graphIds: readonly string[],
-): Readonly<Record<string, SourceRangeDto>> {
-  const sorted = [...occurrences].sort((left, right) => left.key.localeCompare(right.key))
+function freezeStringRecord(
+  value: Readonly<Record<string, string>>,
+): Readonly<Record<string, string>> {
+  return Object.freeze({ ...value })
+}
 
-  if (sorted.length !== graphIds.length) {
+function pairOccurrenceRanges(
+  occurrences: readonly Readonly<{ key: string; sourceRange: SourceRangeDto }>[],
+  graphKeys: Readonly<Record<string, string>>,
+): Readonly<{
+  ranges: Readonly<Record<string, SourceRangeDto>>
+  keys: Readonly<Record<string, string>>
+}> {
+  const rangeByKey = new Map(
+    occurrences.map(({ key, sourceRange }) => [key, sourceRange] as const),
+  )
+  const entries = Object.entries(graphKeys)
+
+  if (
+    rangeByKey.size !== occurrences.length ||
+    entries.length !== occurrences.length ||
+    new Set(entries.map(([, key]) => key)).size !== occurrences.length
+  ) {
     throw new WorkspaceApplicationError(
       'projection-mapping-failed',
       'Graph output does not match Notation occurrences.',
     )
   }
 
-  return freezeRecord(
-    sorted.map((occurrence, index) => [graphIds[index]!, occurrence.sourceRange] as const),
-  )
+  const rangeEntries = entries.map(([graphId, key]) => {
+    const sourceRange = rangeByKey.get(key)
+
+    if (!sourceRange) {
+      throw new WorkspaceApplicationError(
+        'projection-mapping-failed',
+        'Graph occurrence mapping references an unknown Notation key.',
+      )
+    }
+
+    return [graphId, sourceRange] as const
+  })
+
+  return Object.freeze({
+    ranges: freezeRecord(rangeEntries),
+    keys: freezeStringRecord(graphKeys),
+  })
 }
 
 function createProjectionSourceMap(
   parseResult: ParseResultDto,
-  graph: ThoughtGraphDto,
+  occurrenceMap: GraphOccurrenceMapDto,
 ): ProjectionSourceMapDto {
+  const nodes = pairOccurrenceRanges(parseResult.nodes, occurrenceMap.nodeKeys)
+  const edges = pairOccurrenceRanges(parseResult.relations, occurrenceMap.edgeKeys)
+  const groups = pairOccurrenceRanges(parseResult.groups, occurrenceMap.groupKeys)
+
   return Object.freeze({
     revision: parseResult.documentRevision,
-    nodeRanges: pairRanges(
-      parseResult.nodes,
-      graph.nodes.map(({ id }) => id),
-    ),
-    edgeRanges: pairRanges(
-      parseResult.relations,
-      graph.edges.map(({ id }) => id),
-    ),
-    groupRanges: pairRanges(
-      parseResult.groups,
-      graph.groups.map(({ id }) => id),
-    ),
+    nodeRanges: nodes.ranges,
+    edgeRanges: edges.ranges,
+    groupRanges: groups.ranges,
+    nodeKeys: nodes.keys,
+    edgeKeys: edges.keys,
+    groupKeys: groups.keys,
   })
 }
 
-function createSemanticGraph(parseResult: ParseResultDto): ThoughtGraphDto {
-  return createThoughtGraph({
+function createSemanticGraphProjection(parseResult: ParseResultDto) {
+  return createThoughtGraphProjection({
     revision: parseResult.documentRevision,
     nodes: parseResult.nodes.map(({ key, explicitId, type, label, certainty }) => ({
       key,
@@ -261,6 +323,7 @@ export function createWorkspaceApplication(
     source: input.source,
   })
   let projection: WorkspaceProjectionDto | undefined
+  let currentParseResult: ParseResultDto | undefined
   let diagnostics: readonly DiagnosticDto[] = Object.freeze([])
   let status: WorkspaceStatusDto = Object.freeze({ type: 'idle' })
   let selectedGraphNodeId: string | undefined
@@ -276,13 +339,16 @@ export function createWorkspaceApplication(
       ...(selectedGraphNodeId === undefined ? {} : { selectedGraphNodeId }),
     })
 
-  const rebuildCurrentProjection = async (): Promise<WorkspaceSnapshotDto> => {
+  const rebuildCurrentProjection = async (
+    selectionOffset?: number,
+  ): Promise<WorkspaceSnapshotDto> => {
     activeCancellation?.cancel()
     const cancellation = createCancellationController()
     activeCancellation = cancellation
     const job = ++currentJob
     const revision = document.revision
     projection = undefined
+    currentParseResult = undefined
     selectedGraphNodeId = undefined
     status = Object.freeze({ type: 'projecting', revision })
 
@@ -292,8 +358,12 @@ export function createWorkspaceApplication(
         documentRevision: revision,
       })
       diagnostics = parseResult.diagnostics
-      const semanticGraph = createSemanticGraph(parseResult)
-      const sourceMap = createProjectionSourceMap(parseResult, semanticGraph)
+      const semanticProjection = createSemanticGraphProjection(parseResult)
+      const semanticGraph = semanticProjection.graph
+      const sourceMap = createProjectionSourceMap(
+        parseResult,
+        semanticProjection.occurrenceMap,
+      )
       const positionedGraph = await layoutThoughtGraph(
         semanticGraph,
         parseResult.layout.direction,
@@ -311,6 +381,13 @@ export function createWorkspaceApplication(
         sourceMap,
         parseResult.diagnostics,
       )
+      currentParseResult = parseResult
+      if (selectionOffset !== undefined) {
+        selectedGraphNodeId = Object.entries(sourceMap.nodeRanges).find(
+          ([, range]) =>
+            range.from <= selectionOffset && selectionOffset < range.to,
+        )?.[0]
+      }
       status = Object.freeze({ type: 'ready', revision })
       activeCancellation = undefined
       return getSnapshot()
@@ -385,6 +462,83 @@ export function createWorkspaceApplication(
     },
     selectGraphNode,
     selectSourceOffset,
+    async applyGraphEdit(
+      command: WorkspaceGraphEditCommandDto,
+    ): Promise<WorkspaceGraphEditResultDto> {
+      const graphNodeId = command.graphNodeId
+      const nodeKey = projection?.sourceMap.nodeKeys[graphNodeId]
+
+      if (
+        !projection ||
+        !currentParseResult ||
+        projection.revision !== document.revision ||
+        currentParseResult.documentRevision !== document.revision ||
+        !nodeKey
+      ) {
+        return Object.freeze({
+          type: 'rejected',
+          reason: Object.freeze({
+            code: 'unknown-target',
+            message: 'The Node is not present in the current projection.',
+          }),
+        })
+      }
+
+      const plan = planNotationEdit({
+        source: document.source,
+        parseResult: currentParseResult,
+        command:
+          command.type === 'set-node-label'
+            ? Object.freeze({
+                type: 'set-node-label',
+                nodeKey,
+                label: command.label,
+              })
+            : Object.freeze({
+                type: 'set-node-type',
+                nodeKey,
+                nodeType: command.nodeType,
+              }),
+      })
+
+      if (plan.type === 'rejected') {
+        return plan
+      }
+
+      if (plan.edits.length === 0) {
+        selectedGraphNodeId = graphNodeId
+        return Object.freeze({
+          type: 'applied',
+          snapshot: getSnapshot(),
+          edits: plan.edits,
+        })
+      }
+
+      const nextSource = applySourceEdits(document.source, plan.edits)
+      const selectionOffset = mapSourceOffsetThroughEdits(
+        plan.caretAnchor ?? projection.sourceMap.nodeRanges[graphNodeId]!.from,
+        plan.edits,
+      )
+      document = updateDocumentSource(document, nextSource)
+      const editRevision = document.revision
+      const snapshot = await rebuildCurrentProjection(selectionOffset)
+
+      if (snapshot.document.revision !== editRevision) {
+        return Object.freeze({
+          type: 'rejected',
+          reason: Object.freeze({
+            code: 'unsupported-structure',
+            message: 'The Graph edit was superseded by a newer source revision.',
+          }),
+        })
+      }
+
+      return Object.freeze({
+        type: 'applied',
+        snapshot,
+        edits: plan.edits,
+      })
+    },
     createDownloadInput(format: WorkspaceDownloadFormat): WorkspaceDownloadInputDto {
       if (format === 'granvas') {
         return Object.freeze({

@@ -96,6 +96,7 @@ describe('ReactFlowGraphView', () => {
         fitViewKey={1}
         status="ready"
         onNodeActivate={vi.fn()}
+        onNodeEdit={vi.fn()}
         onClearSelection={vi.fn()}
       />,
     )
@@ -121,6 +122,7 @@ describe('ReactFlowGraphView', () => {
         fitViewKey={1}
         status="ready"
         onNodeActivate={vi.fn()}
+        onNodeEdit={vi.fn()}
         onClearSelection={vi.fn()}
       />,
     )
@@ -145,6 +147,7 @@ describe('ReactFlowGraphView', () => {
         fitViewKey={1}
         status="ready"
         onNodeActivate={onNodeActivate}
+        onNodeEdit={vi.fn()}
         onClearSelection={vi.fn()}
       />,
     )
@@ -157,5 +160,72 @@ describe('ReactFlowGraphView', () => {
     fireEvent.keyDown(node, { key: ' ' })
     await waitFor(() => expect(onNodeActivate).toHaveBeenCalled())
     expect(onNodeActivate.mock.calls.every(([id]) => id === 'node-idea')).toBe(true)
+  })
+
+  it('edits a label with double-click and ignores Enter during IME composition', async () => {
+    const onNodeEdit = vi.fn()
+    render(
+      <ReactFlowGraphView
+        graph={graph}
+        fitViewKey={1}
+        status="ready"
+        onNodeActivate={vi.fn()}
+        onNodeEdit={onNodeEdit}
+        onClearSelection={vi.fn()}
+      />,
+    )
+
+    fireEvent.doubleClick(await screen.findByText('Unify notes'))
+    const input = await screen.findByRole('textbox', {
+      name: 'Edit label for Unify notes',
+    })
+    fireEvent.change(input, { target: { value: 'Unified knowledge' } })
+    fireEvent.compositionStart(input)
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(onNodeEdit).not.toHaveBeenCalled()
+    fireEvent.compositionEnd(input)
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    await waitFor(() =>
+      expect(onNodeEdit).toHaveBeenCalledWith({
+        graphNodeId: 'node-idea',
+        field: 'label',
+        value: 'Unified knowledge',
+      }),
+    )
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', {
+          name: 'tentative certainty, idea: Unify notes',
+        }),
+      ).toHaveFocus(),
+    )
+  })
+
+  it('edits Type with Shift+F2 and cancels with Escape', async () => {
+    const onNodeEdit = vi.fn()
+    render(
+      <ReactFlowGraphView
+        graph={graph}
+        fitViewKey={1}
+        status="ready"
+        onNodeActivate={vi.fn()}
+        onNodeEdit={onNodeEdit}
+        onClearSelection={vi.fn()}
+      />,
+    )
+    const node = await screen.findByRole('button', {
+      name: 'neutral certainty, problem: Customer information is scattered',
+    })
+
+    fireEvent.keyDown(node, { key: 'F2', shiftKey: true })
+    const input = await screen.findByRole('textbox', {
+      name: 'Edit type for Customer information is scattered',
+    })
+    fireEvent.change(input, { target: { value: 'question' } })
+    fireEvent.keyDown(input, { key: 'Escape' })
+
+    await waitFor(() => expect(node).toHaveFocus())
+    expect(onNodeEdit).not.toHaveBeenCalled()
   })
 })

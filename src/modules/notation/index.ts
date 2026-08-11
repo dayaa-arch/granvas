@@ -4,6 +4,8 @@ export {
   type DiagnosticCodeDto,
   type DiagnosticDto,
   type DiagnosticLevelDto,
+  type GroupSourceSpansDto,
+  type NodeSourceSpansDto,
   type NotationCertaintyDto,
   type ParseNotationInput,
   type ParseResultDto,
@@ -11,10 +13,23 @@ export {
   type ParsedLayoutDto,
   type ParsedNodeDto,
   type ParsedRelationDto,
+  type RelationSourceSpansDto,
   type SourceRangeDto,
 } from '@/modules/notation/application/ParseNotation'
 export {
+  applySourceEdits,
+  mapSourceOffsetThroughEdits,
+  planNotationEdit,
+  type NotationEditCommandDto,
+  type NotationEditRejectionCodeDto,
+  type NotationEditRejectionDto,
+  type PlanNotationEditInput,
+  type SourceEditDto,
+  type SourceEditPlanDto,
+} from '@/modules/notation/application/PlanNotationEdit'
+export {
   GranvasEditor,
   type EditorCursorDto,
+  type GranvasEditorHandle,
   type GranvasEditorProps,
 } from '@/modules/notation/presentation/GranvasEditor'

@@ -143,6 +143,48 @@
   -webkit-line-clamp: 2;
 }
 
+.graph-node__type,
+.graph-node__label {
+  cursor: text;
+}
+
+.graph-node__inline-edit {
+  display: block;
+  width: 100%;
+}
+
+.graph-node__inline-input {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--accent-400);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink-900);
+  font-family: inherit;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.graph-node__inline-input--label {
+  padding: 6px 7px;
+  font-size: 14px;
+  font-weight: 680;
+  line-height: 1.25;
+}
+
+.graph-node__inline-input--type {
+  padding: 6px 7px;
+  color: var(--node-type, #657184);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.graph-node__inline-input:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
 .graph-node__handle {
   width: 1px !important;
   height: 1px !important;
