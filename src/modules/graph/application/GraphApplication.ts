@@ -1,7 +1,9 @@
 import {
   ThoughtGraphError,
   createThoughtGraph as createDomainThoughtGraph,
+  createThoughtGraphProjection as createDomainThoughtGraphProjection,
   type GraphDirection,
+  type GraphOccurrenceMap,
   type GraphCertainty,
   type ThoughtGraph,
   type ThoughtGraphEdgeInput,
@@ -26,6 +28,11 @@ export type ThoughtGraphNodeDto = ThoughtGraph['nodes'][number]
 export type ThoughtGraphEdgeDto = ThoughtGraph['edges'][number]
 export type ThoughtGraphGroupDto = ThoughtGraph['groups'][number]
 export type ThoughtGraphDto = ThoughtGraph
+export type GraphOccurrenceMapDto = GraphOccurrenceMap
+export type ThoughtGraphProjectionDto = Readonly<{
+  graph: ThoughtGraphDto
+  occurrenceMap: GraphOccurrenceMapDto
+}>
 export type GraphDirectionDto = GraphDirection
 export type GraphCertaintyDto = GraphCertainty
 
@@ -156,6 +163,21 @@ function toApplicationError(error: unknown): GraphApplicationError {
 export function createThoughtGraph(input: CreateThoughtGraphInputDto): ThoughtGraphDto {
   try {
     return createDomainThoughtGraph({
+      revision: input.revision,
+      nodes: input.nodes,
+      edges: input.relations,
+      groups: input.groups,
+    })
+  } catch (error) {
+    throw toApplicationError(error)
+  }
+}
+
+export function createThoughtGraphProjection(
+  input: CreateThoughtGraphInputDto,
+): ThoughtGraphProjectionDto {
+  try {
+    return createDomainThoughtGraphProjection({
       revision: input.revision,
       nodes: input.nodes,
       edges: input.relations,

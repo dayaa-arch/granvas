@@ -14,12 +14,18 @@ import {
   type DecorationSet,
 } from '@codemirror/view'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
-import { useEffect, useRef } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from 'react'
 
 import type {
   DiagnosticDto,
   SourceRangeDto,
 } from '@/modules/notation/application/ParseNotation'
+import type { SourceEditDto } from '@/modules/notation/application/PlanNotationEdit'
 
 import './GranvasEditor.css'
 
@@ -35,6 +41,13 @@ export type GranvasEditorProps = Readonly<{
   selectionRange?: SourceRangeDto
   onSourceChange(source: string): void
   onCursorChange(cursor: EditorCursorDto): void
+}>
+
+export type GranvasEditorHandle = Readonly<{
+  applyEdits(
+    edits: readonly SourceEditDto[],
+    selectionRange?: SourceRangeDto,
+  ): void
 }>
 
 const setDiagnostics = StateEffect.define<readonly DiagnosticDto[]>()
@@ -249,19 +262,56 @@ function cursorFromView(view: EditorView): EditorCursorDto {
   })
 }
 
-export function GranvasEditor({
-  source,
-  diagnostics,
-  selectionRange,
-  onSourceChange,
-  onCursorChange,
-}: GranvasEditorProps) {
+export const GranvasEditor = forwardRef<
+  GranvasEditorHandle,
+  GranvasEditorProps
+>(function GranvasEditor(
+  {
+    source,
+    diagnostics,
+    selectionRange,
+    onSourceChange,
+    onCursorChange,
+  },
+  ref,
+) {
   const hostRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView>(null)
   const applyingExternalSourceRef = useRef(false)
   const onSourceChangeRef = useRef(onSourceChange)
   const onCursorChangeRef = useRef(onCursorChange)
   const initialSourceRef = useRef(source)
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      applyEdits(edits, nextSelectionRange) {
+        const view = viewRef.current
+
+        if (!view || edits.length === 0) {
+          return
+        }
+
+        applyingExternalSourceRef.current = true
+        try {
+          view.dispatch({
+            changes: edits.map(({ from, to, insert }) => ({ from, to, insert })),
+            ...(nextSelectionRange === undefined
+              ? {}
+              : {
+                  selection: {
+                    anchor: nextSelectionRange.from,
+                    head: nextSelectionRange.to,
+                  },
+                }),
+          })
+        } finally {
+          applyingExternalSourceRef.current = false
+        }
+      },
+    }),
+    [],
+  )
 
   useEffect(() => {
     onSourceChangeRef.current = onSourceChange
@@ -356,4 +406,4 @@ export function GranvasEditor({
   }, [selectionRange])
 
   return <div className="granvas-editor" ref={hostRef} />
-}
+})

@@ -2,7 +2,7 @@
 
 > 作成日: 2026-08-10
 > 最終整理日: 2026-08-11
-> ステータス: Phase 10完了・Phase 11未着手
+> ステータス: Phase 11完了・Phase 12未着手
 > Phase正本: `docs/development-roadmap.md`
 
 この文書はPhaseごとの実装進捗を追跡する。Phase名称と番号は開発ロードマップに合わせ、完了済みのsteering / Issue / PRはロードマップの履歴対応表から参照する。
@@ -125,10 +125,10 @@
 
 ## Phase 11: Source Edit Core
 
-- [ ] token spansと`NotationEditor` / `SourceEditPlan`を実装する。
-- [ ] Nodeラベル / Type編集をTextの最小差分として適用する。
-- [ ] Workspace orchestration、1 transaction、Undo、selection再解決を実装する。
-- [ ] round-tripと散文非破壊を検証する。
+- [x] token spansと`NotationEditor` / `SourceEditPlan`を実装する。
+- [x] Nodeラベル / Type編集をTextの最小差分として適用する。
+- [x] Workspace orchestration、1 transaction、Undo、selection再解決を実装する。
+- [x] round-tripと散文非破壊を検証する。
 
 ## Phase 12: Graph Authoring
 

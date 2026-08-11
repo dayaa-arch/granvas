@@ -8,6 +8,7 @@ export {
   createGraphExportScene,
   createGraphLayoutInput,
   createThoughtGraph,
+  createThoughtGraphProjection,
   layoutThoughtGraph,
   type CancellationController,
   type CancellationSignal,
@@ -22,6 +23,7 @@ export {
   type GraphLayoutInputDto,
   type GraphLayoutNodeDto,
   type GraphLayoutPort,
+  type GraphOccurrenceMapDto,
   type PositionedEdgeDto,
   type PositionedGraphDto,
   type PositionedGroupDto,
@@ -30,8 +32,11 @@ export {
   type ThoughtGraphEdgeDto,
   type ThoughtGraphGroupDto,
   type ThoughtGraphNodeDto,
+  type ThoughtGraphProjectionDto,
 } from '@/modules/graph/application/GraphApplication'
 export {
   ReactFlowGraphView,
+  type GraphNodeEditDto,
+  type GraphNodeEditField,
   type ReactFlowGraphViewProps,
 } from '@/modules/graph/presentation/ReactFlowGraphView'

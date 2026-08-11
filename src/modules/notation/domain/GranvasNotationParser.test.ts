@@ -323,6 +323,59 @@ describe('GranvasNotationParser', () => {
     expect(result.relations[0]?.sourceRange).toEqual(result.nodes[1]?.sourceRange)
   })
 
+  it('publishes exact token spans and Group insertion points for source editing', () => {
+    const source =
+      '😀 prose\r\n[?Problem @root]  Old label  \r\n  !-> [Cause] Child\r\n@root ?-> @root : self  \r\n{ Group }\r\n  @root\r\nAfter'
+    const result = parseGranvasNotation(source, 20)
+    const [root, child] = result.nodes
+    const [nested, cross] = result.relations
+    const group = result.groups[0]!
+
+    expect(source.slice(root?.spans.indent.from, root?.spans.indent.to)).toBe('')
+    expect(source.slice(root?.spans.certainty?.from, root?.spans.certainty?.to)).toBe('?')
+    expect(source.slice(root?.spans.type.from, root?.spans.type.to)).toBe('Problem')
+    expect(source.slice(root?.spans.explicitId?.from, root?.spans.explicitId?.to)).toBe(
+      '@root',
+    )
+    expect(root?.spans.idInsertionPoint).toBe(root?.spans.type.to)
+    expect(source.slice(root?.spans.label.from, root?.spans.label.to)).toBe(
+      'Old label',
+    )
+    expect(source.slice(child?.spans.indent.from, child?.spans.indent.to)).toBe('  ')
+    expect(source.slice(child?.spans.type.from, child?.spans.type.to)).toBe('Cause')
+    expect(source.slice(nested?.spans.operator.from, nested?.spans.operator.to)).toBe(
+      '!->',
+    )
+    expect(source.slice(cross?.spans.sourceRef?.from, cross?.spans.sourceRef?.to)).toBe(
+      '@root',
+    )
+    expect(source.slice(cross?.spans.operator.from, cross?.spans.operator.to)).toBe(
+      '?->',
+    )
+    expect(source.slice(cross?.spans.targetRef?.from, cross?.spans.targetRef?.to)).toBe(
+      '@root',
+    )
+    expect(source.slice(cross?.spans.label?.from, cross?.spans.label?.to)).toBe('self')
+    expect(source.slice(group.spans.header.from, group.spans.header.to)).toBe(
+      '{ Group }',
+    )
+    expect(source.slice(group.spans.name.from, group.spans.name.to)).toBe('Group')
+    expect(group.spans.memberInsertionPoint).toBe(source.indexOf('After'))
+
+    for (const node of result.nodes) {
+      for (const range of [
+        node.spans.indent,
+        node.spans.certainty,
+        node.spans.type,
+        node.spans.explicitId,
+        node.spans.label,
+      ].filter((value) => value !== undefined)) {
+        expect(range.from).toBeGreaterThanOrEqual(node.sourceRange.from)
+        expect(range.to).toBeLessThanOrEqual(node.sourceRange.to)
+      }
+    }
+  })
+
   it('treats BOM removal as an upstream boundary without offset drift', () => {
     const direct = parseGranvasNotation(sourceWithBom, 14)
     const decoded = parseGranvasNotation(sourceWithBom.slice(1), 14)

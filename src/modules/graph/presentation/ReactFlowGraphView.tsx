@@ -12,7 +12,14 @@ import {
   type Node,
   type NodeProps,
 } from '@xyflow/react'
-import { memo, useEffect, useMemo, type KeyboardEvent } from 'react'
+import {
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from 'react'
 
 import type {
   GraphCertaintyDto,
@@ -27,6 +34,17 @@ type ThoughtNodeData = {
   semanticType: string
   tone: 'problem' | 'cause' | 'idea' | 'todo' | 'default'
   certainty: GraphCertaintyDto
+  editing?: Readonly<{
+    field: GraphNodeEditField
+    draft: string
+    busy: boolean
+    composing: boolean
+  }>
+  beginEdit(field: GraphNodeEditField): void
+  changeDraft(value: string): void
+  commitEdit(): void
+  cancelEdit(): void
+  setComposing(composing: boolean): void
 }
 
 type GroupNodeData = {
@@ -43,7 +61,24 @@ export type ReactFlowGraphViewProps = Readonly<{
   fitViewKey: number
   status: 'idle' | 'projecting' | 'ready' | 'error'
   onNodeActivate(graphNodeId: string): void
+  onNodeEdit(edit: GraphNodeEditDto): void | Promise<void>
   onClearSelection(): void
+}>
+
+export type GraphNodeEditField = 'label' | 'type'
+
+export type GraphNodeEditDto = Readonly<{
+  graphNodeId: string
+  field: GraphNodeEditField
+  value: string
+}>
+
+type InlineEditState = Readonly<{
+  graphNodeId: string
+  field: GraphNodeEditField
+  draft: string
+  composing: boolean
+  busy: boolean
 }>
 
 function toneForType(type: string): ThoughtNodeData['tone'] {
@@ -105,8 +140,65 @@ const ThoughtNodeView = memo(function ThoughtNodeView({
           {certaintyMarker[data.certainty]}
         </span>
       ) : null}
-      <span className="graph-node__type">{data.semanticType}</span>
-      <span className="graph-node__label">{data.label}</span>
+      {data.editing ? (
+        <label className="graph-node__inline-edit">
+          <span className="sr-only">
+            Edit {data.editing.field} for {data.label}
+          </span>
+          <input
+            data-graph-inline-editor="true"
+            className={`graph-node__inline-input graph-node__inline-input--${data.editing.field}`}
+            value={data.editing.draft}
+            disabled={data.editing.busy}
+            aria-label={`Edit ${data.editing.field} for ${data.label}`}
+            onChange={(event) => data.changeDraft(event.currentTarget.value)}
+            onCompositionStart={() => data.setComposing(true)}
+            onCompositionEnd={() => data.setComposing(false)}
+            onClick={(event) => event.stopPropagation()}
+            onDoubleClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              event.stopPropagation()
+              if (event.key === 'Escape') {
+                event.preventDefault()
+                data.cancelEdit()
+                return
+              }
+
+              if (
+                event.key === 'Enter' &&
+                !data.editing?.composing &&
+                !event.nativeEvent.isComposing
+              ) {
+                event.preventDefault()
+                data.commitEdit()
+              }
+            }}
+          />
+        </label>
+      ) : (
+        <>
+          <span
+            className="graph-node__type"
+            title="Double-click or press Shift+F2 to edit type"
+            onDoubleClick={(event) => {
+              event.stopPropagation()
+              data.beginEdit('type')
+            }}
+          >
+            {data.semanticType}
+          </span>
+          <span
+            className="graph-node__label"
+            title="Double-click or press F2 to edit label"
+            onDoubleClick={(event) => {
+              event.stopPropagation()
+              data.beginEdit('label')
+            }}
+          >
+            {data.label}
+          </span>
+        </>
+      )}
       <Handle
         className="graph-node__handle"
         type="source"
@@ -152,13 +244,99 @@ function GraphCanvas({
   fitViewKey,
   status,
   onNodeActivate,
+  onNodeEdit,
   onClearSelection,
 }: ReactFlowGraphViewProps) {
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const [inlineEdit, setInlineEdit] = useState<InlineEditState>()
+  const [focusReturnNodeId, setFocusReturnNodeId] = useState<string>()
+  const editingGraphNodeId = inlineEdit?.graphNodeId
+  const editingField = inlineEdit?.field
   const graphNodeIds = useMemo(
     () => new Set(graph?.nodes.map(({ id }) => id) ?? []),
     [graph],
   )
-  const nodes = useMemo<GranvasFlowNode[]>(() => {
+
+  const beginInlineEdit = (graphNodeId: string, field: GraphNodeEditField) => {
+    const node = graph?.nodes.find(({ id }) => id === graphNodeId)
+
+    if (!node) {
+      return
+    }
+
+    setInlineEdit(
+      Object.freeze({
+        graphNodeId,
+        field,
+        draft: field === 'label' ? node.label : node.type,
+        composing: false,
+        busy: false,
+      }),
+    )
+  }
+
+  const cancelInlineEdit = () => {
+    const graphNodeId = inlineEdit?.graphNodeId
+    setInlineEdit(undefined)
+    if (graphNodeId) {
+      setFocusReturnNodeId(graphNodeId)
+    }
+  }
+
+  const commitInlineEdit = async () => {
+    if (!inlineEdit || inlineEdit.busy || inlineEdit.composing) {
+      return
+    }
+
+    const edit = inlineEdit
+    setInlineEdit(Object.freeze({ ...edit, busy: true }))
+    try {
+      await onNodeEdit(
+        Object.freeze({
+          graphNodeId: edit.graphNodeId,
+          field: edit.field,
+          value: edit.draft,
+        }),
+      )
+    } finally {
+      setInlineEdit(undefined)
+      setFocusReturnNodeId(edit.graphNodeId)
+    }
+  }
+
+  useEffect(() => {
+    if (!editingGraphNodeId) {
+      return
+    }
+
+    const frame = requestAnimationFrame(() => {
+      const input = canvasRef.current?.querySelector<HTMLInputElement>(
+        '[data-graph-inline-editor="true"]',
+      )
+      input?.focus()
+      input?.select()
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [editingGraphNodeId, editingField])
+
+  useEffect(() => {
+    if (!focusReturnNodeId || inlineEdit) {
+      return
+    }
+
+    const frame = requestAnimationFrame(() => {
+      const node = [...(canvasRef.current?.querySelectorAll<HTMLElement>(
+        '.react-flow__node',
+      ) ?? [])].find(({ dataset }) => dataset.id === focusReturnNodeId)
+      node?.focus()
+      setFocusReturnNodeId(undefined)
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [focusReturnNodeId, inlineEdit])
+
+  const nodes: GranvasFlowNode[] = (() => {
     if (!graph) {
       return []
     }
@@ -196,21 +374,42 @@ function GraphCanvas({
         semanticType: node.type,
         tone: toneForType(node.type),
         certainty: node.certainty,
+        ...(inlineEdit?.graphNodeId === node.id
+          ? { editing: inlineEdit }
+          : {}),
+        beginEdit: (field) => beginInlineEdit(node.id, field),
+        changeDraft: (draft) =>
+          setInlineEdit((current) =>
+            current?.graphNodeId === node.id
+              ? Object.freeze({ ...current, draft })
+              : current,
+          ),
+        commitEdit: () => void commitInlineEdit(),
+        cancelEdit: cancelInlineEdit,
+        setComposing: (composing) =>
+          setInlineEdit((current) =>
+            current?.graphNodeId === node.id
+              ? Object.freeze({ ...current, composing })
+              : current,
+          ),
       },
       selected: node.id === selectedNodeId,
       selectable: true,
       draggable: false,
       connectable: false,
       deletable: false,
-      focusable: true,
+      focusable: inlineEdit?.graphNodeId !== node.id,
       zIndex: 1,
-      ariaRole: 'button',
-      ariaLabel: `${node.certainty} certainty, ${node.type}: ${node.label}`,
+      ariaRole: inlineEdit?.graphNodeId === node.id ? 'group' : 'button',
+      ariaLabel:
+        inlineEdit?.graphNodeId === node.id
+          ? `Editing ${inlineEdit.field} for ${node.label}`
+          : `${node.certainty} certainty, ${node.type}: ${node.label}`,
       style: { width: node.width, height: node.height },
     }))
 
     return [...groupNodes, ...thoughtNodes]
-  }, [graph, selectedNodeId])
+  })()
   const edges = useMemo<Edge[]>(
     () => {
       const nodeById = new Map(graph?.nodes.map((node) => [node.id, node]) ?? [])
@@ -250,10 +449,6 @@ function GraphCanvas({
   )
 
   const handleKeyboardActivation = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return
-    }
-
     const target = event.target
 
     if (!(target instanceof HTMLElement)) {
@@ -266,12 +461,23 @@ function GraphCanvas({
       return
     }
 
+    if (event.key === 'F2') {
+      event.preventDefault()
+      beginInlineEdit(nodeId, event.shiftKey ? 'type' : 'label')
+      return
+    }
+
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return
+    }
+
     event.preventDefault()
     onNodeActivate(nodeId)
   }
 
   return (
     <div
+      ref={canvasRef}
       className="graph-canvas"
       onKeyDown={handleKeyboardActivation}
       data-graph-status={status}
@@ -281,7 +487,7 @@ function GraphCanvas({
         edges={edges}
         nodeTypes={nodeTypes}
         onNodeClick={(_event, node) => {
-          if (graphNodeIds.has(node.id)) {
+          if (graphNodeIds.has(node.id) && inlineEdit?.graphNodeId !== node.id) {
             onNodeActivate(node.id)
           }
         }}
@@ -296,7 +502,7 @@ function GraphCanvas({
         minZoom={0.2}
         maxZoom={2}
         proOptions={{ hideAttribution: true }}
-        aria-label="Read-only thought graph"
+        aria-label="Editable thought graph"
       >
         <FitViewEffect fitViewKey={fitViewKey} />
         <Background

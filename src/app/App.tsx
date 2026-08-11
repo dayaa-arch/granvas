@@ -1,7 +1,12 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 
 import type { GranvasApplication } from '@/app/bootstrap/createApplication'
-import type { EditorCursorDto, SourceRangeDto } from '@/modules/notation'
+import type {
+  EditorCursorDto,
+  GranvasEditorHandle,
+  SourceRangeDto,
+} from '@/modules/notation'
+import type { GraphNodeEditDto } from '@/modules/graph'
 import {
   type DownloadDialogSubmitDto,
 } from '@/modules/transfer'
@@ -57,6 +62,7 @@ function App({ application }: AppProps) {
   const [downloadBusy, setDownloadBusy] = useState(false)
   const [notice, setNotice] = useState<AppNotice>()
   const editorSourceRef = useRef(editorSource)
+  const editorRef = useRef<GranvasEditorHandle>(null)
   const updateTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const updateGenerationRef = useRef(0)
   const mountedRef = useRef(true)
@@ -166,6 +172,43 @@ function App({ application }: AppProps) {
     if (effect.sourceRange) {
       setEditorSelection(Object.freeze({ ...effect.sourceRange }))
     }
+  }
+
+  const handleGraphNodeEdit = async (edit: GraphNodeEditDto) => {
+    setNotice(undefined)
+    await flushEditorSource()
+    setProjectionPending(true)
+
+    const result = await workspace.applyGraphEdit(
+      edit.field === 'label'
+        ? {
+            type: 'set-node-label',
+            graphNodeId: edit.graphNodeId,
+            label: edit.value,
+          }
+        : {
+            type: 'set-node-type',
+            graphNodeId: edit.graphNodeId,
+            nodeType: edit.value,
+          },
+    )
+
+    if (result.type === 'rejected') {
+      setProjectionPending(false)
+      setNotice({ tone: 'error', message: result.reason.message })
+      return
+    }
+
+    editorRef.current?.applyEdits(result.edits)
+    editorSourceRef.current = result.snapshot.document.source
+    setEditorSource(result.snapshot.document.source)
+    setEditorSelection(undefined)
+    applySnapshot(result.snapshot)
+    setProjectionPending(false)
+    setNotice({
+      tone: 'success',
+      message: edit.field === 'label' ? 'Node label updated.' : 'Node type updated.',
+    })
   }
 
   const closeDownloadDialog = () => {
@@ -341,6 +384,7 @@ function App({ application }: AppProps) {
             <div className="workspace-panel__body">
               <Suspense fallback={<div className="panel-loading">Loading editor…</div>}>
                 <GranvasEditor
+                  ref={editorRef}
                   source={editorSource}
                   diagnostics={snapshot.diagnostics}
                   selectionRange={editorSelection}
@@ -371,6 +415,7 @@ function App({ application }: AppProps) {
                   fitViewKey={fitViewKey}
                   status={graphStatus}
                   onNodeActivate={handleGraphNodeActivate}
+                  onNodeEdit={(edit) => handleGraphNodeEdit(edit)}
                   onClearSelection={() => {
                     workspace.selectGraphNode('')
                     applySnapshot(workspace.getSnapshot())

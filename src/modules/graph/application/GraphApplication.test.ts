@@ -8,13 +8,14 @@ import {
   createGraphExportScene,
   createGraphLayoutInput,
   createThoughtGraph,
+  createThoughtGraphProjection,
   layoutThoughtGraph,
   type GraphLayoutInputDto,
   type GraphLayoutPort,
   type PositionedGraphDto,
 } from '@/modules/graph'
 
-const graph = createThoughtGraph({
+const graphInput = {
   revision: 5,
   nodes: [
     { key: 'node:0', type: 'problem', label: 'A', certainty: 'neutral' },
@@ -32,7 +33,9 @@ const graph = createThoughtGraph({
   groups: [
     { key: 'group:30', name: 'G', memberNodeKeys: ['node:0', 'node:10'] },
   ],
-})
+} as const
+
+const graph = createThoughtGraph(graphInput)
 
 function positionedFrom(input: GraphLayoutInputDto): PositionedGraphDto {
   return Object.freeze({
@@ -67,6 +70,22 @@ function positionedFrom(input: GraphLayoutInputDto): PositionedGraphDto {
 }
 
 describe('Graph Application', () => {
+  it('returns explicit Graph ID to occurrence key mappings without source ranges', () => {
+    const projection = createThoughtGraphProjection(graphInput)
+
+    expect(projection.graph).toEqual(graph)
+    expect(projection.occurrenceMap.nodeKeys).toEqual({
+      'graph-node:node:0': 'node:0',
+      'graph-node:node:10': 'node:10',
+    })
+    expect(projection.occurrenceMap.edgeKeys).toEqual({
+      'graph-edge:edge:20': 'edge:20',
+    })
+    expect(projection.occurrenceMap.groupKeys).toEqual({
+      'graph-group:group:30': 'group:30',
+    })
+  })
+
   it('maps semantic graph to normalized fixed-size layout input', () => {
     const input = createGraphLayoutInput(graph, 'TB')
 

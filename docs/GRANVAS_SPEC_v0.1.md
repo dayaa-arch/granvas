@@ -3149,7 +3149,7 @@ Status: Complete — Issue #19 / PR #20
 
 ## Phase 11: Source Edit Core
 
-Status: Not Started
+Status: Complete — Issue #21 / PR #22
 
 - token spans / `NotationEditor` / `SourceEditPlan`
 - `ProjectionSourceMapDto` の key 対応
@@ -3222,13 +3222,13 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [x] 既存の`.granvas`が確信度導入後も同じ構造へ解析される
 - [x] `rejected`なNode / EdgeがGraphから消えず棄却として表示される
 - [x] 確信度を色以外の手段で判別できる
-- [ ] Graph上でNodeのラベル / Typeを編集できる
+- [x] Graph上でNodeのラベル / Typeを編集できる
 - [ ] Graph上でNode作成・Edge接続・削除ができる
 - [ ] 意味ドラッグで親子関係とGroup所属を変更できる
 - [ ] 循環する親付け替えが拒否され、理由が通知される
-- [ ] Graph編集がTextの該当箇所だけを書き換え、通常文を破壊しない
-- [ ] Graph編集がUndo 1回で戻る
-- [ ] Graph編集後も`.granvas`に座標が含まれない
+- [x] Graph編集がTextの該当箇所だけを書き換え、通常文を破壊しない
+- [x] Graph編集がUndo 1回で戻る
+- [x] Graph編集後も`.granvas`に座標が含まれない
 - [ ] すべての編集操作へkeyboardから到達できる
 
 
@@ -3244,11 +3244,11 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [ ] Transfer Context のbrowser / export具象がports越しに隔離されている
 - [ ] Workspace projectionが同一revisionのGraph / SourceMap / Diagnosticsだけを公開する
 - [ ] composition root が `src/app/bootstrap` に集約されている
-- [ ] 編集規則が Notation domain の pure function として実装されている
-- [ ] `NotationEditor` が React / CodeMirror / React Flow / DOM を参照していない
-- [ ] Workspace が Notation 記法の文字列を組み立てていない
-- [ ] Graph 要素 ID から occurrence key への解決が `ProjectionSourceMapDto` 経由で行われている
-- [ ] Graph からテキスト全文を再生成する経路が存在しない
+- [x] 編集規則が Notation domain の pure function として実装されている
+- [x] `NotationEditor` が React / CodeMirror / React Flow / DOM を参照していない
+- [x] Workspace が Notation 記法の文字列を組み立てていない
+- [x] Graph 要素 ID から occurrence key への解決が `ProjectionSourceMapDto` 経由で行われている
+- [x] Graph からテキスト全文を再生成する経路が存在しない
 
 
 
@@ -3256,10 +3256,10 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 
 - [ ] Parser executable specificationが4章の全candidate・回復規則を網羅している
 - [ ] UTF-16 / emoji / CRLF / BOMを含むsource range testがある
-- [ ] token spans のtestがある
+- [x] token spans のtestがある
 - [ ] `NotationEditor` の全コマンドにround-trip testがある
-- [ ] 編集で通常文と無関係な行が変化しないことのtestがある
-- [ ] Phase 3 の全 fixture が無改変で通る
+- [x] 編集で通常文と無関係な行が変化しないことのtestがある
+- [x] Phase 3 の全 fixture が無改変で通る
 - [ ] application use case tests がある
 - [ ] Import / Download / dirty state / failure pathのtestがある
 - [ ] latest-wins / abort testがある

@@ -52,12 +52,12 @@ flowchart LR
 | 6 | Transfer Core | 完了 | 7 | `.steering/20260810-phase-6-transfer-core/` | [Issue #13](https://github.com/dayaa-arch/granvas/issues/13) / [PR #14](https://github.com/dayaa-arch/granvas/pull/14) |
 | 7 | Presentation Shell | 完了 | 8 | `.steering/20260810-phase-7-presentation-shell/` | [Issue #15](https://github.com/dayaa-arch/granvas/issues/15) / [PR #16](https://github.com/dayaa-arch/granvas/pull/16) |
 | 10 | Notation Certainty | 完了 | 9 | `.steering/20260811-phase-10-notation-certainty/` | [Issue #19](https://github.com/dayaa-arch/granvas/issues/19) / [PR #20](https://github.com/dayaa-arch/granvas/pull/20) |
-| 11 | Source Edit Core | 未着手 | 10 | 作業開始時に新規作成 | 未起票 |
+| 11 | Source Edit Core | 完了 | 10 | `.steering/20260811-phase-11-source-edit-core/` | [Issue #21](https://github.com/dayaa-arch/granvas/issues/21) / [PR #22](https://github.com/dayaa-arch/granvas/pull/22) |
 | 12 | Graph Authoring | 未着手 | 11 | 作業開始時に新規作成 | 未起票 |
 | 8 | Visual Export | 未着手 | 12 | 作業開始時に新規作成 | 未起票 |
 | 9 | Release Hardening | 未着手 | 13 | 作業開始時に新規作成 | 未起票 |
 
-現在の完了地点は**Phase 10 Notation Certainty**である。次の実装Phaseは**Phase 11 Source Edit Core**とする。GitHub Actionsはユーザー指示により後回しとし、Phase 9の未完了項目として保持する。
+現在の完了地点は**Phase 11 Source Edit Core**である。次の実装Phaseは**Phase 12 Graph Authoring**とする。GitHub Actionsはユーザー指示により後回しとし、Phase 9の未完了項目として保持する。
 
 ### 3.1 Scope Change: 2026-08-11
 
@@ -207,21 +207,21 @@ Goal: Graph操作をTextの最小差分へ変換する経路を、最小の編�
 
 Deliverables:
 
-- [ ] `ParsedNode` / `ParsedRelation` / `ParsedGroup`へのtoken単位`spans`追加（既存フィールドは不変）。
-- [ ] Notation domainの`NotationEditor`と`SourceEditPlan`、`planSetNodeLabel` / `planSetNodeType`。
-- [ ] `ProjectionSourceMapDto`のkey対応（`nodeKeys`）とindex対応の廃止。
-- [ ] `GranvasEditorHandle.applyEdits`によるパッチ適用経路。全文置換経路はImport用に維持する。
-- [ ] Workspace `applyGraphEdit`と、編集後のcaret / selection再解決。
-- [ ] Graph Nodeのラベル / 型インライン編集UI（Enter確定 / Escape取消 / IME中は抑止）。
-- [ ] plan適用 → 再parseのround-trip testと、散文が変化しないことのtest。
+- [x] `ParsedNode` / `ParsedRelation` / `ParsedGroup`へのtoken単位`spans`追加（既存フィールドは不変）。
+- [x] Notation domainの`NotationEditor`と`SourceEditPlan`、`planSetNodeLabel` / `planSetNodeType`。
+- [x] `ProjectionSourceMapDto`のkey対応（`nodeKeys`）とindex対応の廃止。
+- [x] `GranvasEditorHandle.applyEdits`によるパッチ適用経路。全文置換経路はImport用に維持する。
+- [x] Workspace `applyGraphEdit`と、編集後のcaret / selection再解決。
+- [x] Graph Nodeのラベル / 型インライン編集UI（Enter確定 / Escape取消 / IME中は抑止）。
+- [x] plan適用 → 再parseのround-trip testと、散文が変化しないことのtest。
 
 Exit Criteria:
 
-- [ ] Graph上のラベル編集がTextの該当行だけを書き換える。
-- [ ] 無関係な行と散文が一切変化しない。
-- [ ] Graph編集がUndo 1回で戻る。
-- [ ] debounce中の編集でもoffsetがずれない（編集前にpending sourceをflushする）。
-- [ ] Notation domainがReact / CodeMirror / React Flowをimportしない。
+- [x] Graph上のラベル編集がTextの該当行だけを書き換える。
+- [x] 無関係な行と散文が一切変化しない。
+- [x] Graph編集がUndo 1回で戻る。
+- [x] debounce中の編集でもoffsetがずれない（編集前にpending sourceをflushする）。
+- [x] Notation domainがReact / CodeMirror / React Flowをimportしない。
 
 ## 14. Phase 12: Graph Authoring
 
