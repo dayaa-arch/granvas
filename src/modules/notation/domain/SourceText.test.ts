@@ -62,7 +62,12 @@ describe('classifyNotationCandidate', () => {
   it('classifies top-level notation commit points', () => {
     expect(classify('[problem] A')).toBe('node')
     expect(classify('  -> [cause] B')).toBe('nested-relation')
+    expect(classify('  ?-> [cause] B')).toBe('nested-relation')
+    expect(classify('  !-> [cause] B')).toBe('nested-relation')
+    expect(classify('  ~-> [cause] B')).toBe('nested-relation')
+    expect(classify('  ?->')).toBe('nested-relation')
     expect(classify('@a -> @b')).toBe('cross-relation')
+    expect(classify('@a ?-> @b')).toBe('cross-relation')
     expect(classify('@layout flow TB')).toBe('layout')
     expect(classify('{Group}')).toBe('group-header')
     expect(classify('# Plain text')).toBe('plain-text')
@@ -73,6 +78,7 @@ describe('classifyNotationCandidate', () => {
     expect(classify('  [problem] A', true)).toBe('group-node')
     expect(classify('  @a', true)).toBe('group-reference')
     expect(classify('    -> [cause] B', true)).toBe('nested-relation')
+    expect(classify('    ?-> [cause] B', true)).toBe('nested-relation')
     expect(classify('  {Nested}', true)).toBe('nested-group')
     expect(classify('  ordinary text', true)).toBe('plain-text')
     expect(

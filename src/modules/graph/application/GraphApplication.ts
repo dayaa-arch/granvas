@@ -2,6 +2,7 @@ import {
   ThoughtGraphError,
   createThoughtGraph as createDomainThoughtGraph,
   type GraphDirection,
+  type GraphCertainty,
   type ThoughtGraph,
   type ThoughtGraphEdgeInput,
   type ThoughtGraphErrorCode,
@@ -26,11 +27,13 @@ export type ThoughtGraphEdgeDto = ThoughtGraph['edges'][number]
 export type ThoughtGraphGroupDto = ThoughtGraph['groups'][number]
 export type ThoughtGraphDto = ThoughtGraph
 export type GraphDirectionDto = GraphDirection
+export type GraphCertaintyDto = GraphCertainty
 
 export type GraphLayoutNodeDto = Readonly<{
   id: string
   label: string
   type: string
+  certainty: GraphCertaintyDto
   width: number
   height: number
 }>
@@ -40,6 +43,7 @@ export type GraphLayoutEdgeDto = Readonly<{
   source: string
   target: string
   label?: string
+  certainty: GraphCertaintyDto
 }>
 
 export type GraphLayoutGroupDto = Readonly<{
@@ -60,6 +64,7 @@ export type PositionedNodeDto = Readonly<{
   id: string
   label: string
   type: string
+  certainty: GraphCertaintyDto
   x: number
   y: number
   width: number
@@ -174,6 +179,7 @@ export function createGraphLayoutInput(
           id: node.id,
           label: node.label,
           type: node.type,
+          certainty: node.certainty,
           width: GRAPH_NODE_WIDTH,
           height: GRAPH_NODE_HEIGHT,
         }),
@@ -185,6 +191,7 @@ export function createGraphLayoutInput(
           id: edge.id,
           source: edge.sourceNodeId,
           target: edge.targetNodeId,
+          certainty: edge.certainty,
           ...(edge.label === undefined ? {} : { label: edge.label }),
         }),
       ),
@@ -271,20 +278,22 @@ function validatePositionedGraph(
       output.groups.map(({ id }) => id),
     ) ||
     output.nodes.some(
-      ({ id, label, type, x, y, width, height }, index) =>
+      ({ id, label, type, certainty, x, y, width, height }, index) =>
         id !== input.nodes[index]?.id ||
         label !== input.nodes[index]?.label ||
         type !== input.nodes[index]?.type ||
+        certainty !== input.nodes[index]?.certainty ||
         ![x, y, width, height].every(Number.isFinite) ||
         width !== GRAPH_NODE_WIDTH ||
         height !== GRAPH_NODE_HEIGHT,
     ) ||
     output.edges.some(
-      ({ id, source, target, label }, index) =>
+      ({ id, source, target, label, certainty }, index) =>
         id !== input.edges[index]?.id ||
         source !== input.edges[index]?.source ||
         target !== input.edges[index]?.target ||
-        label !== input.edges[index]?.label,
+        label !== input.edges[index]?.label ||
+        certainty !== input.edges[index]?.certainty,
     ) ||
     output.groups.some(
       ({ id, name, memberNodeIds, x, y, width, height }, index) =>

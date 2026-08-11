@@ -72,14 +72,23 @@ function syntaxDecorations(state: EditorState): DecorationSet {
   for (let lineNumber = 1; lineNumber <= state.doc.lines; lineNumber += 1) {
     const line = state.doc.line(lineNumber)
     const text = line.text
-    addMatches(ranges, line.from, text, /\[([A-Za-z][A-Za-z0-9_-]*)/gu, 'cm-gnv-type', 1)
+    addMatches(
+      ranges,
+      line.from,
+      text,
+      /\[[?!~]?[ \t]*([A-Za-z][A-Za-z0-9_-]*)/gu,
+      'cm-gnv-type',
+      1,
+    )
+    addMatches(ranges, line.from, text, /\[([?!~])/gu, 'cm-gnv-certainty', 1)
+    addMatches(ranges, line.from, text, /([?!~])(?=->)/gu, 'cm-gnv-certainty', 1)
     addMatches(ranges, line.from, text, /@[A-Za-z][A-Za-z0-9_-]*/gu, 'cm-gnv-id')
     addMatches(ranges, line.from, text, /->/gu, 'cm-gnv-arrow')
     addMatches(ranges, line.from, text, /\{[^}\r\n]+\}/gu, 'cm-gnv-group')
     addMatches(ranges, line.from, text, /@layout\s+flow\s+(?:TB|LR)/gu, 'cm-gnv-layout')
     addMatches(ranges, line.from, text, /:\s*(.+)$/gu, 'cm-gnv-relation-label', 1)
 
-    if (/^\s*(?:\[|@|\{|->)/u.test(text)) {
+    if (/^\s*(?:\[|@|\{|[?!~]?->)/u.test(text)) {
       ranges.push(Decoration.line({ class: 'cm-gnv-notation-line' }).range(line.from))
     }
   }

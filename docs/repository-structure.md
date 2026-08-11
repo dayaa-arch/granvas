@@ -47,6 +47,9 @@ granvas/
 │   │   │   └── index.ts
 │   │   ├── notation/
 │   │   │   ├── domain/
+│   │   │   │   ├── GranvasNotationParser.ts
+│   │   │   │   ├── NotationEditor.ts
+│   │   │   │   └── SourceText.ts
 │   │   │   ├── application/
 │   │   │   ├── presentation/
 │   │   │   └── index.ts
@@ -107,9 +110,10 @@ granvas/
 
 ### 3.3 `src/modules/notation`
 
-- Granvas Notation parser、diagnostics、SourceRange、syntax highlighting。
-- `SourceRange`のowner。
-- Graph modelやReact Flow型を置かない。
+- Granvas Notation parser、diagnostics、SourceRange / token spans、certainty、syntax highlighting。
+- **編集規則**。`domain/NotationEditor.ts`が`(source, parseResult, command) → SourceEditPlan`のpure function群を持つ。
+- `SourceRange`と`SourceEditPlan`のowner。
+- Graph modelやReact Flow型を置かない。domainにCodeMirror型を置かない。
 
 ### 3.4 `src/modules/graph`
 

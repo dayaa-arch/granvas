@@ -2,6 +2,7 @@ import {
   parseGranvasNotation,
   type DiagnosticCode,
   type DiagnosticLevel,
+  type NotationCertainty,
   type NotationDiagnostic,
   type NotationParseResult,
   type ParsedGroup,
@@ -14,6 +15,7 @@ import {
 export type SourceRangeDto = SourceRange
 export type DiagnosticCodeDto = DiagnosticCode
 export type DiagnosticLevelDto = DiagnosticLevel
+export type NotationCertaintyDto = NotationCertainty
 export type DiagnosticDto = NotationDiagnostic
 export type ParsedNodeDto = ParsedNode
 export type ParsedRelationDto = ParsedRelation

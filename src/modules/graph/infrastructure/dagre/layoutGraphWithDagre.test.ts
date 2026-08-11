@@ -13,13 +13,23 @@ import { layoutGraphWithDagre } from './layoutGraphWithDagre'
 const semanticGraph = createThoughtGraph({
   revision: 7,
   nodes: [
-    { key: 'a', type: 'problem', label: 'A' },
-    { key: 'b', type: 'cause', label: 'B' },
-    { key: 'c', type: 'cause', label: 'C' },
+    { key: 'a', type: 'problem', label: 'A', certainty: 'confirmed' },
+    { key: 'b', type: 'cause', label: 'B', certainty: 'tentative' },
+    { key: 'c', type: 'cause', label: 'C', certainty: 'rejected' },
   ],
   relations: [
-    { key: 'ab', sourceNodeKey: 'a', targetNodeKey: 'b' },
-    { key: 'ac', sourceNodeKey: 'a', targetNodeKey: 'c' },
+    {
+      key: 'ab',
+      sourceNodeKey: 'a',
+      targetNodeKey: 'b',
+      certainty: 'tentative',
+    },
+    {
+      key: 'ac',
+      sourceNodeKey: 'a',
+      targetNodeKey: 'c',
+      certainty: 'rejected',
+    },
   ],
   groups: [{ key: 'g', name: 'All', memberNodeKeys: ['a', 'b', 'c'] }],
 })
@@ -39,6 +49,15 @@ describe('layoutGraphWithDagre', () => {
     )
     expect(tb.nodes[0]!.y).toBeLessThan(tb.nodes[1]!.y)
     expect(lr.nodes[0]!.x).toBeLessThan(lr.nodes[1]!.x)
+    expect(tb.nodes.map(({ certainty }) => certainty)).toEqual([
+      'confirmed',
+      'tentative',
+      'rejected',
+    ])
+    expect(tb.edges.map(({ certainty }) => certainty)).toEqual([
+      'tentative',
+      'rejected',
+    ])
   })
 
   it('wraps all members in a 24px Group overlay', () => {

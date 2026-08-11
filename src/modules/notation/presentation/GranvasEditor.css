@@ -26,6 +26,14 @@
   font-weight: 800;
 }
 
+.cm-gnv-certainty {
+  color: #7b4aa8;
+  font-weight: 900;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
 .cm-gnv-group {
   color: #a05c16;
   font-weight: 700;

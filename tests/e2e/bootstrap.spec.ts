@@ -14,10 +14,14 @@ test('boots the canonical Text and Graph workspace', async ({ page }) => {
   )
   await expect(
     page.getByRole('button', {
-      name: 'problem: Customer information is scattered',
+      name: 'neutral certainty, problem: Customer information is scattered',
     }),
   ).toBeVisible()
-  await expect(page.getByRole('button', { name: 'idea: AI unifies notes and structure' })).toBeVisible()
+  await expect(
+    page.getByRole('button', {
+      name: 'neutral certainty, idea: AI unifies notes and structure',
+    }),
+  ).toBeVisible()
   await expect(page.getByLabel('Workspace status')).toContainText('5 nodes')
   await expect(page.getByLabel('Workspace status')).toContainText('3 edges')
   await expect(page.getByLabel('Workspace status')).toContainText('0 diagnostics')
@@ -31,11 +35,13 @@ test('updates the current Graph and synchronizes Text and Node selection', async
   const source = '[idea @fresh] Fresh idea\n  -> [todo] Ship it'
 
   await editor.fill(source)
-  const freshNode = page.getByRole('button', { name: 'idea: Fresh idea' })
+  const freshNode = page.getByRole('button', {
+    name: 'neutral certainty, idea: Fresh idea',
+  })
   await expect(freshNode).toBeVisible()
   await expect(
     page.getByRole('button', {
-      name: 'problem: Customer information is scattered',
+      name: 'neutral certainty, problem: Customer information is scattered',
     }),
   ).toHaveCount(0)
   await expect(page.getByLabel('Workspace status')).toContainText('2 nodes')
@@ -46,7 +52,9 @@ test('updates the current Graph and synchronizes Text and Node selection', async
     .poll(() => editor.evaluate(() => window.getSelection()?.toString() ?? ''))
     .toBe('[idea @fresh] Fresh idea')
 
-  const todoNode = page.getByRole('button', { name: 'todo: Ship it' })
+  const todoNode = page.getByRole('button', {
+    name: 'neutral certainty, todo: Ship it',
+  })
   await todoNode.focus()
   await todoNode.press('Enter')
   await expect
@@ -60,7 +68,11 @@ test('updates the current Graph and synchronizes Text and Node selection', async
   await expect(freshNode).toHaveClass(/selected/)
 
   await editor.fill('[idea @valid] Still valid\n@missing -> @valid')
-  await expect(page.getByRole('button', { name: 'idea: Still valid' })).toBeVisible()
+  await expect(
+    page.getByRole('button', {
+      name: 'neutral certainty, idea: Still valid',
+    }),
+  ).toBeVisible()
   await expect(page.getByLabel('Workspace status')).toContainText('1 diagnostic')
 })
 
@@ -76,7 +88,9 @@ test('imports a .granvas project through the browser picker', async ({ page }) =
   })
 
   await expect(
-    page.getByRole('button', { name: 'idea: Imported thought' }),
+    page.getByRole('button', {
+      name: 'neutral certainty, idea: Imported thought',
+    }),
   ).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Granvas text editor' })).toContainText(
     '[idea @imported] Imported thought',
@@ -155,6 +169,74 @@ test('downloads BOM-free .granvas source and marks that revision saved', async (
   await expect(page.getByLabel('Workspace status')).toContainText('Saved')
 
   await editor.fill(`${source}\n[idea @resumed] Resume editing`)
-  await expect(page.getByRole('button', { name: 'idea: Resume editing' })).toBeVisible()
+  await expect(
+    page.getByRole('button', {
+      name: 'neutral certainty, idea: Resume editing',
+    }),
+  ).toBeVisible()
   await expect(page.getByLabel('Workspace status')).toContainText('Unsaved')
+})
+
+test('projects certainty markers without color-only distinctions', async ({ page }) => {
+  await page.goto('/')
+  const editor = page.getByRole('textbox', { name: 'Granvas text editor' })
+  const source = `@layout flow TB
+
+# 解約の分析
+
+先週のインタビューから、解約の原因を整理する。
+
+[problem @churn] 解約が増えている
+  !-> [cause] オンボーディングが長い
+  ?-> [?hypothesis @price] 価格が高い
+  ~-> [~cause] UI が古い
+
+[!idea @onboarding] 初回設定を3ステップにする
+[~idea @discount] 値下げする
+
+@onboarding -> @churn : solves
+@price ?-> @churn : maybe
+
+{Validated}
+  @onboarding`
+
+  await editor.fill(source)
+
+  await expect(page.getByLabel('Workspace status')).toContainText('6 nodes')
+  await expect(page.getByLabel('Workspace status')).toContainText('5 edges')
+  await expect(page.getByLabel('Workspace status')).toContainText('0 diagnostics')
+  await expect(
+    page.getByRole('button', {
+      name: 'tentative certainty, hypothesis: 価格が高い',
+    }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('button', {
+      name: 'confirmed certainty, idea: 初回設定を3ステップにする',
+    }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('button', {
+      name: 'rejected certainty, idea: 値下げする',
+    }),
+  ).toBeVisible()
+  await expect(page.locator('.graph-node--certainty-neutral')).toHaveCount(2)
+  await expect(page.locator('.graph-node--certainty-tentative')).toHaveCount(1)
+  await expect(page.locator('.graph-node--certainty-confirmed')).toHaveCount(1)
+  await expect(page.locator('.graph-node--certainty-rejected')).toHaveCount(2)
+  await expect(page.locator('.graph-edge--certainty-neutral')).toHaveCount(1)
+  await expect(page.locator('.graph-edge--certainty-tentative')).toHaveCount(2)
+  await expect(page.locator('.graph-edge--certainty-confirmed')).toHaveCount(1)
+  await expect(page.locator('.graph-edge--certainty-rejected')).toHaveCount(1)
+  await expect(
+    page.locator(
+      '[aria-label="rejected certainty relation from 解約が増えている to UI が古い"]',
+    ),
+  ).toHaveCount(1)
+  await expect(
+    page.locator('.graph-edge--certainty-tentative .react-flow__edge-path').first(),
+  ).toHaveCSS('stroke-dasharray', '8px, 6px')
+  await expect(
+    page.locator('.graph-edge--certainty-confirmed .react-flow__edge-path'),
+  ).toHaveCSS('stroke-width', '2.8px')
 })

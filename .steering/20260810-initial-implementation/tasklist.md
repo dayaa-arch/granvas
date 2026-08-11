@@ -2,7 +2,7 @@
 
 > 作成日: 2026-08-10
 > 最終整理日: 2026-08-11
-> ステータス: Phase 7完了・Phase 8未着手
+> ステータス: Phase 10完了・Phase 11未着手
 > Phase正本: `docs/development-roadmap.md`
 
 この文書はPhaseごとの実装進捗を追跡する。Phase名称と番号は開発ロードマップに合わせ、完了済みのsteering / Issue / PRはロードマップの履歴対応表から参照する。
@@ -105,6 +105,36 @@
 - [x] `beforeunload`とdirty Project置換警告を実装する。
 - [x] component / accessibility testとText ↔ Graph / Import round-trip E2Eを追加する。
 - [x] 現行E2EをChromium、Firefox、WebKitで成功させる。
+
+## Phase 10: Notation Certainty
+
+- [x] Node確信度マーカー`[?type]` / `[!type]` / `[~type]`を解析する。
+- [x] Relation operator `?->` / `!->` / `~->`をNested / Cross Relationで解析する。
+- [x] `GNV014_INVALID_CERTAINTY_MARKER`とpartial recoveryを実装する。
+- [x] certaintyをGraph Domain / layout DTO / Positioned Graphへ伝播する。
+- [x] Node / Edgeの4状態を非color表現とaccessible nameで表示する。
+- [x] CodeMirror certainty syntax highlightを実装する。
+- [x] Certainty DemoとPhase 3 fixtureの後方互換testを追加する。
+- [x] Chromium / Firefox / WebKitでCertainty Demo E2Eを成功させる。
+
+完了条件:
+
+- [x] 既存sourceの意味構造を維持し、既存要素を`neutral`として解析する。
+- [x] rejectedなNode / Edgeを消さず棄却として表示する。
+- [x] 4状態をTextからGraphへ決定的に投影する。
+
+## Phase 11: Source Edit Core
+
+- [ ] token spansと`NotationEditor` / `SourceEditPlan`を実装する。
+- [ ] Nodeラベル / Type編集をTextの最小差分として適用する。
+- [ ] Workspace orchestration、1 transaction、Undo、selection再解決を実装する。
+- [ ] round-tripと散文非破壊を検証する。
+
+## Phase 12: Graph Authoring
+
+- [ ] 意味ドラッグ、Node作成、Edge接続、削除を実装する。
+- [ ] 循環拒否、削除連鎖の事前提示、`@id`自動採番を実装する。
+- [ ] 座標非永続化、Undo、round-trip、3-browser E2Eを検証する。
 
 ## Phase 8: Visual Export
 

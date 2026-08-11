@@ -14,6 +14,7 @@ export {
   type CreateThoughtGraphInputDto,
   type GraphApplicationErrorCode,
   type GraphBoundsDto,
+  type GraphCertaintyDto,
   type GraphDirectionDto,
   type GraphExportSceneDto,
   type GraphLayoutEdgeDto,

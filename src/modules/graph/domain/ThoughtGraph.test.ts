@@ -6,14 +6,46 @@ describe('ThoughtGraph', () => {
   const input = {
     revision: 3,
     nodes: [
-      { key: 'node:20', explicitId: 'same', type: 'idea', label: 'B' },
-      { key: 'node:10', explicitId: 'same', type: 'problem', label: 'A' },
+      {
+        key: 'node:20',
+        explicitId: 'same',
+        type: 'idea',
+        label: 'B',
+        certainty: 'tentative',
+      },
+      {
+        key: 'node:10',
+        explicitId: 'same',
+        type: 'problem',
+        label: 'A',
+        certainty: 'rejected',
+      },
     ],
     edges: [
-      { key: 'edge:30', sourceNodeKey: 'node:10', targetNodeKey: 'node:20' },
-      { key: 'edge:31', sourceNodeKey: 'node:10', targetNodeKey: 'node:20' },
-      { key: 'edge:32', sourceNodeKey: 'node:10', targetNodeKey: 'node:10' },
-      { key: 'edge:33', sourceNodeKey: 'node:20', targetNodeKey: 'node:10' },
+      {
+        key: 'edge:30',
+        sourceNodeKey: 'node:10',
+        targetNodeKey: 'node:20',
+        certainty: 'neutral',
+      },
+      {
+        key: 'edge:31',
+        sourceNodeKey: 'node:10',
+        targetNodeKey: 'node:20',
+        certainty: 'tentative',
+      },
+      {
+        key: 'edge:32',
+        sourceNodeKey: 'node:10',
+        targetNodeKey: 'node:10',
+        certainty: 'confirmed',
+      },
+      {
+        key: 'edge:33',
+        sourceNodeKey: 'node:20',
+        targetNodeKey: 'node:10',
+        certainty: 'rejected',
+      },
     ],
     groups: [
       { key: 'group:2', name: 'Two', memberNodeKeys: ['node:10'] },
@@ -37,6 +69,16 @@ describe('ThoughtGraph', () => {
     expect(repeated).toEqual(graph)
     expect(graph.nodes.map(({ label }) => label)).toEqual(['A', 'B'])
     expect(graph.nodes.map(({ explicitId }) => explicitId)).toEqual(['same', 'same'])
+    expect(graph.nodes.map(({ certainty }) => certainty)).toEqual([
+      'rejected',
+      'tentative',
+    ])
+    expect(graph.edges.map(({ certainty }) => certainty)).toEqual([
+      'neutral',
+      'tentative',
+      'confirmed',
+      'rejected',
+    ])
     expect(graph.edges).toHaveLength(4)
     expect(graph.groups.map(({ name }) => name)).toEqual(['One', 'Two'])
     expect(graph.groups[0]?.memberNodeIds).toHaveLength(2)
@@ -71,8 +113,8 @@ describe('ThoughtGraph', () => {
       createThoughtGraph({
         revision: 0,
         nodes: [
-          { key: 'same', type: 'node', label: 'A' },
-          { key: 'same', type: 'node', label: 'B' },
+          { key: 'same', type: 'node', label: 'A', certainty: 'neutral' },
+          { key: 'same', type: 'node', label: 'B', certainty: 'neutral' },
         ],
         edges: [],
         groups: [],
@@ -84,8 +126,15 @@ describe('ThoughtGraph', () => {
     expect(() =>
       createThoughtGraph({
         revision: 0,
-        nodes: [{ key: 'a', type: 'node', label: 'A' }],
-        edges: [{ key: 'e', sourceNodeKey: 'a', targetNodeKey: 'missing' }],
+        nodes: [{ key: 'a', type: 'node', label: 'A', certainty: 'neutral' }],
+        edges: [
+          {
+            key: 'e',
+            sourceNodeKey: 'a',
+            targetNodeKey: 'missing',
+            certainty: 'neutral',
+          },
+        ],
         groups: [],
       }),
     ).toThrowError(expect.objectContaining({ code: 'dangling-edge-node' }))
@@ -93,7 +142,7 @@ describe('ThoughtGraph', () => {
     expect(() =>
       createThoughtGraph({
         revision: 0,
-        nodes: [{ key: 'a', type: 'node', label: 'A' }],
+        nodes: [{ key: 'a', type: 'node', label: 'A', certainty: 'neutral' }],
         edges: [],
         groups: [{ key: 'g', name: 'G', memberNodeKeys: ['missing'] }],
       }),

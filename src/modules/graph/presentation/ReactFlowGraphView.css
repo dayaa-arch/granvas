@@ -32,6 +32,7 @@
 }
 
 .graph-node {
+  position: relative;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -45,6 +46,44 @@
   background: var(--node-bg, #ffffff);
   box-shadow: 0 8px 22px rgba(34, 42, 58, 0.09), 0 1px 2px rgba(34, 42, 58, 0.08);
   transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.graph-node--certainty-tentative {
+  border-style: dashed;
+  border-width: 2px;
+}
+
+.graph-node--certainty-confirmed {
+  border-width: 2.5px;
+}
+
+.graph-node--certainty-rejected {
+  border-style: dashed;
+  border-color: #7d828a;
+  background: #f3f3f3;
+  box-shadow: none;
+  filter: grayscale(1);
+  opacity: 0.76;
+}
+
+.graph-node--certainty-rejected .graph-node__label {
+  text-decoration: line-through 2px;
+}
+
+.graph-node__certainty {
+  position: absolute;
+  top: 9px;
+  right: 11px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  color: var(--node-type, #536174);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .graph-node.is-selected {

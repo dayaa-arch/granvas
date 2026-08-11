@@ -1,14 +1,14 @@
 # Granvas 開発ガイドライン
 
 > Status: Draft / Approval Candidate  
-> Updated: 2026-08-10
+> Updated: 2026-08-11
 
 ## 1. 開発の基準
 
 1. `docs/ideas/initial-requirements.md`を要求の真の情報源とする。
 2. 永続的な設計は`docs/`、作業単位の判断は`.steering/`へ記録する。
-3. 仕様変更を実装だけで行わず、対応文書またはADRを先に更新する。
-4. Textを正本とし、Graph・座標・visual exportを派生データとして扱う。
+3. 仕様変更を実装だけで行わず、対応文書またはADRを先に更新する。ADRは`docs/adr/`へ置く。
+4. Textを正本とし、Graph・座標・visual exportを派生データとして扱う。Graph側の編集もTextの書き換えとして実現する。
 5. Domain boundary、SRP、一方向依存、疎結合、DIPをreview blockerとして扱う。
 
 ## 2. Development Workflow
@@ -110,7 +110,24 @@ Common
 - recovery behaviorをdiagnostic codeごとにgolden testへ記録する。
 - UTF-16、emoji、CRLF、BOM、IMEを含むfixtureを用意する。
 - occurrence keyは同一sourceに対して決定的であることをtestする。
+- token spansがprimary rangeの内側に収まることをtestする。
+- 記法へsyntaxを追加したら、既存fixtureが無改変で通ることを後方互換の証明として残す。
 - Parser outputへUI library型を含めない。
+
+## 6.1 Source Edit Development
+
+編集規則はParserと同格のexecutable specificationとして扱う。詳細は`docs/GRANVAS_SPEC_v0.1.md`§5.4と[ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md)。
+
+- 編集規則は`notation/domain/NotationEditor.ts`のpure functionとして書く。
+- `(source, parseResult, command) → SourceEditPlan`のsignatureを守り、副作用を持たせない。
+- **Graphからテキスト全文を再生成するコードを書かない。** 通常文が破壊される。
+- 編集列は適用前sourceを基準とし、`from`昇順で重複しないことをtestする。
+- 実行できない操作はthrowせず`rejected`として理由付きで返す。
+- 最優先のtestは**round-trip**。「planを適用したsourceを再parseすると意図した構造になる」を全コマンドについて書く。
+- 「通常文が変化しない」「編集対象以外の行が変化しない」を明示的にassertする。
+- Graph ID → occurrence keyの逆引きは`ProjectionSourceMapDto`経由とし、ID生成規則を再現しない。
+- Graph編集の前に必ずpendingなsource更新をflushする。debounce中の解析結果へpatchを当てるとoffsetがずれる。
+- Presentationは編集列を1トランザクションでdispatchし、Undo 1回で戻せることをtestする。
 
 ## 7. Projection / Concurrency
 

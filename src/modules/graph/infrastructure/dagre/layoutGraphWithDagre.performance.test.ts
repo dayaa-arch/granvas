@@ -14,6 +14,7 @@ describe.skipIf(process.env.GRANVAS_GRAPH_PERFORMANCE !== '1')(
         key: `node:${index.toString().padStart(3, '0')}`,
         type: 'node',
         label: `Node ${index}`,
+        certainty: 'neutral' as const,
       }))
       const relations = Array.from({ length: 300 }, (_, index) => {
         const source = index % 180
@@ -22,6 +23,7 @@ describe.skipIf(process.env.GRANVAS_GRAPH_PERFORMANCE !== '1')(
           key: `edge:${index.toString().padStart(3, '0')}`,
           sourceNodeKey: nodes[source]!.key,
           targetNodeKey: nodes[target]!.key,
+          certainty: 'neutral' as const,
         }
       })
       const groups = Array.from({ length: 10 }, (_, groupIndex) => ({

@@ -4,6 +4,7 @@ export {
   type DiagnosticCodeDto,
   type DiagnosticDto,
   type DiagnosticLevelDto,
+  type NotationCertaintyDto,
   type ParseNotationInput,
   type ParseResultDto,
   type ParsedGroupDto,

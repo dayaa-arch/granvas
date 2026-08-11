@@ -88,6 +88,7 @@ export function layoutGraphWithDagre(
         id: node.id,
         label: node.label,
         type: node.type,
+        certainty: node.certainty,
         x: positioned.x! - node.width / 2,
         y: positioned.y! - node.height / 2,
         width: node.width,

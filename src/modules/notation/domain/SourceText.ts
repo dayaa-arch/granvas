@@ -85,8 +85,16 @@ function startsReservedContent(content: string): boolean {
     content.startsWith('[') ||
     content.startsWith('@') ||
     content.startsWith('{') ||
-    content.startsWith('->')
+    startsRelationOperator(content)
   )
+}
+
+function startsRelationOperator(content: string): boolean {
+  return /^(?:[?!~]?->)/u.test(content)
+}
+
+function containsRelationOperator(content: string): boolean {
+  return /(?:^|[ \t])[?!~]?->(?:[ \t]|$)/u.test(content)
 }
 
 export function classifyNotationCandidate(
@@ -105,7 +113,7 @@ export function classifyNotationCandidate(
   }
 
   if (insideGroup) {
-    if (line.content.startsWith('->')) {
+    if (startsRelationOperator(line.content)) {
       return Object.freeze({ kind: 'nested-relation', closesGroup: false })
     }
 
@@ -133,7 +141,7 @@ export function classifyNotationCandidate(
       return Object.freeze({ kind: 'layout', closesGroup })
     }
 
-    if (line.content.startsWith('@') && line.content.includes('->')) {
+    if (line.content.startsWith('@') && containsRelationOperator(line.content)) {
       return Object.freeze({ kind: 'cross-relation', closesGroup })
     }
 
@@ -144,7 +152,7 @@ export function classifyNotationCandidate(
     return Object.freeze({ kind: 'plain-text', closesGroup })
   }
 
-  if (line.content.startsWith('->')) {
+  if (startsRelationOperator(line.content)) {
     return Object.freeze({ kind: 'nested-relation', closesGroup })
   }
 

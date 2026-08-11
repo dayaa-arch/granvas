@@ -39,6 +39,7 @@ function positionedFrom(input: GraphLayoutInputDto): PositionedGraphDto {
           id: node.id,
           label: node.label,
           type: node.type,
+          certainty: node.certainty,
           x: index * 300,
           y: index * 150,
           width: node.width,

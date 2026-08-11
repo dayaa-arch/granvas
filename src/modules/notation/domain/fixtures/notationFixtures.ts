@@ -39,3 +39,23 @@ export const unicodeCrLfSource =
   '😀 intro\r\n[idea @emoji] 🚀 Plan\r\n  -> [todo] Done'
 
 export const sourceWithBom = '\uFEFF[node] BOM boundary'
+
+export const certaintyDemoSource = `@layout flow TB
+
+# 解約の分析
+
+先週のインタビューから、解約の原因を整理する。
+
+[problem @churn] 解約が増えている
+  !-> [cause] オンボーディングが長い
+  ?-> [?hypothesis @price] 価格が高い
+  ~-> [~cause] UI が古い
+
+[!idea @onboarding] 初回設定を3ステップにする
+[~idea @discount] 値下げする
+
+@onboarding -> @churn : solves
+@price ?-> @churn : maybe
+
+{Validated}
+  @onboarding`

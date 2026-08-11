@@ -2,7 +2,7 @@
 
 > Status: Draft / Approval Candidate  
 > Target: v0.1  
-> Updated: 2026-08-10  
+> Updated: 2026-08-11
 > Source of Truth: `docs/ideas/initial-requirements.md`
 
 ## 1. プロダクトビジョン
@@ -18,6 +18,8 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 - 文章は書きやすいが、課題・原因・アイデア・行動の関係を俯瞰しにくい。
 - 一般的な作図ツールでは配置や装飾の操作が必要になり、思考を書く流れが中断される。
 - 構造化記法だけを要求すると、自由なメモと構造化された思考を同じ場所に残しにくい。
+- 既存の軽量記法は「確定した構造」を描く言語であり、検証前の仮説や棄却した案を構造として残せない。思考の途中には必ず未確定が含まれる。
+- テキストから図を生成するツールは、図を見て気づいたことを図の上で直せない。結局テキストへ戻って該当箇所を探す必要がある。
 - クラウドアカウントを前提にすると、試用・自己ホスト・機密メモ利用の敷居が上がる。
 
 ## 3. ターゲットユーザー
@@ -29,11 +31,14 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 
 ## 4. プロダクト原則
 
-1. **Text is the source of truth.** Graph は派生表示であり、意味をGraphだけに保存しない。
+1. **Text is the source of truth.** Graph は派生表示であり、意味をGraphだけに保存しない。Graph上の操作もTextの書き換えとして実現し、Graph自身に状態を持たせない。
 2. **書くことを妨げない。** 未完成構文や一部の誤りがあってもText編集を続けられる。
-3. **意味を記述し、見た目は委ねる。** 座標・色・形をNotationへ持ち込まない。
-4. **ユーザーがProjectを所有する。** v0.1の継続可能な保存形式は `.granvas` とする。
-5. **アカウント不要。** v0.1は認証・クラウド同期・backend APIに依存しない。
+3. **意味を記述し、見た目は委ねる。** 座標・色・形をNotationへ持ち込まない。ドラッグも座標ではなく意味の操作として扱う。
+4. **未確定を捨てない。** 仮説・検証済み・棄却を記法で表現でき、棄却したものは図から消えず棄却として残る。
+5. **ユーザーがProjectを所有する。** v0.1の継続可能な保存形式は `.granvas` とする。
+6. **アカウント不要。** v0.1は認証・クラウド同期・backend APIに依存しない。
+
+原則 1 と 3 の帰結として、Graph からテキスト全文を再生成することは行わない。通常文が破壊されるためである。Graph 操作は現在のテキストに対する最小の編集列として適用する。
 
 ## 5. v0.1 のスコープ
 
@@ -42,10 +47,15 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 - 左Text / 右Graphの分割UIと可変divider。
 - 通常文と Granvas Notation の混在編集。
 - Node、Nested Relation、Cross Relation、Group、Flow Layoutの解析。
+- Node / Relationの確信度（未確定・確定・棄却）の解析と表示。
 - TB / LRの自動Layout。
 - Text → Graphのリアルタイムprojection。
 - Graph Node選択 → 対応Text宣言への移動。
 - Textカーソル → 対応Graph Nodeのhighlight。
+- Graph上でのNodeラベル / Type編集。
+- Graph上でのNode作成、Edge接続、削除。
+- 意味ドラッグによる親子関係・Group所属の変更。
+- Graph操作をTextの最小差分として反映し、Undoで戻せること。
 - syntax highlightと非破壊的diagnostics。
 - Pan / Zoom / Fit View。
 - `.granvas` ProjectのImport。
@@ -56,7 +66,8 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 
 ### 5.2 スコープ外
 
-- Graph上からのNode / Edge編集、自由作図、座標保存。
+- 自由作図、Node座標の保存、手動配置。ドラッグは意味の操作としてのみ扱う。
+- Graph上での通常文の編集。通常文はText paneでのみ編集する。
 - localStorage / IndexedDBへの自動永続化。
 - 複数Project管理、folder、検索、backlink。
 - アカウント、認証、クラウド同期、共同編集、backend API。
@@ -115,7 +126,35 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 - visual formatのDownloadはProjectのdirty stateを解除しない。
 - Graphが空の場合、visual formatを選べない理由を表示する。
 
-### US-05: アカウントなしで利用する
+### US-05: 未確定のまま構造にする
+
+ユーザーとして、検証していない仮説や棄却した案を、確定した内容と区別したまま図に残したい。
+
+受け入れ条件:
+
+- Node / Relationに未確定・確定・棄却を記法で付与できる。
+- 確信度はNode Typeと独立して指定できる。
+- 棄却したNode / EdgeはGraphから消えず、棄却として表示される。
+- 確信度をcolorだけに依存せず判別できる。
+- 確信度を導入する前に書いた`.granvas`は、同じ構造として解析される。
+
+### US-06: Graphを触って構造を直す
+
+ユーザーとして、図を見て気づいたことを、テキストへ戻らずその場で直したい。
+
+受け入れ条件:
+
+- Graph上でNodeのラベルとTypeを編集できる。
+- Graph上でNode作成、Edge接続、削除ができる。
+- NodeをドラッグしてほかのNodeへdropすると、親子関係が変わる。
+- Graph Group overlayへdropすると、Group所属が変わる。
+- 自分の子孫を親にする操作は拒否され、理由が示される。
+- どの操作もTextの該当箇所だけを書き換え、通常文と無関係な行を変更しない。
+- どの操作もUndo 1回で元に戻る。
+- どの操作も`.granvas`へ座標を書き込まない。
+- すべての編集操作へkeyboardから到達できる。
+
+### US-07: アカウントなしで利用する
 
 ユーザーとして、登録やクラウド送信なしで利用したい。
 
@@ -130,7 +169,7 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | ID | 要件 |
 | --- | --- |
 | FR-001 | Single active documentをmemory上で管理する |
-| FR-002 | Granvas Notation v0.1をcurrent sourceから決定的に解析する |
+| FR-002 | Granvas Notation v0.2をcurrent sourceから決定的に解析する |
 | FR-003 | Parserはdiagnosticsとpartial resultを同一revisionで返す |
 | FR-004 | Semantic GraphとPositioned Graphを分離する |
 | FR-005 | Groupを重なり可能なoverlayとして表示する |
@@ -141,6 +180,14 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | FR-010 | Projectのclean / dirty / exporting / errorを表示する |
 | FR-011 | Download / Importの文字列をuntrustedとして安全に処理する |
 | FR-012 | Vercelへstatic SPAとしてdeployできる |
+| FR-013 | Node / Relationのcertaintyを解析し、colorに依存せず表示する |
+| FR-014 | ParserがNode / Relation / Groupのtoken単位rangeを公開する |
+| FR-015 | Graph操作をcurrent sourceへの最小編集列へ変換する |
+| FR-016 | 編集規則をNotation domainのpure functionとして所有する |
+| FR-017 | Graph編集を1トランザクションで適用し、Undo 1回で戻せるようにする |
+| FR-018 | 実行できないGraph操作を理由付きで拒否し、sourceを変更しない |
+| FR-019 | Graph編集後も`.granvas`にNode座標を含めない |
+| FR-020 | v0.1として有効な既存`.granvas`を同じ構造へ解析する（後方互換） |
 
 ## 8. 非機能要件
 
@@ -149,15 +196,24 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | NFR-001 | 500 lines / 200 nodes / 300 edges / 10 groupsを基準規模とする |
 | NFR-002 | debounce終了からGraph paintまでp95 350ms以下を目標とする |
 | NFR-003 | Chromium / Firefox / WebKitで主要E2Eを通す |
-| NFR-004 | WCAG 2.2 AAを適合目標とする |
+| NFR-004 | WCAG 2.2 AAを適合目標とし、すべての編集操作へkeyboardから到達できる |
 | NFR-005 | Domain / ApplicationへReact・CodeMirror・React Flow・Dagre・browser固有型を漏らさない |
 | NFR-006 | production asset load後のoutbound requestを0とする |
 | NFR-007 | Import fileのhard limitを5 MiBとする |
 | NFR-008 | TypeScript error、lint errorを0とし、production buildを成功させる |
+| NFR-009 | Graph編集の確定操作からGraph paintまでp95 350ms以下を目標とする |
+| NFR-010 | 編集計画の生成をp95 20ms以下の同期pure functionに収める |
+| NFR-011 | Graph編集が通常文と無関係な行を変更しないことをtestで保証する |
 
 ## 9. 成功の定義
 
-v0.1の成功は、ユーザーがCanonical Demo相当の文章を自然に入力し、構造をGraphで理解し、`.granvas`で保存・再開し、必要に応じてvisual formatを共有できることである。
+v0.1の成功は、ユーザーがCanonical Demo相当の文章を自然に入力し、構造をGraphで理解し、Graph側から構造を直し、未確定と棄却を残したまま思考を進め、`.granvas`で保存・再開し、必要に応じてvisual formatを共有できることである。
+
+構文プリミティブの単体は既存の軽量記法（Mermaid / D2 / nomnoml / Argdown）に先行事例がある。Granvasが固有に持つのは次の3点であり、機能の取捨はこの3点を強めるかどうかで判断する。
+
+1. 散文がホストで、記法がopt-inであること。図を書くために別のモードへ入る必要がない。
+2. 書きかけでも壊れないこと。candidateのcommit規則と部分回復を言語仕様として定義している。
+3. 未確定を一級市民として扱えること。確定した構造だけを描く既存記法との差はここにある。
 
 リリース判定は `docs/GRANVAS_SPEC_v0.1.md` のDefinition of Doneと `docs/development-roadmap.md` のrelease gateに従う。
 
