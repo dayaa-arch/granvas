@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Granvasの日本語公式利用ガイド。テキストからグラフを投影し、思考の構造を編集する方法を説明します。" />
+    <meta name="theme-color" content="#f4f2ed" />
+    <title>Granvas 1.0 公式ドキュメント</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <script type="module" crossorigin src="/granvas/assets/index-DGNasIc1.js"></script>
+    <link rel="stylesheet" crossorigin href="/granvas/assets/index-D5H6Lzd3.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">本文へ移動</a>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Granvas 公式ドキュメントの先頭へ">
+        <span class="brand__mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span><strong>Granvas</strong><small>公式ドキュメント</small></span>
+      </a>
+      <nav class="header-nav" aria-label="補助ナビゲーション">
+        <a href="#quick-start">はじめる</a>
+        <a href="#notation">記法</a>
+        <a href="https://github.com/dayaa-arch/granvas">GitHub<span aria-hidden="true"> ↗</span></a>
+      </nav>
+    </header>
+
+    <div id="top" class="release-strip" role="note">
+      <span class="release-strip__status">公開プレビュー</span>
+      <span>Granvas 1.0 公式ドキュメント</span>
+      <span class="release-strip__implementation">対応実装: Granvas v0.1 開発版（Phase 12完了時点）</span>
+    </div>
+
+    <div class="docs-shell">
+      <aside class="side-nav" aria-label="ドキュメント目次">
+        <p>利用ガイド</p>
+        <nav>
+          <a href="#overview">Granvasとは</a>
+          <a href="#quick-start">はじめる</a>
+          <a href="#workspace">画面の見方</a>
+          <a href="#notation">記法を書く</a>
+          <a href="#certainty">確信度</a>
+          <a href="#graph-editing">グラフから編集</a>
+          <a href="#projects">プロジェクトを保持</a>
+          <a href="#keyboard">キーボード操作</a>
+          <a href="#diagnostics">診断とFAQ</a>
+          <a href="#limitations">現在の制約</a>
+        </nav>
+        <div class="side-nav__principle">
+          <span>設計原則</span>
+          <strong>Text is the source of truth.</strong>
+          <small>テキストが唯一の正本です。</small>
+        </div>
+      </aside>
+
+      <main id="main-content" tabindex="-1">
+        <details class="mobile-toc">
+          <summary>このページの目次</summary>
+          <nav aria-label="モバイル目次">
+            <a href="#overview">Granvasとは</a><a href="#quick-start">はじめる</a>
+            <a href="#workspace">画面の見方</a><a href="#notation">記法を書く</a>
+            <a href="#graph-editing">グラフから編集</a><a href="#projects">プロジェクトを保持</a>
+            <a href="#diagnostics">診断とFAQ</a><a href="#limitations">現在の制約</a>
+          </nav>
+        </details>
+
+        <section class="hero" id="overview" aria-labelledby="overview-title">
+          <div class="hero__copy">
+            <p class="eyebrow">WRITE THOUGHTS. SEE STRUCTURE.</p>
+            <h1 id="overview-title">思考を書く。<br />構造が見える。</h1>
+            <p class="hero__lead">Granvasは、自然な文章と最小限の記法から思考のグラフを映し出すWebエディターです。文章を壊さず、テキストとグラフの両側から意味を育てられます。</p>
+            <div class="hero__actions">
+              <a class="button button--primary" href="#quick-start">使い方を見る</a>
+              <a class="button button--secondary" href="https://github.com/dayaa-arch/granvas">ソースコードを見る<span aria-hidden="true"> ↗</span></a>
+            </div>
+          </div>
+          <div class="hero__principle" aria-label="Granvasのデータフロー">
+            <div><span>正本</span><strong>テキスト</strong></div>
+            <span class="hero__arrow" aria-hidden="true">→</span>
+            <div><span>投影</span><strong>グラフ</strong></div>
+            <p>グラフの操作も、現在のテキストへの最小編集として反映されます。</p>
+          </div>
+        </section>
+
+        <section class="notice notice--version" aria-labelledby="version-note-title">
+          <div class="notice__icon" aria-hidden="true">1.0</div>
+          <div>
+            <h2 id="version-note-title">このドキュメントの位置づけ</h2>
+            <p>これは「Granvas 1.0 公式ドキュメント」の公開プレビューです。説明対象はPhase 12までを完了したGranvas v0.1開発版です。PNG / PDF書き出しと正式な本番リリースはまだ完了していません。</p>
+          </div>
+        </section>
+
+        <section id="quick-start" class="doc-section" aria-labelledby="quick-start-title">
+          <div class="section-heading"><span>01</span><div><p>QUICK START</p><h2 id="quick-start-title">はじめる</h2></div></div>
+          <p class="section-lead">現在の公開プレビューは、リポジトリを取得してローカルで起動します。Bunを用意し、次の3行を実行してください。</p>
+          <div class="steps">
+            <article><span>1</span><h3>取得する</h3><p>GitHubからGranvasを複製します。</p></article>
+            <article><span>2</span><h3>準備する</h3><p>Bunで依存関係をインストールします。</p></article>
+            <article><span>3</span><h3>開く</h3><p>表示されたローカルURLをブラウザーで開きます。</p></article>
+          </div>
+          <pre class="code-block" data-code-block><code>git clone https://github.com/dayaa-arch/granvas.git
+cd granvas
+bun install &amp;&amp; bun run dev</code></pre>
+          <div class="callout"><strong>対応環境</strong><p>最新のChrome、Firefox、Safari相当を対象に検証しています。プロジェクトファイルはブラウザーから読み込み・ダウンロードします。サーバーへの自動保存やログインはありません。</p></div>
+        </section>
+
+        <section id="workspace" class="doc-section" aria-labelledby="workspace-title">
+          <div class="section-heading"><span>02</span><div><p>WORKSPACE</p><h2 id="workspace-title">画面の見方</h2></div></div>
+          <p class="section-lead">左のテキストが正本、右のグラフが現在の投影です。中央の区切りをドラッグするか、矢印キーで表示幅を調整できます。</p>
+          <figure class="product-shot">
+            <img src="./images/workspace-overview.png" alt="左に日本語のテキストエディター、右に対応する思考グラフを表示したGranvasのワークスペース" width="1440" height="900" />
+            <figcaption><span>実際の日本語UI</span>テキストの宣言とグラフのNodeが同じ意味構造を表します。</figcaption>
+          </figure>
+          <div class="feature-grid">
+            <article><span class="feature-grid__num">A</span><h3>テキスト</h3><p>文章とGranvas Notationを同じエディターで編集します。通常の文章はそのまま残ります。</p></article>
+            <article><span class="feature-grid__num">B</span><h3>グラフ</h3><p>Node、Relation、Groupを自動配置します。座標は保存せず、意味だけを扱います。</p></article>
+            <article><span class="feature-grid__num">C</span><h3>状態バー</h3><p>ダウンロード状態、リビジョン、Node / Relation / 診断の件数を確認できます。</p></article>
+          </div>
+          <h3>テキストとグラフを行き来する</h3>
+          <ul class="check-list">
+            <li>グラフのNodeを選ぶと、対応する宣言がテキスト側で選択されます。</li>
+            <li>テキストのNode宣言へカーソルを置くと、対応するNodeが強調されます。</li>
+            <li>入力途中に診断が出ても、正常に解釈できたグラフは表示を維持します。</li>
+          </ul>
+        </section>
+
+        <section id="notation" class="doc-section" aria-labelledby="notation-title">
+          <div class="section-heading"><span>03</span><div><p>GRANVAS NOTATION</p><h2 id="notation-title">記法を書く</h2></div></div>
+          <p class="section-lead">すべてを記法にする必要はありません。通常の文章に、構造として見たい行だけを加えます。</p>
+          <div class="syntax-list">
+            <article><div><span>NODE</span><h3>Nodeを宣言する</h3><p><code>[Type @id] Label</code>で1つのNodeになります。Typeは英字から始め、Explicit IDは必要なNodeだけに付けます。</p></div><pre class="code-block" data-code-block><code>[problem @scattered] 顧客情報が分散している
+[idea @unify] AIでメモと構造を統合する</code></pre></article>
+            <article><div><span>NESTED RELATION</span><h3>親子関係を書く</h3><p>親Nodeの下に半角スペース2個のインデントと<code>-&gt;</code>を書きます。さらに深くする場合も2個ずつ増やします。</p></div><pre class="code-block" data-code-block><code>[problem] 顧客情報が分散している
+  -&gt; [cause] ファイルが部署ごとに分かれている
+    -&gt; [evidence] 更新時期が異なる</code></pre></article>
+            <article><div><span>CROSS RELATION</span><h3>離れたNodeをつなぐ</h3><p>Explicit ID同士を接続し、任意のラベルを付けられます。</p></div><pre class="code-block" data-code-block><code>[idea @unify] AIで情報を統合する
+[problem @scattered] 情報が分散している
+
+@unify -&gt; @scattered : 解決する</code></pre></article>
+            <article><div><span>GROUP &amp; LAYOUT</span><h3>まとめ方と流れを指定する</h3><p><code>{Group名}</code>の下へNodeまたはID参照を書きます。Layoutは上から下の<code>TB</code>と左から右の<code>LR</code>です。</p></div><pre class="code-block" data-code-block><code>@layout flow LR
+
+{調査}
+  [todo @interview] インタビューを行う
+  @scattered</code></pre></article>
+          </div>
+          <div class="callout callout--warning"><strong>大切な規則</strong><p>Node Type、Explicit ID、<code>-&gt;</code>、<code>@layout flow TB|LR</code>はASCIIで入力します。通常文やラベル、Group名には日本語を使えます。</p></div>
+        </section>
+
+        <section id="certainty" class="doc-section" aria-labelledby="certainty-title">
+          <div class="section-heading"><span>04</span><div><p>CERTAINTY</p><h2 id="certainty-title">確信度を残す</h2></div></div>
+          <p class="section-lead">Typeとは別に、NodeとRelationへ確信度を付けられます。棄却した要素も消さず、検討の履歴として残します。</p>
+          <div class="certainty-grid">
+            <article><b>—</b><span>指定なし</span><code>[idea]</code><code>-&gt;</code></article>
+            <article><b>?</b><span>未確定</span><code>[?idea]</code><code>?-&gt;</code></article>
+            <article><b>✓</b><span>確定</span><code>[!idea]</code><code>!-&gt;</code></article>
+            <article><b>×</b><span>棄却</span><code>[~idea]</code><code>~-&gt;</code></article>
+          </div>
+          <p>たとえば、確定した案から未確定の効果を伸ばす<code>[!idea] 案 ?-&gt; [effect] 効果</code>も有効です。NodeとRelationの確信度は互いに独立しています。</p>
+        </section>
+
+        <section id="graph-editing" class="doc-section" aria-labelledby="graph-editing-title">
+          <div class="section-heading"><span>05</span><div><p>GRAPH AUTHORING</p><h2 id="graph-editing-title">グラフから編集する</h2></div></div>
+          <p class="section-lead">グラフは読み取り専用ではありません。操作は現在のテキストへの最小編集に変換され、再解析後のグラフへ反映されます。</p>
+          <figure class="product-shot">
+            <img src="./images/graph-authoring.png" alt="Nodeを選択し、子Nodeの追加、接続、構造変更、確信度変更、削除を行える日本語のグラフ操作バー" width="1440" height="900" />
+            <figcaption><span>意味を編集する</span>選択中のNodeに対する操作がグラフ上部に表示されます。</figcaption>
+          </figure>
+          <div class="operation-table" role="region" aria-label="グラフ操作一覧" tabindex="0">
+            <table><thead><tr><th>操作</th><th>方法</th><th>テキストへの反映</th></tr></thead><tbody>
+              <tr><td>Nodeを作成</td><td>空白をダブルクリック、または「Nodeを作成」</td><td>新しいNode宣言を追加</td></tr>
+              <tr><td>ラベル / Type</td><td>Nodeをダブルクリック、またはF2 / Shift+F2</td><td>対象トークンだけを置換</td></tr>
+              <tr><td>子Nodeを追加</td><td>Nodeを選び「子Nodeを追加」</td><td>Nested Relationを追加</td></tr>
+              <tr><td>接続</td><td>接続点をドラッグ、または「接続」</td><td>Cross Relationを追加</td></tr>
+              <tr><td>構造を変更</td><td>別Node / Group / 空白へドラッグ</td><td>親子関係またはGroup所属を変更</td></tr>
+              <tr><td>削除</td><td>対象を選びDelete / Backspace</td><td>影響範囲を確認後、対応する宣言を削除</td></tr>
+            </tbody></table>
+          </div>
+          <div class="callout"><strong>Undo</strong><p>グラフから適用した1回の操作は、テキストエディターで1回のUndoとして元に戻せます。通常文を含むテキスト全文をグラフから再生成することはありません。</p></div>
+        </section>
+
+        <section id="projects" class="doc-section" aria-labelledby="projects-title">
+          <div class="section-heading"><span>06</span><div><p>PROJECTS &amp; EXPORT</p><h2 id="projects-title">プロジェクトを手元に残す</h2></div></div>
+          <p class="section-lead">ブラウザー内の自動永続化はありません。続きから編集するには、<code>.granvas</code>をダウンロードしてください。</p>
+          <figure class="product-shot product-shot--compact">
+            <img src="./images/download-dialog.png" alt=".granvasとSVGが選択でき、PNGとPDFはPhase 8で対応予定と表示される日本語のダウンロードダイアログ" width="1440" height="900" />
+            <figcaption><span>ダウンロード</span>再編集用と共有用の形式を選びます。</figcaption>
+          </figure>
+          <div class="format-grid">
+            <article class="format-card format-card--ready"><span>再編集</span><h3>.granvas</h3><p>UTF-8の正本テキストです。「プロジェクトを読み込む」から再開できます。</p><strong>利用可能</strong></article>
+            <article class="format-card format-card--ready"><span>共有</span><h3>SVG</h3><p>現在の有効なグラフ全体を、拡大可能なvector画像として書き出します。</p><strong>利用可能</strong></article>
+            <article class="format-card"><span>共有</span><h3>PNG / PDF</h3><p>画面にはPhase 8で対応予定として表示され、現在は選択できません。</p><strong>未対応</strong></article>
+          </div>
+          <h3>安全な作業の流れ</h3>
+          <ol class="number-list"><li><span>1</span><div><strong>「未ダウンロード」を確認</strong><p>状態バーに表示されている間は、端末へ最新の正本を残していません。</p></div></li><li><span>2</span><div><strong>.granvasをダウンロード</strong><p>ファイル名を入力し、.granvas形式を選びます。</p></div></li><li><span>3</span><div><strong>次回読み込む</strong><p>「プロジェクトを読み込む」でファイルを選択します。未ダウンロードの変更がある場合は確認が表示されます。</p></div></li></ol>
+        </section>
+
+        <section id="keyboard" class="doc-section" aria-labelledby="keyboard-title">
+          <div class="section-heading"><span>07</span><div><p>KEYBOARD &amp; ACCESSIBILITY</p><h2 id="keyboard-title">キーボードで操作する</h2></div></div>
+          <div class="shortcut-grid">
+            <article><kbd>Tab</kbd><p>ペイン区切り、グラフのNode / Relation、ボタンへ順番に移動</p></article>
+            <article><kbd>Enter</kbd><kbd>Space</kbd><p>フォーカス中のNodeを選択</p></article>
+            <article><kbd>F2</kbd><p>Nodeのラベルを編集</p></article>
+            <article><kbd>Shift</kbd><span>+</span><kbd>F2</kbd><p>NodeのTypeを編集</p></article>
+            <article><kbd>Delete</kbd><kbd>Backspace</kbd><p>Node / Relationの削除内容を確認</p></article>
+            <article><kbd>Esc</kbd><p>編集中の入力やダイアログをキャンセル</p></article>
+            <article><kbd>←</kbd><kbd>→</kbd><p>ペイン区切りにフォーカスして表示幅を変更</p></article>
+            <article><kbd>Ctrl/⌘</kbd><span>+</span><kbd>Z</kbd><p>テキストとグラフからの編集をUndo</p></article>
+          </div>
+          <p>確信度は記号と日本語の読み上げ名でも伝え、色だけには依存しません。ダイアログはフォーカスを内部へ保ち、閉じた後は操作元へ戻します。日本語IMEの変換中にEnterで確定しても、意図しない編集確定を行いません。</p>
+        </section>
+
+        <section id="diagnostics" class="doc-section" aria-labelledby="diagnostics-title">
+          <div class="section-heading"><span>08</span><div><p>DIAGNOSTICS &amp; FAQ</p><h2 id="diagnostics-title">診断とよくある質問</h2></div></div>
+          <p class="section-lead">Notationとして始まった行に問題があると、該当範囲と行番号の横に日本語の診断が表示されます。</p>
+          <div class="faq-list">
+            <details open><summary>グラフにNodeが出てきません</summary><div><p>Node宣言が<code>[Type] Label</code>になっているか確認してください。Typeは英字から始め、閉じ角括弧とラベルを入力します。</p></div></details>
+            <details><summary>Relationが表示されません</summary><div><p>Nested Relationは半角スペース2個単位のインデントが必要です。Cross Relationは両方のExplicit IDが文書内に存在するか確認してください。</p></div></details>
+            <details><summary>入力途中のエラーでグラフは消えますか</summary><div><p>正常に解釈できたNodeやRelationは残ります。問題のある宣言だけが投影から省略され、修正すると再び反映されます。</p></div></details>
+            <details><summary>グラフでNodeを動かした位置は保存されますか</summary><div><p>保存されません。ドラッグは座標ではなく、親子関係やGroup所属を変える操作です。表示位置は意味構造から毎回計算します。</p></div></details>
+            <details><summary>ブラウザーを閉じても作業は残りますか</summary><div><p>自動では残りません。閉じる前に<code>.granvas</code>をダウンロードしてください。「未ダウンロード」の表示が目印です。</p></div></details>
+            <details><summary>診断がある状態でもSVGを書き出せますか</summary><div><p>書き出せます。SVGには正常に解釈できた現在のグラフだけが含まれます。正本全体を残すには<code>.granvas</code>もダウンロードしてください。</p></div></details>
+          </div>
+        </section>
+
+        <section id="limitations" class="doc-section" aria-labelledby="limitations-title">
+          <div class="section-heading"><span>09</span><div><p>CURRENT STATUS</p><h2 id="limitations-title">現在の制約</h2></div></div>
+          <div class="status-panel">
+            <div><span>現在</span><h3>Phase 13で公開する範囲</h3><ul><li>日本語UI</li><li>Text ⇄ Graph編集</li><li>.granvas 読み込み / ダウンロード</li><li>SVGダウンロード</li></ul></div>
+            <div><span>今後</span><h3>Phase 8 / 9</h3><ul><li>PNG / PDF書き出し</li><li>正式なVercel本番公開</li><li>OSSライセンス / セキュリティ文書</li><li>リリース品質強化</li></ul></div>
+          </div>
+          <div class="policy-grid">
+            <article><h3>プライバシー</h3><p>この公式ガイドにはアクセス解析、追跡、cookie、入力フォーム、外部フォントを含めていません。Granvas v0.1にもバックエンド、アカウント、クラウド同期はありません。</p></article>
+            <article><h3>セキュリティ</h3><p><code>.granvas</code>は最大5 MiBのUTF-8テキストとしてブラウザー内で処理します。認証情報やSupabase SDKはv0.1へ追加していません。</p></article>
+            <article><h3>ライセンス</h3><p>OSSライセンスの確定はPhase 9の範囲です。現時点では、リポジトリに明示された条件を確認してから利用・再配布してください。</p></article>
+          </div>
+          <div class="final-cta"><div><p>PROJECT REPOSITORY</p><h2>Granvasの設計と開発状況を見る</h2><span>仕様、ADR、ロードマップ、ソースコードをGitHubで公開しています。</span></div><a class="button button--primary" href="https://github.com/dayaa-arch/granvas">GitHubを開く<span aria-hidden="true"> ↗</span></a></div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="site-footer"><p><strong>Granvas</strong> — 思考を書く。構造が見える。</p><p>Granvas 1.0 公式ドキュメント · 公開プレビュー</p></footer>
+  </body>
+</html>
