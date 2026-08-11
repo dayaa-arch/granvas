@@ -2,7 +2,7 @@
 
 > 作成日: 2026-08-10
 > 最終整理日: 2026-08-11
-> ステータス: Phase 10実装・検証完了、PR準備中
+> ステータス: Phase 10完了・Phase 11未着手
 > Phase正本: `docs/development-roadmap.md`
 
 この文書はPhaseごとの実装進捗を追跡する。Phase名称と番号は開発ロードマップに合わせ、完了済みのsteering / Issue / PRはロードマップの履歴対応表から参照する。

@@ -3138,7 +3138,7 @@ Status: Complete — Issue #15 / PR #16
 
 ## Phase 10: Notation Certainty
 
-Status: Implementation Complete — Issue #19（PR準備中）
+Status: Complete — Issue #19 / PR #20
 
 - certainty marker `[?type]` / `[!type]` / `[~type]`
 - relation operator `?->` / `!->` / `~->`

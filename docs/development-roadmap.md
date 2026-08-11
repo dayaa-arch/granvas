@@ -51,13 +51,13 @@ flowchart LR
 | 5 | Workspace Core | 完了 | 6 | `.steering/20260810-phase-5-workspace-core/` | [Issue #11](https://github.com/dayaa-arch/granvas/issues/11) / [PR #12](https://github.com/dayaa-arch/granvas/pull/12) |
 | 6 | Transfer Core | 完了 | 7 | `.steering/20260810-phase-6-transfer-core/` | [Issue #13](https://github.com/dayaa-arch/granvas/issues/13) / [PR #14](https://github.com/dayaa-arch/granvas/pull/14) |
 | 7 | Presentation Shell | 完了 | 8 | `.steering/20260810-phase-7-presentation-shell/` | [Issue #15](https://github.com/dayaa-arch/granvas/issues/15) / [PR #16](https://github.com/dayaa-arch/granvas/pull/16) |
-| 10 | Notation Certainty | 実装完了・PR準備中 | 9 | `.steering/20260811-phase-10-notation-certainty/` | [Issue #19](https://github.com/dayaa-arch/granvas/issues/19) |
+| 10 | Notation Certainty | 完了 | 9 | `.steering/20260811-phase-10-notation-certainty/` | [Issue #19](https://github.com/dayaa-arch/granvas/issues/19) / [PR #20](https://github.com/dayaa-arch/granvas/pull/20) |
 | 11 | Source Edit Core | 未着手 | 10 | 作業開始時に新規作成 | 未起票 |
 | 12 | Graph Authoring | 未着手 | 11 | 作業開始時に新規作成 | 未起票 |
 | 8 | Visual Export | 未着手 | 12 | 作業開始時に新規作成 | 未起票 |
 | 9 | Release Hardening | 未着手 | 13 | 作業開始時に新規作成 | 未起票 |
 
-**Phase 10 Notation Certainty**の実装と検証は完了し、PR準備中である。merge後の次の実装Phaseは**Phase 11 Source Edit Core**とする。GitHub Actionsはユーザー指示により後回しとし、Phase 9の未完了項目として保持する。
+現在の完了地点は**Phase 10 Notation Certainty**である。次の実装Phaseは**Phase 11 Source Edit Core**とする。GitHub Actionsはユーザー指示により後回しとし、Phase 9の未完了項目として保持する。
 
 ### 3.1 Scope Change: 2026-08-11
 
