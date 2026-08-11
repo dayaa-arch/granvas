@@ -40,14 +40,14 @@ const formats: readonly Readonly<{
   {
     value: 'png',
     label: 'PNG',
-    description: 'Phase 8で対応予定',
-    available: false,
+    description: '高解像度の画像',
+    available: true,
   },
   {
     value: 'pdf',
     label: 'PDF',
-    description: 'Phase 8で対応予定',
-    available: false,
+    description: '印刷・配布用の単一ページ',
+    available: true,
   },
 ])
 

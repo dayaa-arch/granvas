@@ -29,6 +29,7 @@ v0.1 の開発では、本書を実装判断の基準とする。仕様変更が
 | 2026-08-10 | 初版 | — |
 | 2026-08-11 | Authoring Core を v0.1 scope へ追加。Notation に確信度マーカーを導入し v0.2 とする。Graph を read-only projection から意味編集可へ改訂する。座標の非永続化は維持する。 | [ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md) / [ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md) / [ADR-0003](adr/0003-certainty-markers-in-granvas-notation.md) |
 | 2026-08-11 | 製品UIを日本語へ統一し、実装済みの使い方を説明する公式利用ガイドをGitHub Pagesへ公開するPhase 13を追加。v1.0 Docsは公開プレビューとし、product target v0.1を維持する。 | [ADR-0004](adr/0004-official-documentation-on-github-pages.md) |
+| 2026-08-11 | Phase 8のvisual exportを具体化。certaintyを含む共通sceneからSVG / Canvas PNG / single-page PDFを生成し、PDFには`pdf-lib`でCanvas PNGを埋め込む。 | [ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md) |
 
 Phase の名称・順序・進捗は `docs/development-roadmap.md` を正本とする。
 
@@ -1442,11 +1443,14 @@ Download action は modal を開き、file name と次の format をユーザー
 - default file name は `untitled`。拡張子は選択 format に合わせてapplicationが付与し、重複拡張子を避ける。
 - `.granvas` は source text をそのまま保存し、Graph座標・派生Graph・diagnosticsを含めない。
 - SVG / PNG / PDF は Node / Edge / Group / relation label を含む full graph bounds に24px相当のpaddingを加える。現在viewportのpan / zoomには依存しない。
+- SVG / PNG / PDF はNode / Edgeのcertaintyを線種、太さ、badge、打ち消し線で表し、colorだけに依存しない。
 - SVG / PNG / PDF に埋め込むすべての文字列はtextとしてescapeし、HTMLとして解釈しない。
 - Graph Nodeが0件の場合、SVG / PNG / PDFはdisabledとし、`.granvas`だけを許可する。
 - diagnosticsが存在する場合もvisual formatをDownloadできるが、「validなprojectionだけが含まれる」ことと件数をmodal内に表示する。
 - PNGは2x scaleを基本とし、生成bitmapが8192 × 8192 pixelsを超える場合は上限内へ縮小して通知する。
-- PDFはsingle-page、white backgroundとし、graph boundsに合わせたpage sizeを使用する。
+- PNGは自己完結SVGをBlob URLからImageへdecodeし、white backgroundを塗ったCanvasへ描画して生成する。Object URLは成功・失敗の両方で破棄する。
+- PDFはsingle-page、white backgroundとし、graph boundsに合わせたpage sizeを`1 CSS px = 0.75 PDF pt`で使用する。
+- PDFはCanvas描画済みPNGを`pdf-lib@1.17.1`でpage全面へ埋め込む。libraryはPDF選択時だけdynamic importし、v0.1ではPDF内text selectionを保証しない。
 - browserがdownload開始を受理したときsuccessを通知する。生成またはdownload開始に失敗した場合はerrorを表示し、dirty stateを変更しない。
 
 ## 7.6 Official Documentation Publication
@@ -1457,11 +1461,11 @@ Download action は modal を開き、file name と次の format をユーザー
 URL: https://dayaa-arch.github.io/granvas/
 Site title: Granvas 1.0 公式ドキュメント
 Release state: 公開プレビュー
-対応実装: Granvas v0.1 開発版（Phase 12完了時点）
+対応実装: Granvas v0.1 開発版（Phase 8完了時点）
 ```
 
 - `1.0`は公式Docsの公開候補versionであり、本Phaseだけでproduct applicationを正式v1.0 releaseへ変更しない。
-- Phase 8のPNG / PDF、Phase 9のrelease hardening / Vercel productionが未完了であることを全pageから確認できるようにする。
+- Phase 8のSVG / PNG / PDFが利用可能であることと、Phase 9のrelease hardening / Vercel productionが未完了であることを全pageから確認できるようにする。
 - main branchの`docs-site/`をsource of truthとし、review済みmainから生成したartifactを`gh-pages` branch rootへ公開する。
 - Pages artifactはproject base path`/granvas/`を使用し、rootへ`.nojekyll`を含める。
 - `.github/workflows/`へcustom Pages workflowを追加しない。
@@ -3235,10 +3239,10 @@ Status: Complete — Issue #26 / PR #27 / PR #28
 
 ## Phase 8: Visual Export
 
-Status: Not Started
+Status: Complete — Issue #29 / PR #30
 
-- Canvas PNG exporter / 2x scale / 8192px limit
-- PDF library ADR / single-page PDF exporter
+- Canvas PNG exporter / 2x scale / 8192px limit / proportional reduction notice
+- [ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md) / lazy-loaded single-page PDF exporter
 - full Graph SVG / PNG / PDF verification
 - visual Download dirty-state and failure-path verification
 
@@ -3279,7 +3283,7 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [ ] IME compositionで文字欠落や確定後の不正projectionが起きない
 - [ ] incomplete notationでも現在source内のvalidなGraphが消えない
 - [ ] `.granvas`をDownload / Importし、保存時点から編集を再開できる
-- [ ] SVG / PNG / PDFを選択してfull graphをDownloadできる
+- [x] SVG / PNG / PDFを選択してfull graphをDownloadできる
 - [ ] dirty状態のImport / New / 離脱でデータ消失警告が出る
 - [ ] Download / Import失敗時に現在sourceが維持される
 - [x] certainty marker と relation operator の4状態が解析・表示される

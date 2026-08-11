@@ -506,6 +506,26 @@ describe('Workspace Application', () => {
     })
   })
 
+  it('keeps a dirty Project unchanged while creating every visual download input', async () => {
+    const workspace = createWorkspaceApplication({
+      graphLayout: immediateLayoutPort(),
+      name: 'visual-lifecycle',
+      source: canonicalSource,
+    })
+    await workspace.openWorkspace()
+    await workspace.updateWorkspaceSource(`${canonicalSource}\n[idea] Unsaved`)
+    const before = workspace.getSnapshot()
+
+    for (const format of ['svg', 'png', 'pdf'] as const) {
+      expect(workspace.createDownloadInput(format)).toMatchObject({ format })
+      expect(workspace.getSnapshot()).toEqual(before)
+    }
+
+    expect(workspace.getSnapshot().document.status).toMatchObject({
+      type: 'dirty',
+    })
+  })
+
   it('tracks project download success and failure without losing later edits', async () => {
     const workspace = createWorkspaceApplication({
       graphLayout: immediateLayoutPort(),

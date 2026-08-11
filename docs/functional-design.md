@@ -88,6 +88,7 @@ v0.1にserver-side component、database、authentication、remote APIは存在�
 - format選択。
 - diagnostics件数とvisual formatがvalid projectionだけを含む旨の通知。
 - Graphが空の場合はvisual formatをdisabledにする。
+- PNG / PDFは利用可能とし、8192px上限へ縮小した場合は完了通知へ理由を追記する。
 - Escapeでcancelし、終了後はDownload buttonへfocusを戻す。
 
 ### 3.5 UI Language
@@ -357,9 +358,10 @@ sequenceDiagram
 1. file nameとformatを取得する。
 2. `.granvas`はcurrent sourceからBlobを生成する。
 3. visual formatはcurrent revisionの`GraphExportSceneDto`を使用する。
-4. Adapterがuntrusted textをescapeしてfileを生成する。
-5. Browser adapterがdownloadを開始する。
-6. `.granvas`だけがclean baselineを更新する。
+4. Adapterがuntrusted textとcertaintyを共通SVG sceneへ安全に描画する。
+5. PNGはSVGを2x Canvasへrasterizeし、PDFはそのPNGをlazy-loaded `pdf-lib`で単一pageへ埋め込む。
+6. Browser adapterがdownloadを開始する。
+7. `.granvas`だけがclean baselineを更新する。visual formatの成功・失敗はdirty stateを変えない。
 
 ## 7. Component Ownership
 
@@ -381,7 +383,7 @@ sequenceDiagram
 | `GraphLayoutPort` | `graph/application/ports` | `graph/infrastructure/DagreGraphLayoutWorkerAdapter` |
 | `ProjectFilePickerPort` | `transfer/application/ports` | `transfer/infrastructure/BrowserProjectFilePickerAdapter` |
 | `FileDownloadPort` | `transfer/application/ports` | `transfer/infrastructure/BrowserFileDownloadAdapter` |
-| `GraphExportPort` | `transfer/application/ports` | `transfer/infrastructure/*GraphExportAdapter` |
+| `GraphExportPort` | `transfer/application/ports` | `transfer/infrastructure/CompositeGraphExportAdapter` |
 
 具象は`src/app/bootstrap/createApplication.ts`で生成・注入する。
 
@@ -420,7 +422,7 @@ flowchart LR
 ```
 
 - サイト名は`Granvas 1.0 公式ドキュメント`、release状態は`公開プレビュー`とする。
-- 対応実装を`Granvas v0.1 開発版（Phase 12完了時点）`として明示し、Phase 8 / 9の未完了機能を区別する。
+- 対応実装を`Granvas v0.1 開発版（Phase 8完了時点）`として明示し、SVG / PNG / PDFの利用可否とPhase 9の未完了機能を区別する。
 - 画面構成、Notation、確信度、Text / Graph navigation、Graph authoring、Project Download / Import、keyboard、FAQ、現在の制約を含める。
 - screenshotは日本語UIのproduction buildから取得し、画像だけに意味を依存させない。
 - semantic HTML、skip link、heading、alt、focus indicator、responsive layoutを備える。

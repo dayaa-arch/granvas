@@ -22,6 +22,7 @@ export {
   type TransferApplicationErrorCode,
   type TransferErrorResultDto,
   type TransferGraphEdgeDto,
+  type TransferGraphCertaintyDto,
   type TransferGraphExportSceneDto,
   type TransferGraphGroupDto,
   type TransferGraphNodeDto,

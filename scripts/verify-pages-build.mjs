@@ -20,7 +20,7 @@ const requiredFragments = [
   '<html lang="ja">',
   'Granvas 1.0 公式ドキュメント',
   '公開プレビュー',
-  'Granvas v0.1 開発版（Phase 12完了時点）',
+  'Granvas v0.1 開発版（Phase 8完了時点）',
   'href="#main-content"',
   '/granvas/assets/',
 ]

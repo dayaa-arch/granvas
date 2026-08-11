@@ -19,6 +19,7 @@ const scene: TransferGraphExportSceneDto = Object.freeze({
         id: 'node-a',
         label: untrusted,
         type: 'idea<&',
+        certainty: 'tentative',
         x: 0,
         y: 0,
         width: 240,
@@ -28,6 +29,7 @@ const scene: TransferGraphExportSceneDto = Object.freeze({
         id: 'node-b',
         label: 'Target',
         type: 'todo',
+        certainty: 'rejected',
         x: 320,
         y: 160,
         width: 240,
@@ -40,6 +42,13 @@ const scene: TransferGraphExportSceneDto = Object.freeze({
         source: 'node-a',
         target: 'node-b',
         label: 'solves <everything>',
+        certainty: 'confirmed',
+      }),
+      Object.freeze({
+        id: 'edge-b',
+        source: 'node-b',
+        target: 'node-a',
+        certainty: 'neutral',
       }),
     ]),
     groups: Object.freeze([
@@ -65,6 +74,13 @@ describe('SvgGraphExportAdapter', () => {
     expect(svg).toContain('viewBox="-48 -48 656 344"')
     expect(svg).toContain('width="608" height="296"')
     expect(svg).toContain('marker-end="url(#granvas-arrow)"')
+    expect(svg).toContain('data-certainty="tentative"')
+    expect(svg).toContain('stroke-dasharray="8 6"')
+    expect(svg).toContain('data-certainty="confirmed"')
+    expect(svg).toContain('stroke-width="3"')
+    expect(svg).toContain('data-certainty="rejected"')
+    expect(svg).toContain('text-decoration="line-through"')
+    expect(svg).toContain('data-certainty="neutral"')
     expect(svg).toContain('solves &lt;everything&gt;')
     expect(svg).toContain('Group &amp; &lt;unsafe&gt;')
     expect(svg).toContain('&lt;script&gt;alert(&quot;xss&quot;)')
@@ -98,7 +114,14 @@ describe('SvgGraphExportAdapter', () => {
         ...scene,
         graph: {
           ...scene.graph,
-          edges: [{ id: 'dangling', source: 'missing', target: 'node-a' }],
+          edges: [
+            {
+              id: 'dangling',
+              source: 'missing',
+              target: 'node-a',
+              certainty: 'neutral',
+            },
+          ],
         },
       }),
     ).toThrowError(expect.objectContaining({ code: 'graph-render-failed' }))

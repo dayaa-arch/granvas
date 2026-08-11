@@ -8,7 +8,7 @@ Granvas is a public, work-in-progress visual thinking editor intended for an ope
 日本語での使い方は、[Granvas 1.0 公式ドキュメント](https://dayaa-arch.github.io/granvas/)で案内します。サイトは公開プレビューで、現在のGranvas v0.1開発版に実装済みの範囲と今後の予定を区別して説明します。
 
 > [!IMPORTANT]
-> **Early development:** Phase 13 (Japanese UI & Official Documentation) is complete, and the official guide is published on GitHub Pages. The current web app supports Japanese text editing, live graph projection, certainty markers, Text/Graph navigation, Graph-side Node creation and editing, Edge connection, semantic drag, deletion preview, `.granvas` Import/Download, and SVG Download. PNG/PDF export and release hardening remain incomplete, so this repository is not yet an end-user v0.1 release.
+> **Early development:** Phase 8 (Visual Export) is complete. The current web app supports Japanese text editing, live graph projection, certainty markers, Text/Graph navigation, Graph-side authoring, `.granvas` Import/Download, and viewport-independent SVG/PNG/PDF Download. Release hardening, OSS release files, CI, and Vercel production remain Phase 9 work, so this repository is not yet an end-user v0.1 release.
 
 ## Why Granvas?
 
@@ -123,7 +123,7 @@ The v0.1 file workflow is:
 1. Write or edit a project in the browser.
 2. Choose **Download → `.granvas`** to save the editable source locally.
 3. Import that `.granvas` file later to continue from the saved text.
-4. Choose SVG, PNG, or PDF when a read-only visual artifact is needed. SVG is implemented; PNG and PDF are scheduled for Phase 8.
+4. Choose SVG, PNG, or PDF when a read-only full-graph artifact is needed. PNG uses a 2x white-background Canvas with an 8192px limit; PDF is a single page sized to the graph bounds.
 
 Granvas v0.1 will not automatically persist projects to `localStorage` or IndexedDB. Users must download `.granvas` files to retain their work.
 
@@ -263,7 +263,7 @@ License selection and the addition of `LICENSE` are required before the public v
 - [x] Phase 11 — Source Edit Core: token spans, edit planning, and inline label/Type editing on the graph.
 - [x] Phase 12 — Graph Authoring: semantic drag, node creation, edge connection, deletion preview, and nested-child promotion.
 - [x] Phase 13 — Japanese UI & Official Documentation: Japanese UI and the official GitHub Pages guide are published.
-- [ ] Phase 8 — Visual Export: PNG/PDF and full-graph format verification.
+- [x] Phase 8 — Visual Export: SVG/PNG/PDF full-graph export and three-browser verification.
 - [ ] Phase 9 — Release Hardening: performance, accessibility, security, OSS, CI, and Vercel production.
 
 Phase numbers are assignment order, not execution order. Phases 10–13 were added on 2026-08-11 and run before Phases 8–9; the list above is in execution order.

@@ -26,6 +26,7 @@ const scene: TransferGraphExportSceneDto = Object.freeze({
         id: 'node-a',
         label: 'A',
         type: 'idea',
+        certainty: 'neutral',
         x: 0,
         y: 0,
         width: 240,

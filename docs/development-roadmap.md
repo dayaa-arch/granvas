@@ -57,10 +57,10 @@ flowchart LR
 | 11 | Source Edit Core | 完了 | 10 | `.steering/20260811-phase-11-source-edit-core/` | [Issue #21](https://github.com/dayaa-arch/granvas/issues/21) / [PR #22](https://github.com/dayaa-arch/granvas/pull/22) |
 | 12 | Graph Authoring | 完了 | 11 | `.steering/20260811-phase-12-graph-authoring/` | [Issue #23](https://github.com/dayaa-arch/granvas/issues/23) / [PR #24](https://github.com/dayaa-arch/granvas/pull/24) |
 | 13 | Japanese UI & Official Documentation | 完了 | 12 | `.steering/20260811-phase-13-japanese-ui-official-documentation/` | [Issue #26](https://github.com/dayaa-arch/granvas/issues/26) / [PR #27](https://github.com/dayaa-arch/granvas/pull/27) / [PR #28](https://github.com/dayaa-arch/granvas/pull/28) |
-| 8 | Visual Export | 未着手 | 13 | 作業開始時に新規作成 | 未起票 |
+| 8 | Visual Export | 完了 | 13 | `.steering/20260811-phase-8-visual-export/` | [Issue #29](https://github.com/dayaa-arch/granvas/issues/29) / [PR #30](https://github.com/dayaa-arch/granvas/pull/30) |
 | 9 | Release Hardening | 未着手 | 14 | 作業開始時に新規作成 | 未起票 |
 
-現在の完了地点は**Phase 13 Japanese UI & Official Documentation**であり、M5 Japanese Product Guidanceまで完了した。日本語UIと[Granvas 1.0 公式ドキュメント](https://dayaa-arch.github.io/granvas/)の公開プレビューを提供している。次工程は**Phase 8 Visual Export**だが、本作業では開始しない。GitHub Actionsはユーザー指示により後回しとし、Phase 9の未完了項目として保持する。
+現在の完了地点は**Phase 8 Visual Export**であり、SVG / PNG / PDFのviewport非依存full Graph出力を提供する。次工程は**Phase 9 Release Hardening**で、GitHub Actions、OSS release files、performance / accessibility / security監査、Vercel production、公式Docs完全版を扱う。
 
 ### 3.1 Scope Change: 2026-08-11
 
@@ -296,20 +296,20 @@ Goal: current valid projectionのfull Graphを共有可能な全visual formatへ
 
 Deliverables:
 
-- [ ] Canvas PNG exporterと2x / 8192px上限通知。
-- [ ] PDF generation library ADR。
-- [ ] single-page、white background、graph bounds page sizeのPDF exporter。
-- [ ] SVG / PNG / PDFがNode、Edge、Group、relation labelを含むことのcontract test。
-- [ ] certainty 4状態が各visual formatで色以外の手段でも判別できることのtest。
-- [ ] visual Download成功・失敗のいずれでもProjectのdirty stateを変更しないことのtest。
-- [ ] SVG / PNG / PDF full-graph Download E2E。
+- [x] Canvas PNG exporterと2x / 8192px上限通知。
+- [x] PDF generation library ADR（[ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md)）。
+- [x] single-page、white background、graph bounds page sizeのPDF exporter。
+- [x] SVG / PNG / PDFがNode、Edge、Group、relation labelを含むことのcontract test。
+- [x] certainty 4状態が各visual formatで色以外の手段でも判別できることのtest。
+- [x] visual Download成功・失敗のいずれでもProjectのdirty stateを変更しないことのtest。
+- [x] SVG / PNG / PDF full-graph Download E2E。
 
 Exit Criteria:
 
-- [ ] SVG / PNG / PDFへviewport非依存のfull Graphを出力できる。
-- [ ] untrusted labelが各formatで実行・解釈されない。
-- [ ] PNG制限とPDF page boundsが仕様どおりである。
-- [ ] 生成・download失敗時にcurrent sourceとdirty stateを維持する。
+- [x] SVG / PNG / PDFへviewport非依存のfull Graphを出力できる。
+- [x] untrusted labelが各formatで実行・解釈されない。
+- [x] PNG制限とPDF page boundsが仕様どおりである。
+- [x] 生成・download失敗時にcurrent sourceとdirty stateを維持する。
 
 ## 17. Phase 9: Release Hardening
 

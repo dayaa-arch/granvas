@@ -32,12 +32,13 @@ flowchart TD
 | Editor | CodeMirror 6 | Notation presentationで隔離する |
 | Graph rendering | `@xyflow/react` 12 | Graph presentationで隔離する |
 | Layout | `@dagrejs/dagre` 3 | Graph infrastructureのWorker adapterで隔離する |
+| PDF generation | `pdf-lib` 1.17 | Transfer infrastructureからPDF選択時だけdynamic importする |
 | Unit / Component test | Vitest 4 / React Testing Library | domain・application・presentationを分離してtestする |
 | E2E | Playwright | Chromium / Firefox / WebKitを対象にする |
 | Hosting | Vercel | static deployment、server functionなし |
 | Documentation hosting | GitHub Pages | `gh-pages` branch rootから静的利用ガイドを公開する |
 
-PDF生成libraryは未選定である。導入前に、browser support、vector text、bundle size、license、CSP compatibilityを比較したADRを作成する。
+PDF生成は[ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md)に従い、Canvas PNGを`pdf-lib`でsingle-page PDFへ埋め込む。
 
 ## 3. Runtime / Deployment
 
@@ -199,8 +200,10 @@ Graph側の操作をTextへ書き戻す経路の設計。根拠は[ADR-0002](adr
 - SVG / PNG / PDFはcurrent valid projectionの派生成果物。
 - full graph boundsと24px paddingを使用する。
 - untrusted textを各formatのsinkでescapeする。
+- Node / Edgeのcertaintyを線種、太さ、badge、打ち消し線で表し、colorだけに依存しない。
 - PNGは2xを基本とし8192 × 8192を上限とする。
-- PDFはsingle-page、graph boundsに合わせたpage sizeとする。
+- PNGは自己完結SVGをwhite backgroundのCanvasへ描画して生成し、上限縮小時はnoticeを返す。
+- PDFは同じCanvas PNGを`pdf-lib`で埋め込み、single-page、graph boundsに合わせたpage size（1 CSS px = 0.75pt）とする。
 
 ## 11. Security / Privacy
 
@@ -284,10 +287,10 @@ ADRは`docs/adr/`に置き、`docs/adr/README.md`を索引とする。
 - [ADR-0002](adr/0002-source-edit-plan-as-notation-domain-concern.md) Source edit plan as a Notation domain concern。
 - [ADR-0003](adr/0003-certainty-markers-in-granvas-notation.md) Certainty markers in Granvas Notation。
 - [ADR-0004](adr/0004-official-documentation-on-github-pages.md) Official documentation on GitHub Pages。
+- [ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md) PDF generation with pdf-lib。
 
 未起票:
 
-- PDF generation library selection。
 - 既定Node sizeまたはmeasure-first layoutの変更。
 - ParserをWeb Workerへ移す判断。
 - State management library導入。

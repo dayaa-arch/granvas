@@ -28,6 +28,7 @@
     "@lezer/highlight": "^1.2.3",
     "@xyflow/react": "^12.11.2",
     "codemirror": "^6.0.2",
+    "pdf-lib": "1.17.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
