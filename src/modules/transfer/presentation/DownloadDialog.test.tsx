@@ -44,8 +44,8 @@ describe('DownloadDialog', () => {
       target: { value: 'shared graph' },
     })
     fireEvent.click(screen.getByRole('radio', { name: /SVG/ }))
-    expect(screen.getByRole('radio', { name: /PNG/ })).toBeDisabled()
-    expect(screen.getByRole('radio', { name: /PDF/ })).toBeDisabled()
+    expect(screen.getByRole('radio', { name: /PNG/ })).toBeEnabled()
+    expect(screen.getByRole('radio', { name: /PDF/ })).toBeEnabled()
     fireEvent.click(screen.getByRole('button', { name: 'ダウンロード' }))
 
     expect(screen.getByRole('note')).toHaveTextContent(

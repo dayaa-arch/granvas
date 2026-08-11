@@ -28,7 +28,7 @@
     <div id="top" class="release-strip" role="note">
       <span class="release-strip__status">公開プレビュー</span>
       <span>Granvas 1.0 公式ドキュメント</span>
-      <span class="release-strip__implementation">対応実装: Granvas v0.1 開発版（Phase 12完了時点）</span>
+      <span class="release-strip__implementation">対応実装: Granvas v0.1 開発版（Phase 8完了時点）</span>
     </div>
 
     <div class="docs-shell">
@@ -86,7 +86,7 @@
           <div class="notice__icon" aria-hidden="true">1.0</div>
           <div>
             <h2 id="version-note-title">このドキュメントの位置づけ</h2>
-            <p>これは「Granvas 1.0 公式ドキュメント」の公開プレビューです。説明対象はPhase 12までを完了したGranvas v0.1開発版です。PNG / PDF書き出しと正式な本番リリースはまだ完了していません。</p>
+            <p>これは「Granvas 1.0 公式ドキュメント」の公開プレビューです。説明対象はPhase 8までを完了したGranvas v0.1開発版です。SVG / PNG / PDF書き出しを利用できます。正式な本番リリースとrelease hardeningはまだ完了していません。</p>
           </div>
         </section>
 
@@ -182,13 +182,14 @@ bun install &amp;&amp; bun run dev</code></pre>
           <div class="section-heading"><span>06</span><div><p>PROJECTS &amp; EXPORT</p><h2 id="projects-title">プロジェクトを手元に残す</h2></div></div>
           <p class="section-lead">ブラウザー内の自動永続化はありません。続きから編集するには、<code>.granvas</code>をダウンロードしてください。</p>
           <figure class="product-shot product-shot--compact">
-            <img src="./images/download-dialog.png" alt=".granvasとSVGが選択でき、PNGとPDFはPhase 8で対応予定と表示される日本語のダウンロードダイアログ" width="1440" height="900" />
+            <img src="./images/download-dialog.png" alt=".granvas、SVG、PNG、PDFを選択できる日本語のダウンロードダイアログ" width="1440" height="900" />
             <figcaption><span>ダウンロード</span>再編集用と共有用の形式を選びます。</figcaption>
           </figure>
           <div class="format-grid">
             <article class="format-card format-card--ready"><span>再編集</span><h3>.granvas</h3><p>UTF-8の正本テキストです。「プロジェクトを読み込む」から再開できます。</p><strong>利用可能</strong></article>
             <article class="format-card format-card--ready"><span>共有</span><h3>SVG</h3><p>現在の有効なグラフ全体を、拡大可能なvector画像として書き出します。</p><strong>利用可能</strong></article>
-            <article class="format-card"><span>共有</span><h3>PNG / PDF</h3><p>画面にはPhase 8で対応予定として表示され、現在は選択できません。</p><strong>未対応</strong></article>
+            <article class="format-card format-card--ready"><span>共有</span><h3>PNG</h3><p>グラフ全体を白背景の2倍解像度画像にします。各辺8192pxを上限とし、縮小時は通知します。</p><strong>利用可能</strong></article>
+            <article class="format-card format-card--ready"><span>配布</span><h3>PDF</h3><p>日本語を含むグラフ全体を、boundsに合う白背景の単一ページへ配置します。</p><strong>利用可能</strong></article>
           </div>
           <h3>安全な作業の流れ</h3>
           <ol class="number-list"><li><span>1</span><div><strong>「未ダウンロード」を確認</strong><p>状態バーに表示されている間は、端末へ最新の正本を残していません。</p></div></li><li><span>2</span><div><strong>.granvasをダウンロード</strong><p>ファイル名を入力し、.granvas形式を選びます。</p></div></li><li><span>3</span><div><strong>次回読み込む</strong><p>「プロジェクトを読み込む」でファイルを選択します。未ダウンロードの変更がある場合は確認が表示されます。</p></div></li></ol>
@@ -218,15 +219,15 @@ bun install &amp;&amp; bun run dev</code></pre>
             <details><summary>入力途中のエラーでグラフは消えますか</summary><div><p>正常に解釈できたNodeやRelationは残ります。問題のある宣言だけが投影から省略され、修正すると再び反映されます。</p></div></details>
             <details><summary>グラフでNodeを動かした位置は保存されますか</summary><div><p>保存されません。ドラッグは座標ではなく、親子関係やGroup所属を変える操作です。表示位置は意味構造から毎回計算します。</p></div></details>
             <details><summary>ブラウザーを閉じても作業は残りますか</summary><div><p>自動では残りません。閉じる前に<code>.granvas</code>をダウンロードしてください。「未ダウンロード」の表示が目印です。</p></div></details>
-            <details><summary>診断がある状態でもSVGを書き出せますか</summary><div><p>書き出せます。SVGには正常に解釈できた現在のグラフだけが含まれます。正本全体を残すには<code>.granvas</code>もダウンロードしてください。</p></div></details>
+            <details><summary>診断がある状態でもSVG / PNG / PDFを書き出せますか</summary><div><p>書き出せます。各visual formatには正常に解釈できた現在のグラフだけが含まれます。正本全体を残すには<code>.granvas</code>もダウンロードしてください。</p></div></details>
           </div>
         </section>
 
         <section id="limitations" class="doc-section" aria-labelledby="limitations-title">
           <div class="section-heading"><span>09</span><div><p>CURRENT STATUS</p><h2 id="limitations-title">現在の制約</h2></div></div>
           <div class="status-panel">
-            <div><span>現在</span><h3>Phase 13で公開する範囲</h3><ul><li>日本語UI</li><li>Text ⇄ Graph編集</li><li>.granvas 読み込み / ダウンロード</li><li>SVGダウンロード</li></ul></div>
-            <div><span>今後</span><h3>Phase 8 / 9</h3><ul><li>PNG / PDF書き出し</li><li>正式なVercel本番公開</li><li>OSSライセンス / セキュリティ文書</li><li>リリース品質強化</li></ul></div>
+            <div><span>現在</span><h3>Phase 8までの実装範囲</h3><ul><li>日本語UI</li><li>Text ⇄ Graph編集</li><li>.granvas 読み込み / ダウンロード</li><li>SVG / PNG / PDFダウンロード</li></ul></div>
+            <div><span>今後</span><h3>Phase 9</h3><ul><li>正式なVercel本番公開</li><li>OSSライセンス / セキュリティ文書</li><li>CIとリリース品質強化</li><li>performance / accessibility / security監査</li></ul></div>
           </div>
           <div class="policy-grid">
             <article><h3>プライバシー</h3><p>この公式ガイドにはアクセス解析、追跡、cookie、入力フォーム、外部フォントを含めていません。Granvas v0.1にもバックエンド、アカウント、クラウド同期はありません。</p></article>

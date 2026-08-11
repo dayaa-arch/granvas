@@ -1,4 +1,14 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Download } from '@playwright/test'
+import { PDFDocument } from 'pdf-lib'
+
+async function downloadBytes(download: Download): Promise<Buffer> {
+  const stream = await download.createReadStream()
+  const chunks: Buffer[] = []
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+  }
+  return Buffer.concat(chunks)
+}
 
 test('boots the canonical Text and Graph workspace', async ({ page }) => {
   await page.goto('/')
@@ -116,11 +126,74 @@ test('supports keyboard resizing and an accessible Download dialog', async ({
   await expect(dialog).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'ファイル名' })).toBeFocused()
   await expect(page.getByRole('radio', { name: /SVG/ })).toBeEnabled()
-  await expect(page.getByRole('radio', { name: /PNG/ })).toBeDisabled()
-  await expect(page.getByRole('radio', { name: /PDF/ })).toBeDisabled()
+  await expect(page.getByRole('radio', { name: /PNG/ })).toBeEnabled()
+  await expect(page.getByRole('radio', { name: /PDF/ })).toBeEnabled()
   await dialog.press('Escape')
   await expect(dialog).toHaveCount(0)
   await expect(downloadButton).toBeFocused()
+})
+
+test('downloads viewport-independent SVG, PNG, and PDF with Japanese certainty content', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
+  await editor.fill(`@layout flow LR
+
+[?problem @start] 日本語 <script> は文字列
+  !-> [!idea @middle] 確定した案
+[~todo @end] 棄却した作業
+
+@middle ?-> @end : 次の候補
+
+{検証グループ}
+  @start
+  @middle`)
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('診断 0件')
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('未ダウンロード')
+
+  await page.locator('.react-flow__controls-zoomin').click()
+  await page.locator('.react-flow__controls-zoomin').click()
+
+  const downloadFormat = async (format: 'SVG' | 'PNG' | 'PDF') => {
+    await page.getByRole('button', { name: 'ダウンロード' }).click()
+    const dialog = page.getByRole('dialog', { name: '作業内容をダウンロード' })
+    await dialog.getByRole('radio', { name: new RegExp(format) }).check()
+    const downloadPromise = page.waitForEvent('download')
+    await dialog.getByRole('button', { name: 'ダウンロード', exact: true }).click()
+    const download = await downloadPromise
+    return { bytes: await downloadBytes(download), download }
+  }
+
+  const svg = await downloadFormat('SVG')
+  expect(svg.download.suggestedFilename()).toBe('untitled.svg')
+  const svgText = svg.bytes.toString('utf8')
+  expect(svgText).toContain('viewBox=')
+  expect(svgText).toContain('日本語 &lt;script&gt; は文字列')
+  expect(svgText).toContain('検証グループ')
+  expect(svgText).toContain('次の候補')
+  expect(svgText).toContain('data-certainty="tentative"')
+  expect(svgText).toContain('data-certainty="confirmed"')
+  expect(svgText).toContain('data-certainty="rejected"')
+  expect(svgText).not.toContain('<script>')
+
+  const png = await downloadFormat('PNG')
+  expect(png.download.suggestedFilename()).toBe('untitled.png')
+  expect([...png.bytes.subarray(0, 8)]).toEqual([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+  ])
+  expect(png.bytes.readUInt32BE(16)).toBeGreaterThan(1)
+  expect(png.bytes.readUInt32BE(20)).toBeGreaterThan(1)
+
+  const pdf = await downloadFormat('PDF')
+  expect(pdf.download.suggestedFilename()).toBe('untitled.pdf')
+  expect(pdf.bytes.subarray(0, 5).toString('ascii')).toBe('%PDF-')
+  const pdfDocument = await PDFDocument.load(pdf.bytes)
+  expect(pdfDocument.getPageCount()).toBe(1)
+  expect(pdfDocument.getPage(0).getWidth()).toBeGreaterThan(1)
+  expect(pdfDocument.getPage(0).getHeight()).toBeGreaterThan(1)
+
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText('未ダウンロード')
 })
 
 test('downloads BOM-free .granvas source and marks that revision saved', async ({
@@ -180,6 +253,7 @@ test('downloads BOM-free .granvas source and marks that revision saved', async (
 test('projects certainty markers without color-only distinctions', async ({ page }) => {
   await page.goto('/')
   const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
+  await expect(editor).toContainText('@layout flow TB')
   const source = `@layout flow TB
 
 # 解約の分析

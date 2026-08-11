@@ -30,10 +30,17 @@ export interface FileDownloadPort {
   download(file: DownloadFileDto): Promise<void>
 }
 
+export type TransferGraphCertaintyDto =
+  | 'neutral'
+  | 'tentative'
+  | 'confirmed'
+  | 'rejected'
+
 export type TransferGraphNodeDto = Readonly<{
   id: string
   label: string
   type: string
+  certainty: TransferGraphCertaintyDto
   x: number
   y: number
   width: number
@@ -45,6 +52,7 @@ export type TransferGraphEdgeDto = Readonly<{
   source: string
   target: string
   label?: string
+  certainty: TransferGraphCertaintyDto
 }>
 
 export type TransferGraphGroupDto = Readonly<{

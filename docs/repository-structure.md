@@ -138,6 +138,7 @@ granvas/
 
 - `.granvas` Import、format選択、file generation、browser download。
 - Browser File API、Blob、Canvas、PDF libraryをinfrastructureに隔離する。
+- `infrastructure/svg`が安全な共通scene markup、`infrastructure/canvas`がPNG、`infrastructure/pdf`がlazy-loaded PDF、`CompositeGraphExportAdapter`がformat委譲を担当する。
 - Document / Graphの内部型を直接importしない。
 
 ### 3.6 `src/modules/workspace`

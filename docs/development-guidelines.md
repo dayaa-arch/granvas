@@ -146,6 +146,8 @@ Common
 - SVG / PNG / PDFはcurrent revisionのexport sceneだけを使う。
 - DOM snapshotをapplication contractへ渡さない。
 - source由来文字列をHTMLとして挿入しない。
+- PNGは2x / 8192px policyを通し、Canvas / Image / Object URL failureを`graph-render-failed`へ正規化する。
+- PDF libraryはTransfer infrastructureからdynamic importし、browser / library型をApplication contractへ公開しない。
 - visual export成功でdirtyを解除しない。
 
 ## 9. React / Styling

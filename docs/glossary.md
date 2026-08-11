@@ -126,8 +126,8 @@
 | --- | --- | --- |
 | Granvas Project | `.granvas`, UTF-8 text | 再編集可能な唯一のv0.1 Project format |
 | SVG | `.svg`, `image/svg+xml` | scalableなvisual artifact |
-| PNG | `.png`, `image/png` | 2x raster visual artifact |
-| PDF | `.pdf`, `application/pdf` | single-page visual artifact |
+| PNG | `.png`, `image/png` | 2xを基本とし各辺8192pxを上限とするwhite-background raster artifact |
+| PDF | `.pdf`, `application/pdf` | Canvas PNGをgraph bounds pageへ埋め込むsingle-page visual artifact |
 
 ## 8. Hosting / Future Terms
 

@@ -408,7 +408,10 @@ function App({ application }: AppProps) {
 
       setNotice({
         tone: 'success',
-        message: `${result.file.fileName}をダウンロードしました。`,
+        message: [
+          `${result.file.fileName}をダウンロードしました。`,
+          ...result.notices,
+        ].join(' '),
       })
       closeDownloadDialog()
     } catch {
