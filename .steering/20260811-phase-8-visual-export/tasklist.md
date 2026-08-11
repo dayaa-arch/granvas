@@ -1,7 +1,7 @@
 # Phase 8 Visual Export タスクリスト
 
 > 作成日: 2026-08-11
-> ステータス: PRレビュー中
+> ステータス: 完了
 > Issue: [#29](https://github.com/dayaa-arch/granvas/issues/29)
 > PR: [#30](https://github.com/dayaa-arch/granvas/pull/30)
 
@@ -54,9 +54,9 @@
 - [x] tasklistと正本文書を実績へ同期する。
 - [x] 意図した変更だけをcommit / pushする。
 - [x] PRへ要求、設計、検証、dependency判断、残課題を記載する。
-- [ ] green確認後にmainへmergeし、Issue / branchを整理する。
+- [x] green確認後にmainへmergeし、Issue / branchを整理する。
 
 ## 完了条件
 
 - [x] Phase 8の受け入れ条件とroadmap Exit Criteriaをすべて満たす。
-- [ ] review済みmainからSVG / PNG / PDFを再現できる。
+- [x] review済みmainからSVG / PNG / PDFを再現できる。

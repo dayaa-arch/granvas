@@ -1,0 +1,18 @@
+@layout flow TB
+
+# 新しいプロダクトのアイデア
+
+文章を書きながら、課題とアイデアの関係を整理する。
+
+[problem @scattered] 顧客情報が分散している
+  -> [cause] Excelファイルが部署ごとに分かれている
+  -> [cause] 担当者だけが知識を持っている
+
+[idea @unify] AIでメモと構造を統合する
+[todo @interview] ユーザーインタビューを行う
+
+@unify -> @scattered : 解決する
+
+{調査}
+  @scattered
+  @interview

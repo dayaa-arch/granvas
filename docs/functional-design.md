@@ -421,10 +421,11 @@ flowchart LR
     Pages --> Reader["日本語利用者"]
 ```
 
-- サイト名は`Granvas 1.0 公式ドキュメント`、release状態は`公開プレビュー`とする。
-- 対応実装を`Granvas v0.1 開発版（Phase 8完了時点）`として明示し、SVG / PNG / PDFの利用可否とPhase 9の未完了機能を区別する。
+- サイト名は`Granvas 1.0 公式ドキュメント — 完全版`、release状態は`完全版`とする。
+- Docs edition 1.0と対応実装`Granvas v0.1 Release Candidate`を明示し、product v1.0とは区別する。
+- Vercel production、SVG / PNG / PDF、MIT / SECURITY / CONTRIBUTING、quality gateへの導線を含める。
 - 画面構成、Notation、確信度、Text / Graph navigation、Graph authoring、Project Download / Import、keyboard、FAQ、現在の制約を含める。
 - screenshotは日本語UIのproduction buildから取得し、画像だけに意味を依存させない。
 - semantic HTML、skip link、heading、alt、focus indicator、responsive layoutを備える。
-- `.github/workflows/`へcustom Pages workflowを追加せず、GitHub Pagesのlegacy branch sourceを使う。
+- `.github/workflows/quality.yml`は検証だけを行い、custom Pages workflowを追加せずGitHub Pagesのlegacy branch sourceを使う。
 - product applicationのVercel static hostingは変更しない。

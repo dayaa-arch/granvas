@@ -18,9 +18,13 @@ for (const file of requiredFiles) {
 const html = await readFile(resolve(outputDirectory, 'index.html'), 'utf8')
 const requiredFragments = [
   '<html lang="ja">',
-  'Granvas 1.0 公式ドキュメント',
-  '公開プレビュー',
-  'Granvas v0.1 開発版（Phase 8完了時点）',
+  'Granvas 1.0 公式ドキュメント — 完全版',
+  '完全版',
+  'Granvas v0.1 Release Candidate',
+  'https://granvas-taigahr12-gmailcoms-projects.vercel.app',
+  'MIT License',
+  'SECURITY.md',
+  'CONTRIBUTING.md',
   'href="#main-content"',
   '/granvas/assets/',
 ]
@@ -48,6 +52,12 @@ const trackingHosts = [
 ]
 if (trackingHosts.some((host) => html.includes(host))) {
   throw new Error('Tracking code must not be included in the official documentation.')
+}
+
+for (const obsoleteFragment of ['公開プレビュー', 'Phase 8完了時点', '<h3>Phase 9</h3>']) {
+  if (html.includes(obsoleteFragment)) {
+    throw new Error(`Pages build still contains obsolete release copy: ${obsoleteFragment}`)
+  }
 }
 
 const imageTags = [...html.matchAll(/<img\s+[^>]*>/gu)].map((match) => match[0])

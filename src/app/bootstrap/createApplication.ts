@@ -12,7 +12,7 @@ import { DEFAULT_PROJECT_SOURCE } from '@/app/defaultProject'
 
 export type GranvasApplication = Readonly<{
   productName: 'Granvas'
-  version: '0.1'
+  version: '0.1.0'
   graphLayout: GraphLayoutPort
   transfer: TransferApplication
   workspace: WorkspaceApplication
@@ -32,7 +32,7 @@ export function createApplication(): GranvasApplication {
   )
   return Object.freeze({
     productName: 'Granvas',
-    version: '0.1',
+    version: '0.1.0',
     graphLayout,
     transfer: createTransferApplication({
       projectFilePicker,

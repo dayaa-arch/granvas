@@ -3,12 +3,12 @@
 > **Write thoughts. See structure.**  
 > 文章を書くように、思考のグラフを書く。
 
-Granvas is a public, work-in-progress visual thinking editor intended for an open-source v0.1 release. It lets you describe ideas and relationships in plain text, then projects the current text into a live graph you can read and edit — with the text staying the single source of truth.
+Granvas is an open-source visual thinking editor available as a v0.1 Release Candidate. It lets you describe ideas and relationships in plain text, then projects the current text into a live graph you can read and edit — with the text staying the single source of truth.
 
-日本語での使い方は、[Granvas 1.0 公式ドキュメント](https://dayaa-arch.github.io/granvas/)で案内します。サイトは公開プレビューで、現在のGranvas v0.1開発版に実装済みの範囲と今後の予定を区別して説明します。
+ブラウザーでは[Granvas v0.1 Release Candidate](https://granvas-taigahr12-gmailcoms-projects.vercel.app)を利用できます。日本語での使い方は、[Granvas 1.0 公式ドキュメント — 完全版](https://dayaa-arch.github.io/granvas/)で案内します。Docs edition 1.0とproduct version v0.1.0は別のversion軸です。
 
 > [!IMPORTANT]
-> **Early development:** Phase 8 (Visual Export) is complete. The current web app supports Japanese text editing, live graph projection, certainty markers, Text/Graph navigation, Graph-side authoring, `.granvas` Import/Download, and viewport-independent SVG/PNG/PDF Download. Release hardening, OSS release files, CI, and Vercel production remain Phase 9 work, so this repository is not yet an end-user v0.1 release.
+> **Release Candidate:** Phases 0–13, including Visual Export and Release Hardening, are complete for the v0.1 scope. The static Vercel app supports Japanese text editing, live graph projection, certainty markers, Text/Graph navigation, Graph-side authoring, `.granvas` Import/Download, and viewport-independent SVG/PNG/PDF Download. This is not a product v1.0 declaration.
 
 ## Why Granvas?
 
@@ -31,7 +31,7 @@ Its core principles are:
 
 Most of the individual syntax pieces have precedents — Mermaid, D2, nomnoml, and Argdown all cover similar ground. What Granvas combines is narrower: prose is the host document and notation is opt-in with no fences, a half-typed line never blanks the diagram, and uncertainty is part of the language rather than something you annotate around.
 
-## Planned v0.1 capabilities
+## v0.1 capabilities
 
 - Desktop-first split view with a text editor and a live graph.
 - Plain text mixed with Granvas Notation.
@@ -50,7 +50,7 @@ The following are deliberately outside v0.1: free-form drawing, manual node posi
 
 Dragging a node changes what it *means* — its parent, or which group it belongs to — not where it sits. The layout engine still decides position, and no coordinates are ever written to your `.granvas` file. See [ADR-0001](docs/adr/0001-semantic-node-drag-without-coordinate-persistence.md) for why.
 
-## Granvas Notation preview
+## Granvas Notation
 
 The canonical demo document is:
 
@@ -230,7 +230,7 @@ Contributions are welcome while the project is being built in public. Because th
 5. Run type-checking, linting, tests, and the production build before opening a PR.
 6. Explain requirements, design impact, verification results, and remaining work in the PR.
 
-A dedicated `CONTRIBUTING.md` and Code of Conduct are planned before the public v0.1 release. Until then, follow the [development guidelines](docs/development-guidelines.md) and the repository's documented architecture boundaries.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete workflow, verification requirements, and architecture rules. Also follow the [development guidelines](docs/development-guidelines.md) for document-driven changes.
 
 ## Security and privacy
 
@@ -241,13 +241,11 @@ The v0.1 design is local-first at runtime:
 - Future authentication, if introduced after v0.1, will use Supabase Auth behind an infrastructure adapter. No Supabase SDK or credentials belong in the current client.
 - Imported text and generated labels are treated as untrusted input.
 
-A dedicated `SECURITY.md` and private vulnerability-reporting channel are not available yet. Do not publish exploit details, credentials, personal data, or other sensitive material in a public Issue. A private reporting process is a release blocker for v0.1.
+See [SECURITY.md](SECURITY.md) and use GitHub private vulnerability reporting for sensitive reports. Do not publish exploit details, credentials, personal data, or other sensitive material in a public Issue.
 
 ## License
 
-An OSS license has not been selected yet, and this repository does not currently contain a `LICENSE` file. Until a license is added, the public availability of the source does not grant permission to use, modify, or redistribute it.
-
-License selection and the addition of `LICENSE` are required before the public v0.1 release.
+Granvas is released under the [MIT License](LICENSE). Production dependency licenses are checked by `bun run licenses:verify`.
 
 ## Roadmap
 
@@ -264,7 +262,7 @@ License selection and the addition of `LICENSE` are required before the public v
 - [x] Phase 12 — Graph Authoring: semantic drag, node creation, edge connection, deletion preview, and nested-child promotion.
 - [x] Phase 13 — Japanese UI & Official Documentation: Japanese UI and the official GitHub Pages guide are published.
 - [x] Phase 8 — Visual Export: SVG/PNG/PDF full-graph export and three-browser verification.
-- [ ] Phase 9 — Release Hardening: performance, accessibility, security, OSS, CI, and Vercel production.
+- [x] Phase 9 — Release Hardening: performance, accessibility, security, OSS, CI, and Vercel production.
 
 Phase numbers are assignment order, not execution order. Phases 10–13 were added on 2026-08-11 and run before Phases 8–9; the list above is in execution order.
 

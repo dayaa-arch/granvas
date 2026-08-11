@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Granvasの日本語公式利用ガイド。テキストからグラフを投影し、思考の構造を編集する方法を説明します。" />
+    <meta name="description" content="Granvas 1.0公式ドキュメント完全版。テキストからグラフを投影し、思考の構造を編集・保存・書き出す方法を説明します。" />
     <meta name="theme-color" content="#f4f2ed" />
-    <title>Granvas 1.0 公式ドキュメント</title>
+    <title>Granvas 1.0 公式ドキュメント — 完全版</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./src/styles.css" />
     <script type="module" src="./src/docs.js"></script>
@@ -19,6 +19,7 @@
         <span><strong>Granvas</strong><small>公式ドキュメント</small></span>
       </a>
       <nav class="header-nav" aria-label="補助ナビゲーション">
+        <a href="https://granvas-taigahr12-gmailcoms-projects.vercel.app">Granvasを開く<span aria-hidden="true"> ↗</span></a>
         <a href="#quick-start">はじめる</a>
         <a href="#notation">記法</a>
         <a href="https://github.com/dayaa-arch/granvas">GitHub<span aria-hidden="true"> ↗</span></a>
@@ -26,9 +27,9 @@
     </header>
 
     <div id="top" class="release-strip" role="note">
-      <span class="release-strip__status">公開プレビュー</span>
+      <span class="release-strip__status">完全版</span>
       <span>Granvas 1.0 公式ドキュメント</span>
-      <span class="release-strip__implementation">対応実装: Granvas v0.1 開発版（Phase 8完了時点）</span>
+      <span class="release-strip__implementation">対応実装: Granvas v0.1 Release Candidate</span>
     </div>
 
     <div class="docs-shell">
@@ -70,7 +71,8 @@
             <h1 id="overview-title">思考を書く。<br />構造が見える。</h1>
             <p class="hero__lead">Granvasは、自然な文章と最小限の記法から思考のグラフを映し出すWebエディターです。文章を壊さず、テキストとグラフの両側から意味を育てられます。</p>
             <div class="hero__actions">
-              <a class="button button--primary" href="#quick-start">使い方を見る</a>
+              <a class="button button--primary" href="https://granvas-taigahr12-gmailcoms-projects.vercel.app">Granvasを開く<span aria-hidden="true"> ↗</span></a>
+              <a class="button button--secondary" href="#quick-start">使い方を見る</a>
               <a class="button button--secondary" href="https://github.com/dayaa-arch/granvas">ソースコードを見る<span aria-hidden="true"> ↗</span></a>
             </div>
           </div>
@@ -86,13 +88,13 @@
           <div class="notice__icon" aria-hidden="true">1.0</div>
           <div>
             <h2 id="version-note-title">このドキュメントの位置づけ</h2>
-            <p>これは「Granvas 1.0 公式ドキュメント」の公開プレビューです。説明対象はPhase 8までを完了したGranvas v0.1開発版です。SVG / PNG / PDF書き出しを利用できます。正式な本番リリースとrelease hardeningはまだ完了していません。</p>
+            <p>これは「Granvas 1.0 公式ドキュメント — 完全版」です。説明対象はPhase 8 / 9までを完了したGranvas v0.1 Release Candidateです。ドキュメントのedition 1.0は製品version 1.0を意味せず、製品versionはv0.1.0です。</p>
           </div>
         </section>
 
         <section id="quick-start" class="doc-section" aria-labelledby="quick-start-title">
           <div class="section-heading"><span>01</span><div><p>QUICK START</p><h2 id="quick-start-title">はじめる</h2></div></div>
-          <p class="section-lead">現在の公開プレビューは、リポジトリを取得してローカルで起動します。Bunを用意し、次の3行を実行してください。</p>
+          <p class="section-lead"><a href="https://granvas-taigahr12-gmailcoms-projects.vercel.app">Vercelで公開中のGranvas</a>をブラウザーで開けば、インストールせずに利用できます。ローカルで動かす場合はBunを用意し、次の3行を実行してください。</p>
           <div class="steps">
             <article><span>1</span><h3>取得する</h3><p>GitHubからGranvasを複製します。</p></article>
             <article><span>2</span><h3>準備する</h3><p>Bunで依存関係をインストールします。</p></article>
@@ -101,7 +103,7 @@
           <pre class="code-block" data-code-block><code>git clone https://github.com/dayaa-arch/granvas.git
 cd granvas
 bun install &amp;&amp; bun run dev</code></pre>
-          <div class="callout"><strong>対応環境</strong><p>最新のChrome、Firefox、Safari相当を対象に検証しています。プロジェクトファイルはブラウザーから読み込み・ダウンロードします。サーバーへの自動保存やログインはありません。</p></div>
+          <div class="callout"><strong>対応環境</strong><p>Chromium、Firefox、WebKitの3ブラウザーで検証しています。プロジェクトファイルはブラウザーから読み込み・ダウンロードします。サーバーへの自動保存、ログイン、tracking、外部API通信はありません。</p></div>
         </section>
 
         <section id="workspace" class="doc-section" aria-labelledby="workspace-title">
@@ -226,19 +228,19 @@ bun install &amp;&amp; bun run dev</code></pre>
         <section id="limitations" class="doc-section" aria-labelledby="limitations-title">
           <div class="section-heading"><span>09</span><div><p>CURRENT STATUS</p><h2 id="limitations-title">現在の制約</h2></div></div>
           <div class="status-panel">
-            <div><span>現在</span><h3>Phase 8までの実装範囲</h3><ul><li>日本語UI</li><li>Text ⇄ Graph編集</li><li>.granvas 読み込み / ダウンロード</li><li>SVG / PNG / PDFダウンロード</li></ul></div>
-            <div><span>今後</span><h3>Phase 9</h3><ul><li>正式なVercel本番公開</li><li>OSSライセンス / セキュリティ文書</li><li>CIとリリース品質強化</li><li>performance / accessibility / security監査</li></ul></div>
+            <div><span>RELEASE</span><h3>Granvas v0.1 Release Candidate</h3><ul><li>日本語UIとText ⇄ Graph編集</li><li>.granvas Import / Download</li><li>SVG / PNG / PDF full-graph出力</li><li>Vercel static production</li></ul></div>
+            <div><span>QUALITY</span><h3>Phase 9の公開品質</h3><ul><li>Chromium / Firefox / WebKit E2E</li><li>WCAG 2.2 A / AA自動監査</li><li>performance budgetと依存license監査</li><li>CSP、outbound 0、secret / source map検査</li></ul></div>
           </div>
           <div class="policy-grid">
             <article><h3>プライバシー</h3><p>この公式ガイドにはアクセス解析、追跡、cookie、入力フォーム、外部フォントを含めていません。Granvas v0.1にもバックエンド、アカウント、クラウド同期はありません。</p></article>
-            <article><h3>セキュリティ</h3><p><code>.granvas</code>は最大5 MiBのUTF-8テキストとしてブラウザー内で処理します。認証情報やSupabase SDKはv0.1へ追加していません。</p></article>
-            <article><h3>ライセンス</h3><p>OSSライセンスの確定はPhase 9の範囲です。現時点では、リポジトリに明示された条件を確認してから利用・再配布してください。</p></article>
+            <article><h3>セキュリティ</h3><p><code>.granvas</code>は最大5 MiBのUTF-8テキストとしてブラウザー内で処理します。脆弱性の報告方法は<a href="https://github.com/dayaa-arch/granvas/security/policy">SECURITY.md</a>を確認してください。</p></article>
+            <article><h3>OSS</h3><p>Granvasは<a href="https://github.com/dayaa-arch/granvas/blob/main/LICENSE">MIT License</a>です。変更提案は<a href="https://github.com/dayaa-arch/granvas/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>と品質検証手順に従ってください。</p></article>
           </div>
-          <div class="final-cta"><div><p>PROJECT REPOSITORY</p><h2>Granvasの設計と開発状況を見る</h2><span>仕様、ADR、ロードマップ、ソースコードをGitHubで公開しています。</span></div><a class="button button--primary" href="https://github.com/dayaa-arch/granvas">GitHubを開く<span aria-hidden="true"> ↗</span></a></div>
+          <div class="final-cta"><div><p>START GRANVAS</p><h2>文章から、思考の構造を育てる</h2><span>アカウント登録なしで、ブラウザーからすぐに始められます。</span></div><a class="button button--primary" href="https://granvas-taigahr12-gmailcoms-projects.vercel.app">Granvasを開く<span aria-hidden="true"> ↗</span></a></div>
         </section>
       </main>
     </div>
 
-    <footer class="site-footer"><p><strong>Granvas</strong> — 思考を書く。構造が見える。</p><p>Granvas 1.0 公式ドキュメント · 公開プレビュー</p></footer>
+    <footer class="site-footer"><p><strong>Granvas</strong> — 思考を書く。構造が見える。</p><p>Granvas 1.0 公式ドキュメント · 完全版 · Granvas v0.1 Release Candidate</p></footer>
   </body>
 </html>

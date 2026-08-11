@@ -1,6 +1,6 @@
 # Granvas 技術仕様書
 
-> Status: Draft / Approval Candidate  
+> Status: Release Candidate Hardening
 > Target: v0.1  
 > Updated: 2026-08-11
 > Related: `docs/adr/`
@@ -55,9 +55,15 @@ PDF生成は[ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md)に従い、Canva
 - build artifactはproject Pagesのbase path `/granvas/`を使用する。
 - review済みmainから生成したartifactだけを`gh-pages` branch rootへ配置する。
 - rootへ`.nojekyll`を含め、GitHub Pagesのlegacy branch sourceとして公開する。
-- repositoryへcustom GitHub Actions workflowを追加しない。Pages platformが内部で行うdeploymentはrepository-owned workflowと区別する。
+- repositoryのGitHub Actionsはquality verificationだけを行う。custom Pages deployment workflowは追加せず、Pages platformの内部deploymentと区別する。
 - official Docsはruntime backend、analytics、tracking、remote font、cookieを使用しない。
 - product SPAのVercel deploymentとDocsのGitHub Pages deploymentを相互依存させない。
+
+### 3.2 Quality CI
+
+- `.github/workflows/quality.yml`はpull request / main pushでfrozen Bun install、typecheck、lint、unit / component、app / Docs build、audit、three-browser E2E、performanceを検証する。
+- deployment job、repository write permission、Vercel / Pages credentialを含めない。
+- Vercel productionとPagesはreview済みmainを承認済み手動操作で公開する。
 
 ## 4. Bounded Context
 
@@ -288,6 +294,7 @@ ADRは`docs/adr/`に置き、`docs/adr/README.md`を索引とする。
 - [ADR-0003](adr/0003-certainty-markers-in-granvas-notation.md) Certainty markers in Granvas Notation。
 - [ADR-0004](adr/0004-official-documentation-on-github-pages.md) Official documentation on GitHub Pages。
 - [ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md) PDF generation with pdf-lib。
+- [ADR-0006](adr/0006-promote-official-documentation-to-complete-edition.md) Promote official documentation to complete edition。
 
 未起票:
 
