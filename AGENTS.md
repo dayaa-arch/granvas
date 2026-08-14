@@ -17,7 +17,7 @@
 - Frontend: React 19、TypeScript 6、Vite 8、CodeMirror 6、`@xyflow/react`、Dagre。
 - Package manager: Bun。`bun.lock`をcommitする。
 - Hosting: Vercel static deployment。v0.1でserver functionを使用しない。
-- Persistence: `.granvas` Importと`.granvas / SVG / PNG / PDF` Download。browser自動永続化なし。
+- Persistence: `.granvas` Importと`.granvas / SVG / PNG / PDF` Download。active Textは同一browserへ最終更新から24時間だけ一時保存し、恒久保存は`.granvas`とする。
 - Authentication: v0.1では未実装。将来providerはSupabase Authだが、v0.1にSDKやcredentialを追加しない。
 
 ## Architecture Boundaries

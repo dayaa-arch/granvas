@@ -9,8 +9,8 @@
 - Architecture: Domain-Driven Design + Layered Architecture + Modular Monolith
 - Frontend: React + TypeScript + Vite
 - Hosting: Vercel
-- Persistence: User-managed Import / Download
-- Date: 2026-08-11
+- Persistence: 24-hour browser recovery + User-managed Import / Download
+- Date: 2026-08-14
 
 ---
 
@@ -31,6 +31,7 @@ v0.1 の開発では、本書を実装判断の基準とする。仕様変更が
 | 2026-08-11 | 製品UIを日本語へ統一し、実装済みの使い方を説明する公式利用ガイドをGitHub Pagesへ公開するPhase 13を追加。v1.0 Docsは公開プレビューとし、product target v0.1を維持する。 | [ADR-0004](adr/0004-official-documentation-on-github-pages.md) |
 | 2026-08-11 | Phase 8のvisual exportを具体化。certaintyを含む共通sceneからSVG / Canvas PNG / single-page PDFを生成し、PDFには`pdf-lib`でCanvas PNGを埋め込む。 | [ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md) |
 | 2026-08-11 | Phase 9のrelease契約を具体化。productはv0.1 Release Candidate、公式Docsはedition 1.0完全版とし、MIT、quality-only Actions、Vercel production、release evidenceを追加する。 | [ADR-0006](adr/0006-promote-official-documentation-to-complete-edition.md) |
+| 2026-08-14 | active Textを同一browserへ最終保存から24時間だけ一時保存し、reload / 再訪時に復元するPhase 14を追加。`.granvas`を恒久保存として維持し、Graph・座標・派生状態は保存しない。 | [ADR-0007](adr/0007-temporary-browser-project-recovery.md) |
 
 Phase の名称・順序・進捗は `docs/development-roadmap.md` を正本とする。
 
@@ -111,6 +112,7 @@ v0.1 は `Text ⇄ Graph` の双方向編集を含む。ただしこれは正本
 - `.granvas` プロジェクトの Import
 - `.granvas` / SVG / PNG / PDF を選択できる Download
 - 未ダウンロード変更の状態表示と離脱警告
+- active Textの24時間一時保存とreload / 同一browser再訪時の復元
 - Pan / Zoom / Fit View
 - OSS としてローカルで起動でき、Vercel へ配備可能な Web アプリ
 - visible text、accessible name、通知、diagnostic、error、初期サンプルを含む日本語UI
@@ -125,7 +127,7 @@ v0.1 は `Text ⇄ Graph` の双方向編集を含む。ただしこれは正本
 - ノード色・形・サイズ・座標を指定する記法
 - Map / Outline / Kanban / Timeline など複数ビュー
 - 複数ドキュメント管理 UI
-- localStorage / IndexedDB への自動永続化
+- 期限なしのbrowser永続化、複数Project履歴、browser間同期
 - クラウド同期
 - アカウント / 認証
 - 共同編集
@@ -1382,15 +1384,39 @@ v0.1の製品UIは日本語を標準とする。
 
 
 
-## 7.1 User-owned File Persistence
+## 7.1 Persistence Model
 
-v0.1 は、Webアプリ版draw.ioのようにユーザーが明示的に Project をDownload / Importして継続する。
+v0.1 は、24時間のbrowser内一時復旧と、ユーザーが明示的に所有する`.granvas` Download / Importを分離する。
 
-- 編集中の source は現在の browser tab の memory にだけ保持する。
-- localStorage / IndexedDB へ自動永続化しない。
+- 編集中のactive Textは同一originのlocalStorageへ最終保存から24時間だけ保持する。
+- 一時保存はreload / 短期再訪からの復旧補助であり、恒久保存や`.granvas` Download済みを意味しない。
 - telemetry、cloud storage、backend API call を行わない。
 - Vercel から静的 asset を取得した後、編集・parse・layout・Import・Download は browser 内で完結する。
 - `.granvas` だけを再編集可能な project format とする。SVG / PNG / PDF は read-only の派生成果物であり、Import 対象にしない。
+
+### 7.1.1 Temporary Browser Record
+
+versioned keyは`granvas:temporary-project:v1`とし、payloadを次に限定する。
+
+```ts
+type TemporaryProjectRecord = Readonly<{
+  schemaVersion: 1
+  name: string
+  source: string
+  dirty: boolean
+  savedAt: number
+  expiresAt: number
+}>
+```
+
+- TTLは最後に成功したwriteから24時間のsliding expirationとする。
+- Text Editorのpending sourceはprojection debounce前に保存する。
+- Graph編集、Project Import、`.granvas` Download完了後も現在状態へ同期する。
+- Graph、座標、projection、diagnostics、selection、Undo履歴、runtime revisionを保存しない。
+- validなrecordはdefault Projectより優先し、TextからGraphを再投影する。
+- expired、corrupt JSON、unknown schema、不正field、clock tamperは復元せず削除する。
+- read / write / remove、quota、security policyのfailureはProject操作を失敗させず、一時保存利用不可として表示する。
+- 開いたtabは期限timerで削除を試みる。閉じたbrowserでは次回起動時にexpired recordを削除する。
 
 
 
@@ -1411,6 +1437,7 @@ Workspace は `clean` / `dirty` / `exporting` / `error` を持つ。
 - SVG / PNG / PDF Download は再編集可能な保存ではないため dirty state を変更しない。
 - dirty な状態で Import / New Project を実行する場合は、現在の Project が失われることを confirmation dialog で確認する。cancel 時は何も変更しない。
 - dirty な状態で tab close / reload / route leave が発生する場合は browser の `beforeunload` warning を利用する。
+- 一時保存成功はdirty stateとclean baselineを変更しない。
 - Download / Import の失敗は `error` として表示し、現在の source と clean baseline を変更しない。
 
 
@@ -1554,7 +1581,7 @@ Granvas 固有の domain concept を `shared` へ逃がさない。
 - CodeMirror
 - React Flow
 - Dagre
-- localStorage
+- localStorage（Document Infrastructureの`TemporaryProjectStoragePort`実装だけで使用可）
 - DOM
 - browser File API
 
@@ -3258,6 +3285,17 @@ Status: Complete — Issue #31 / PR #32
 - Vercel production deployment / CSP / direct access
 - v0.1 Definition of Done audit
 
+## Phase 14: Temporary Browser Recovery
+
+Status: Complete — Issue #34 / PR #35
+
+- active Textのversioned localStorage record
+- 最終writeから24時間のsliding TTL
+- pending Text / Graph編集 / Import / Download lifecycleの同期
+- reload復元、期限切れ・破損recordの安全な破棄
+- `.granvas` dirty lifecycleと独立した一時保存表示
+- storage failureのnon-blocking fallback
+
 ---
 
 
@@ -3302,6 +3340,10 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [x] visible text、accessible name、diagnostic、error、初期Projectが日本語で提供される
 - [x] 日本語の公式利用ガイドが実装済みの利用方法と現在の制約を説明する
 - [x] 公式利用ガイドがGitHub PagesのHTTPS URLで公開される
+- [x] Text入力直後のreloadで24時間以内の一時保存から復元できる
+- [x] Graph編集を復元Textから同じ意味Graphへ再投影できる
+- [x] 24時間以上経過した値、破損値、未知schemaを復元しない
+- [x] 一時保存が`.granvas`のdirty lifecycleを変更しない
 
 
 
@@ -3321,6 +3363,8 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [x] Workspace が Notation 記法の文字列を組み立てていない
 - [x] Graph 要素 ID から occurrence key への解決が `ProjectionSourceMapDto` 経由で行われている
 - [x] Graph からテキスト全文を再生成する経路が存在しない
+- [x] browser storage具象がDocument Infrastructureへ隔離され、Application portから注入される
+- [x] 一時保存payloadにGraph・座標・projection・Undo履歴が含まれない
 
 
 
@@ -3342,6 +3386,8 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [x] TypeScript error 0
 - [x] lint error 0
 - [x] production build success
+- [x] localStorage read / write / remove failureのtestがある
+- [x] Text / Graph reloadと期限切れ・破損recordのthree-browser E2Eが通る
 - [x] Vercel production deploymentでdirect access / reloadが動作する
 - [x] OSS licenseが決定され、`LICENSE`が存在する
 

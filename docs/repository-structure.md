@@ -2,7 +2,7 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-10
+> Updated: 2026-08-14
 
 ## 1. 基本方針
 
@@ -58,6 +58,7 @@ granvas/
 │   │   ├── document/
 │   │   │   ├── domain/
 │   │   │   ├── application/
+│   │   │   ├── infrastructure/
 │   │   │   ├── presentation/
 │   │   │   └── index.ts
 │   │   ├── notation/
@@ -132,8 +133,9 @@ granvas/
 ### 3.2 `src/modules/document`
 
 - active document、source、revision、dirty lifecycle。
-- v0.1ではinfrastructure folderを原則作らない。
-- File APIやlocalStorageを置かない。
+- Applicationが短期復旧schema、24時間TTL、storage failure contractと`TemporaryProjectStoragePort`を所有する。
+- `infrastructure/browser`がversioned localStorage keyへのI/Oだけを実装する。
+- File Import / Downloadは引き続きTransferが所有し、Document Infrastructureへ置かない。
 
 ### 3.3 `src/modules/notation`
 

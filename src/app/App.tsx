@@ -103,7 +103,14 @@ function App({ application }: AppProps) {
   const [projectionPending, setProjectionPending] = useState(false)
   const [downloadOpen, setDownloadOpen] = useState(false)
   const [downloadBusy, setDownloadBusy] = useState(false)
-  const [notice, setNotice] = useState<AppNotice>()
+  const [notice, setNotice] = useState<AppNotice | undefined>(() =>
+    application.temporaryProjectLoad.type === 'restored'
+      ? {
+          tone: 'info',
+          message: '24時間の一時保存から作業を復元しました。',
+        }
+      : undefined,
+  )
   const editorSourceRef = useRef(editorSource)
   const editorRef = useRef<GranvasEditorHandle>(null)
   const graphSelectionRangeRef = useRef<SourceRangeDto | undefined>(undefined)
@@ -151,6 +158,27 @@ function App({ application }: AppProps) {
     return () => window.removeEventListener('beforeunload', warnBeforeUnload)
   }, [snapshot])
 
+  useEffect(() => {
+    const temporaryStorage = snapshot.temporaryStorage
+    if (temporaryStorage.type !== 'stored') {
+      return
+    }
+
+    const expire = () => {
+      applySnapshot(
+        workspace.expireTemporaryProject(temporaryStorage.expiresAt),
+      )
+    }
+    const remaining = temporaryStorage.expiresAt - Date.now()
+    if (remaining <= 0) {
+      expire()
+      return
+    }
+
+    const timer = window.setTimeout(expire, remaining)
+    return () => window.clearTimeout(timer)
+  }, [snapshot.temporaryStorage, workspace])
+
   const runSourceUpdate = async (source: string, generation: number) => {
     const pending = workspace.updateWorkspaceSource(source)
     applySnapshot(workspace.getSnapshot())
@@ -170,6 +198,8 @@ function App({ application }: AppProps) {
     setProjectionPending(true)
     setEditorSelection(undefined)
     graphSelectionRangeRef.current = undefined
+    workspace.cachePendingSource(source)
+    applySnapshot(workspace.getSnapshot())
     const generation = ++updateGenerationRef.current
 
     if (updateTimerRef.current !== undefined) {

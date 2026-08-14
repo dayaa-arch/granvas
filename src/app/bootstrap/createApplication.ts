@@ -9,6 +9,17 @@ import { PdfGraphExportAdapter } from '@/modules/transfer/infrastructure/pdf/Pdf
 import { SvgGraphExportAdapter } from '@/modules/transfer/infrastructure/svg/SvgGraphExportAdapter'
 import { createWorkspaceApplication, type WorkspaceApplication } from '@/modules/workspace'
 import { DEFAULT_PROJECT_SOURCE } from '@/app/defaultProject'
+import {
+  createTemporaryProjectRecovery,
+  type TemporaryProjectLoadResult,
+  type TemporaryProjectStoragePort,
+} from '@/modules/document'
+import { BrowserLocalStorageTemporaryProjectAdapter } from '@/modules/document/infrastructure/browser/BrowserLocalStorageTemporaryProjectAdapter'
+
+export type CreateApplicationInput = Readonly<{
+  temporaryProjectStorage?: TemporaryProjectStoragePort
+  now?: () => number
+}>
 
 export type GranvasApplication = Readonly<{
   productName: 'Granvas'
@@ -16,9 +27,12 @@ export type GranvasApplication = Readonly<{
   graphLayout: GraphLayoutPort
   transfer: TransferApplication
   workspace: WorkspaceApplication
+  temporaryProjectLoad: TemporaryProjectLoadResult
 }>
 
-export function createApplication(): GranvasApplication {
+export function createApplication(
+  input: CreateApplicationInput = {},
+): GranvasApplication {
   const graphLayout = new DagreGraphLayoutWorkerAdapter()
   const projectFilePicker = new BrowserProjectFilePickerAdapter()
   const fileDownload = new BrowserFileDownloadAdapter()
@@ -30,10 +44,23 @@ export function createApplication(): GranvasApplication {
     pngGraphExport,
     pdfGraphExport,
   )
+  const temporaryProjectRecovery = createTemporaryProjectRecovery({
+    storage:
+      input.temporaryProjectStorage ??
+      new BrowserLocalStorageTemporaryProjectAdapter(() => window.localStorage),
+    ...(input.now === undefined ? {} : { now: input.now }),
+  })
+  const temporaryProjectLoad = temporaryProjectRecovery.loadTemporaryProject()
+  const recoveredProject =
+    temporaryProjectLoad.type === 'restored'
+      ? temporaryProjectLoad.project
+      : undefined
+
   return Object.freeze({
     productName: 'Granvas',
     version: '0.1.0',
     graphLayout,
+    temporaryProjectLoad,
     transfer: createTransferApplication({
       projectFilePicker,
       fileDownload,
@@ -41,7 +68,23 @@ export function createApplication(): GranvasApplication {
     }),
     workspace: createWorkspaceApplication({
       graphLayout,
-      source: DEFAULT_PROJECT_SOURCE,
+      name: recoveredProject?.name,
+      source: recoveredProject?.source ?? DEFAULT_PROJECT_SOURCE,
+      initialDirty: recoveredProject?.dirty,
+      temporaryProjectRecovery,
+      initialTemporaryStorage:
+        temporaryProjectLoad.type === 'restored'
+          ? Object.freeze({
+              type: 'stored',
+              savedAt: temporaryProjectLoad.savedAt,
+              expiresAt: temporaryProjectLoad.expiresAt,
+            })
+          : Object.freeze({
+              type:
+                temporaryProjectLoad.type === 'empty'
+                  ? 'ready'
+                  : 'unavailable',
+            }),
     }),
   })
 }

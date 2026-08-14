@@ -20,6 +20,7 @@ Granvas の設計上の意思決定のうち、後から「なぜこうなって
 | [0004](0004-official-documentation-on-github-pages.md) | Official documentation on GitHub Pages | Accepted | 2026-08-11 |
 | [0005](0005-pdf-generation-with-pdf-lib.md) | PDF generation with pdf-lib | Accepted | 2026-08-11 |
 | [0006](0006-promote-official-documentation-to-complete-edition.md) | Promote official documentation to complete edition | Accepted | 2026-08-11 |
+| [0007](0007-temporary-browser-project-recovery.md) | Temporary browser project recovery | Accepted | 2026-08-14 |
 
 ## 起票が必要と分かっている論点
 

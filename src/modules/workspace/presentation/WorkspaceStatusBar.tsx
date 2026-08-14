@@ -17,12 +17,26 @@ function documentIsDirty(snapshot: WorkspaceSnapshotDto): boolean {
   )
 }
 
+function temporaryStorageLabel(snapshot: WorkspaceSnapshotDto): string | undefined {
+  switch (snapshot.temporaryStorage.type) {
+    case 'disabled':
+      return undefined
+    case 'ready':
+      return '24時間一時保存'
+    case 'stored':
+      return '一時保存済み（24時間）'
+    case 'unavailable':
+      return '一時保存を利用できません'
+  }
+}
+
 export function WorkspaceStatusBar({
   snapshot,
   cursor,
 }: WorkspaceStatusBarProps) {
   const dirty = documentIsDirty(snapshot)
   const graph = snapshot.projection?.graph
+  const storageLabel = temporaryStorageLabel(snapshot)
   const projectionLabel =
     snapshot.status.type === 'projecting'
       ? 'グラフを更新中'
@@ -41,6 +55,17 @@ export function WorkspaceStatusBar({
           <span className="workspace-status__dot" aria-hidden="true" />
           {dirty ? '未ダウンロード' : 'ダウンロード済み'}
         </span>
+        {storageLabel ? (
+          <span
+            className={
+              snapshot.temporaryStorage.type === 'unavailable'
+                ? 'workspace-status__temporary-storage is-unavailable'
+                : 'workspace-status__temporary-storage'
+            }
+          >
+            {storageLabel}
+          </span>
+        ) : null}
         <span>{projectionLabel}</span>
       </div>
       <div className="workspace-status__group" aria-live="polite">

@@ -1,7 +1,7 @@
 # Granvas 開発ガイドライン
 
 > Status: Release Candidate
-> Updated: 2026-08-11
+> Updated: 2026-08-14
 
 ## 1. 開発の基準
 
@@ -149,6 +149,16 @@ Common
 - PNGは2x / 8192px policyを通し、Canvas / Image / Object URL failureを`graph-render-failed`へ正規化する。
 - PDF libraryはTransfer infrastructureからdynamic importし、browser / library型をApplication contractへ公開しない。
 - visual export成功でdirtyを解除しない。
+
+## 8.1 Temporary Browser Recovery
+
+- 一時保存はDocument Applicationのport経由とし、Domain / Applicationから`window` / `localStorage`を参照しない。
+- 保存payloadはversioned schemaとして`unknown`から検証し、Text以外のGraph / 座標 / projection / Undo履歴を含めない。
+- TTLは最後のwrite成功から24時間とし、期限境界、clock tamper、corrupt JSON、unknown schemaをtestする。
+- storageのread / write / remove例外は編集失敗へ昇格させず、利用不可状態へ正規化する。
+- Text入力直後のreloadで失わないよう、projection debounce前のpending sourceを保存する。
+- 一時保存は`.granvas` clean baselineを変更しない。
+- browser performance testで同期serialization / writeがinput paint budgetを超えないことを確認する。
 
 ## 9. React / Styling
 

@@ -26,6 +26,14 @@
   gap: 7px;
 }
 
+.workspace-status__temporary-storage {
+  color: var(--ink-500);
+}
+
+.workspace-status__temporary-storage.is-unavailable {
+  color: #a54757;
+}
+
 .workspace-status__dot {
   width: 7px;
   height: 7px;

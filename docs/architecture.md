@@ -2,12 +2,12 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-11
+> Updated: 2026-08-14
 > Related: `docs/adr/`
 
 ## 1. Architecture Summary
 
-Granvas v0.1は、Vercelで配信するclient-onlyのReact SPAである。Domain-Driven Design、Layered Architecture、Modular Monolithを採用し、TextからGraphへのprojectionとユーザー所有fileによる永続化をbrowser内で完結させる。
+Granvas v0.1は、Vercelで配信するclient-onlyのReact SPAである。Domain-Driven Design、Layered Architecture、Modular Monolithを採用し、TextからGraphへのprojection、24時間のbrowser内一時復旧、ユーザー所有fileによる恒久保存をbrowser内で完結させる。
 
 日本語の公式利用ガイドはproduct SPAとは別の静的artifactとしてGitHub Pagesへ配信する。公式Docsはproduct runtimeやContextへ接続せず、Vercel hosting方針を変更しない。
 
@@ -69,7 +69,7 @@ PDF生成は[ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md)に従い、Canva
 
 | Context | Responsibility | Depends on other context internals |
 | --- | --- | --- |
-| Document | active source、revision、dirty lifecycle | No |
+| Document | active source、revision、dirty lifecycle、短期復旧contract | No |
 | Notation | parser、diagnostics、SourceRange / spans、編集規則 | No |
 | Graph | semantic graph、layout、export scene | No |
 | Transfer | Import / Download、format生成 | No |
@@ -151,6 +151,7 @@ infrastructure ──────┘
 | `ProjectFilePickerPort` | `transfer/application/ports` | `transfer/infrastructure` |
 | `FileDownloadPort` | `transfer/application/ports` | `transfer/infrastructure` |
 | `GraphExportPort` | `transfer/application/ports` | `transfer/infrastructure` |
+| `TemporaryProjectStoragePort` | `document/application/ports` | `document/infrastructure/browser` |
 
 具象は`src/app/bootstrap/createApplication.ts`で生成し、constructorまたはfactory argumentで注入する。
 
@@ -193,6 +194,16 @@ Graph側の操作をTextへ書き戻す経路の設計。根拠は[ADR-0002](adr
 
 ## 10. File Architecture
 
+### 10.0 Temporary Browser Recovery
+
+- versioned key`granvas:temporary-project:v1`へProject name、Text source、dirty flag、保存時刻、失効時刻だけをJSON保存する。
+- TTLは最後のwrite成功から24時間。expired / corrupt / unknown schemaは復元せず削除する。
+- Graph、座標、projection、diagnostics、selection、Undo履歴、runtime revisionは保存しない。
+- Application serviceがschema / TTL / failure normalization、Infrastructure adapterがlocalStorage I/O、Workspaceが保存timingを担当する。
+- browser storage failureは一時保存状態へ反映し、Document / projection / Import / Downloadを失敗させない。
+- 一時保存は`.granvas` clean baselineを変更しない。
+
+
 ### 10.1 `.granvas`
 
 - UTF-8 plain text。
@@ -215,6 +226,8 @@ Graph側の操作をTextへ書き戻す経路の設計。根拠は[ADR-0002](adr
 
 - production asset load後のoutbound requestは0。
 - telemetry、remote API、cloud storageなし。
+- active Textは同一originのlocalStorageへ最大24時間だけ保存し、networkへ送信しない。
+- browser storageのJSONをuntrusted inputとしてschema / TTL検証する。
 - notationを実行しない。`eval`とdynamic code executionを禁止する。
 - source由来文字列に`dangerouslySetInnerHTML`を使用しない。
 - file nameはpath separator、control character、予約文字を除去する。
@@ -295,6 +308,7 @@ ADRは`docs/adr/`に置き、`docs/adr/README.md`を索引とする。
 - [ADR-0004](adr/0004-official-documentation-on-github-pages.md) Official documentation on GitHub Pages。
 - [ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md) PDF generation with pdf-lib。
 - [ADR-0006](adr/0006-promote-official-documentation-to-complete-edition.md) Promote official documentation to complete edition。
+- [ADR-0007](adr/0007-temporary-browser-project-recovery.md) Temporary browser project recovery。
 
 未起票:
 

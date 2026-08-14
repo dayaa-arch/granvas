@@ -6,6 +6,7 @@ export {
   type ReplaceWorkspaceProjectInput,
   type ReplaceWorkspaceProjectResult,
   type SourceSelectionEffectDto,
+  type TemporaryStorageStatusDto,
   type WorkspaceApplication,
   type WorkspaceApplicationErrorCode,
   type WorkspaceDownloadFormat,
