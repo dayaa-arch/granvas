@@ -1,8 +1,9 @@
 # 短期ブラウザ保存 タスクリスト
 
 > 作成日: 2026-08-14
-> ステータス: 実装・ローカル検証完了
+> ステータス: 実装・CI検証完了
 > Issue: [#34](https://github.com/dayaa-arch/granvas/issues/34)
+> PR: [#35](https://github.com/dayaa-arch/granvas/pull/35)
 
 ## 1. 準備・仕様
 
@@ -60,8 +61,8 @@
 ## 7. GitHub完了処理
 
 - [x] tasklist、roadmap、specification、README、official Docsを実績へ同期する。
-- [ ] 意図した変更だけをcommit / pushする。
-- [ ] PRへ要求、設計、検証、privacy / TTL判断、残課題を記載する。
+- [x] 意図した変更だけをcommit / pushする。
+- [x] PRへ要求、設計、検証、privacy / TTL判断、残課題を記載する。
 - [ ] local / CIがgreenの場合だけPRをmainへmergeする。
 - [ ] Issue close、branch削除、main同期を確認する。
 
@@ -69,4 +70,4 @@
 
 - [x] requirements.mdの受け入れ条件をすべて満たす。
 - [x] 24時間を上限とする短期復旧がTextを失わず、恒久保存・Graph状態保存へ拡大していない。
-- [ ] review済みmainで全quality gateがgreenである。
+- [x] PRの全quality gateがgreenである。

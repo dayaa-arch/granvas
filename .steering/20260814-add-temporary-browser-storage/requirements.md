@@ -3,6 +3,7 @@
 > 作成日: 2026-08-14
 > ステータス: 承認済み
 > Issue: [#34](https://github.com/dayaa-arch/granvas/issues/34)
+> PR: [#35](https://github.com/dayaa-arch/granvas/pull/35)
 > Related: `docs/ideas/initial-requirements.md`、`docs/GRANVAS_SPEC_v0.1.md`、`docs/development-roadmap.md`
 
 ## 1. 目的

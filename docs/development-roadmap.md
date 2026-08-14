@@ -61,7 +61,7 @@ flowchart LR
 | 13 | Japanese UI & Official Documentation | 完了 | 12 | `.steering/20260811-phase-13-japanese-ui-official-documentation/` | [Issue #26](https://github.com/dayaa-arch/granvas/issues/26) / [PR #27](https://github.com/dayaa-arch/granvas/pull/27) / [PR #28](https://github.com/dayaa-arch/granvas/pull/28) |
 | 8 | Visual Export | 完了 | 13 | `.steering/20260811-phase-8-visual-export/` | [Issue #29](https://github.com/dayaa-arch/granvas/issues/29) / [PR #30](https://github.com/dayaa-arch/granvas/pull/30) |
 | 9 | Release Hardening | 完了 | 14 | `.steering/20260811-phase-9-release-hardening/` | [Issue #31](https://github.com/dayaa-arch/granvas/issues/31) / [PR #32](https://github.com/dayaa-arch/granvas/pull/32) |
-| 14 | Temporary Browser Recovery | 完了 | 15 | `.steering/20260814-add-temporary-browser-storage/` | [Issue #34](https://github.com/dayaa-arch/granvas/issues/34) |
+| 14 | Temporary Browser Recovery | 完了 | 15 | `.steering/20260814-add-temporary-browser-storage/` | [Issue #34](https://github.com/dayaa-arch/granvas/issues/34) / [PR #35](https://github.com/dayaa-arch/granvas/pull/35) |
 
 **Phase 9 Release Hardeningまで完了**し、Granvas v0.1 Release CandidateをVercel productionへ公開した。GitHub Actions、OSS release files、performance / accessibility / security gate、v0.1 Definition of Done、公式Docs edition 1.0完全版を証拠付きで閉じた。
 

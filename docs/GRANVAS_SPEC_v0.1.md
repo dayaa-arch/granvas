@@ -3287,7 +3287,7 @@ Status: Complete — Issue #31 / PR #32
 
 ## Phase 14: Temporary Browser Recovery
 
-Status: Complete — Issue #34
+Status: Complete — Issue #34 / PR #35
 
 - active Textのversioned localStorage record
 - 最終writeから24時間のsliding TTL
