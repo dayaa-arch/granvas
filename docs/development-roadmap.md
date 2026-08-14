@@ -2,7 +2,7 @@
 
 > Status: Release Candidate
 > Target: v0.1
-> Updated: 2026-08-11
+> Updated: 2026-08-14
 > Phase Source of Truth: この文書
 
 ## 1. 目的と用語
@@ -10,7 +10,7 @@
 Granvas v0.1の仮説「文章を書く行為と、思考構造を見る行為を一つの連続した体験にできるか」を、検証可能な実装単位へ分割する。
 
 - **Milestone**: 複数Phaseを束ねるrelease-level checkpoint。M0〜M7で表す。
-- **Phase**: 原則として1つのsteering、Issue、PRで完結する実装・検証単位。Phase 0〜13で表す。
+- **Phase**: 原則として1つのsteering、Issue、PRで完結する実装・検証単位。Phase 0〜14で表す。
 - **Task**: Phase内の具体的な作業項目。初回実装タスクリストの番号を独立したPhase番号として解釈しない。
 
 Phaseの名称、順序、進捗はこの文書を正本とする。完了済みsteering、Issue、PRは履歴であるため改名せず、本書の対応表から追跡する。
@@ -28,6 +28,7 @@ flowchart LR
     M4 --> M5["M5 Japanese Product Guidance<br/>Phase 13"]
     M5 --> M6["M6 Visual Export<br/>Phase 8"]
     M6 --> M7["M7 Vercel Release Candidate<br/>Phase 9"]
+    M7 --> M8["M8 Temporary Browser Recovery<br/>Phase 14"]
 ```
 
 | Milestone | 対象Phase | Exit |
@@ -40,6 +41,7 @@ flowchart LR
 | M5 Japanese Product Guidance | Phase 13 | 日本語UIと実装に一致する公式利用ガイドが公開される |
 | M6 Visual Export | Phase 8 | SVG / PNG / PDFへfull Graphを出力可能 |
 | M7 Vercel Release Candidate | Phase 9 | DoD、OSS、品質、production検証をすべて完了 |
+| M8 Temporary Browser Recovery | Phase 14 | active Textを同一browserへ24時間だけ保存・復元可能 |
 
 ## 3. Phase Status / History
 
@@ -59,6 +61,7 @@ flowchart LR
 | 13 | Japanese UI & Official Documentation | 完了 | 12 | `.steering/20260811-phase-13-japanese-ui-official-documentation/` | [Issue #26](https://github.com/dayaa-arch/granvas/issues/26) / [PR #27](https://github.com/dayaa-arch/granvas/pull/27) / [PR #28](https://github.com/dayaa-arch/granvas/pull/28) |
 | 8 | Visual Export | 完了 | 13 | `.steering/20260811-phase-8-visual-export/` | [Issue #29](https://github.com/dayaa-arch/granvas/issues/29) / [PR #30](https://github.com/dayaa-arch/granvas/pull/30) |
 | 9 | Release Hardening | 完了 | 14 | `.steering/20260811-phase-9-release-hardening/` | [Issue #31](https://github.com/dayaa-arch/granvas/issues/31) / [PR #32](https://github.com/dayaa-arch/granvas/pull/32) |
+| 14 | Temporary Browser Recovery | 完了 | 15 | `.steering/20260814-add-temporary-browser-storage/` | [Issue #34](https://github.com/dayaa-arch/granvas/issues/34) |
 
 **Phase 9 Release Hardeningまで完了**し、Granvas v0.1 Release CandidateをVercel productionへ公開した。GitHub Actions、OSS release files、performance / accessibility / security gate、v0.1 Definition of Done、公式Docs edition 1.0完全版を証拠付きで閉じた。
 
@@ -353,7 +356,32 @@ Exit Criteria:
 | UI日本語化でaccessible nameとtestが乖離 | keyboard / screen reader操作の退行 | visible copyとaccessible copyを同じ用語表で管理し、component / 3-browser E2Eを更新する |
 | Pages artifactとmain sourceの乖離 | 古い手順が公開される | review済みmainから再buildし、`gh-pages`は生成物だけを保持する |
 
-## 19. Deferred Work
+## 19. Phase 14: Temporary Browser Recovery
+
+Goal: active Textを同一browserへ最終保存から24時間だけ保持し、誤reloadや短期再訪から安全に復元する。
+
+決定の根拠は[ADR-0007](adr/0007-temporary-browser-project-recovery.md)。
+
+Deliverables:
+
+- [x] versioned JSON schemaと24時間sliding TTLを持つDocument Application service。
+- [x] `TemporaryProjectStoragePort`とlocalStorage browser adapter。
+- [x] pending Text、Graph編集、Import、Download lifecycleのWorkspace同期。
+- [x] default Projectより優先する起動復元と、dirty情報の維持。
+- [x] expired / corrupt / unknown schema / storage failureのnon-blocking処理。
+- [x] Status Barの一時保存状態とaccessibleな復元通知。
+- [x] Text / Graph reload、24時間境界、corrupt fallbackの3-browser E2E。
+- [x] 仕様、README、公式利用ガイドの更新。
+
+Exit Criteria:
+
+- [x] 入力直後のreloadで最後のTextを復元できる。
+- [x] 24時間以上経過した一時保存を復元しない。
+- [x] Graph、座標、projection、Undo履歴を保存しない。
+- [x] `.granvas` dirty lifecycle、outbound 0、performance budgetを維持する。
+- [x] localの全quality gateがgreenである。CIはPRで確認する。
+
+## 20. Deferred Work
 
 - Node座標の永続化と自由配置（[ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md)により意図的に非対応。変更する場合はsuperseding ADRを起こす）。
 - 兄弟Nodeの並び替えドラッグ（Phase 12の対象外。将来のauthoring拡張で再検討する）。
@@ -368,7 +396,7 @@ Exit Criteria:
 
 認証実装を開始する場合のproviderはSupabase Authに決定済みだが、roadmapへの追加はv0.1完了後に別steering / ADRで行う。
 
-## 20. Phase運用規則
+## 21. Phase運用規則
 
 - 新しいPhase名と番号は、実装開始前にこの文書へ記載する。
 - Phase番号は採番順とし、再利用しない。実行順は§3のstatus表で管理する。

@@ -109,7 +109,7 @@ See the [Granvas v0.1 specification](docs/GRANVAS_SPEC_v0.1.md) for the complete
 
 ## User-owned file workflow
 
-Granvas follows a browser workflow similar to the web version of draw.io: persistence is an explicit user action rather than hidden browser storage.
+Granvas keeps the active Text in the same browser for up to 24 hours so an accidental reload can be recovered. This is a temporary recovery cache, not durable project ownership.
 
 | Format | Purpose | Editable in Granvas |
 | --- | --- | --- |
@@ -125,7 +125,7 @@ The v0.1 file workflow is:
 3. Import that `.granvas` file later to continue from the saved text.
 4. Choose SVG, PNG, or PDF when a read-only full-graph artifact is needed. PNG uses a 2x white-background Canvas with an 8192px limit; PDF is a single page sized to the graph bounds.
 
-Granvas v0.1 will not automatically persist projects to `localStorage` or IndexedDB. Users must download `.granvas` files to retain their work.
+The temporary browser record expires 24 hours after its last successful update and may be unavailable or cleared by private browsing, browser policy, quota, or user action. Download a `.granvas` file to retain work durably or move it between browsers. Graph coordinates, projections, diagnostics, selection, and undo history are never stored in the recovery record.
 
 ## Architecture
 

@@ -1,6 +1,8 @@
 import { expect, test, type Download } from '@playwright/test'
 import { PDFDocument } from 'pdf-lib'
 
+const temporaryProjectKey = 'granvas:temporary-project:v1'
+
 async function downloadBytes(download: Download): Promise<Buffer> {
   const stream = await download.createReadStream()
   const chunks: Buffer[] = []
@@ -35,6 +37,96 @@ test('boots the canonical Text and Graph workspace', async ({ page }) => {
   await expect(page.getByLabel('ワークスペースの状態')).toContainText('Node 5件')
   await expect(page.getByLabel('ワークスペースの状態')).toContainText('Relation 3件')
   await expect(page.getByLabel('ワークスペースの状態')).toContainText('診断 0件')
+})
+
+test('restores the last Text immediately after reload without treating it as downloaded', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
+  const source = '[idea @recovery] Reload recovery\n  -> [todo] Last keystroke'
+
+  await editor.fill(source)
+  await expect
+    .poll(() =>
+      page.evaluate((key) => {
+        const value = localStorage.getItem(key)
+        return value === null ? null : JSON.parse(value).source
+      }, temporaryProjectKey),
+    )
+    .toBe(source)
+
+  page.on('dialog', (dialog) => dialog.accept())
+  await page.reload()
+
+  await expect(editor).toContainText('Last keystroke')
+  await expect(
+    page.getByRole('button', { name: '指定なし、idea：Reload recovery' }),
+  ).toBeVisible()
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText(
+    '未ダウンロード',
+  )
+  await expect(page.getByLabel('ワークスペースの状態')).toContainText(
+    '一時保存済み（24時間）',
+  )
+  await expect(page.getByRole('status')).toContainText(
+    '24時間の一時保存から作業を復元しました',
+  )
+
+  const keys = await page.evaluate((key) =>
+    Object.keys(JSON.parse(localStorage.getItem(key)!)).sort(), temporaryProjectKey)
+  expect(keys).toEqual([
+    'dirty',
+    'expiresAt',
+    'name',
+    'savedAt',
+    'schemaVersion',
+    'source',
+  ])
+})
+
+test('restores Graph edits from Text and rejects expired or corrupt records', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
+  await editor.fill('[idea @graph-recovery] Before')
+  const node = page.getByRole('button', { name: '指定なし、idea：Before' })
+  await expect(node).toBeVisible()
+  await node.focus()
+  await node.press('F2')
+  const labelEditor = page.getByRole('textbox', { name: 'Beforeのラベルを編集' })
+  await labelEditor.fill('After')
+  await labelEditor.press('Enter')
+  await expect(page.getByRole('button', { name: '指定なし、idea：After' })).toBeVisible()
+
+  page.on('dialog', (dialog) => dialog.accept())
+  await page.reload()
+  await expect(editor).toContainText('[idea @graph-recovery] After')
+  await expect(page.getByRole('button', { name: '指定なし、idea：After' })).toBeVisible()
+
+  await page.evaluate((key) => {
+    const savedAt = Date.now() - 24 * 60 * 60 * 1000
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        schemaVersion: 1,
+        name: 'expired',
+        source: '[idea] Must not restore',
+        dirty: true,
+        savedAt,
+        expiresAt: savedAt + 24 * 60 * 60 * 1000,
+      }),
+    )
+  }, temporaryProjectKey)
+  await page.reload()
+  await expect(editor).toContainText('[problem @scattered] 顧客情報が分散している')
+  expect(await page.evaluate((key) => localStorage.getItem(key), temporaryProjectKey)).toBeNull()
+
+  await page.evaluate((key) => localStorage.setItem(key, '{corrupt'), temporaryProjectKey)
+  await page.reload()
+  await expect(editor).toContainText('[problem @scattered] 顧客情報が分散している')
+  expect(await page.evaluate((key) => localStorage.getItem(key), temporaryProjectKey)).toBeNull()
 })
 
 test('updates the current Graph and synchronizes Text and Node selection', async ({

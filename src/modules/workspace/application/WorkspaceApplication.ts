@@ -7,6 +7,8 @@ import {
   updateDocumentSource,
   type GranvasDocumentDto,
   type ProjectDownloadTicketDto,
+  type TemporaryProjectRecovery,
+  type TemporaryProjectStoreResult,
 } from '@/modules/document'
 import {
   GraphApplicationError,
@@ -63,8 +65,15 @@ export type WorkspaceSnapshotDto = Readonly<{
   projection?: WorkspaceProjectionDto
   diagnostics: readonly DiagnosticDto[]
   status: WorkspaceStatusDto
+  temporaryStorage: TemporaryStorageStatusDto
   selectedGraphNodeId?: string
 }>
+
+export type TemporaryStorageStatusDto =
+  | Readonly<{ type: 'disabled' }>
+  | Readonly<{ type: 'ready' }>
+  | Readonly<{ type: 'unavailable' }>
+  | Readonly<{ type: 'stored'; savedAt: number; expiresAt: number }>
 
 export type SourceSelectionEffectDto = Readonly<{
   graphNodeId?: string
@@ -240,11 +249,16 @@ export type CreateWorkspaceApplicationInput = Readonly<{
   graphLayout: GraphLayoutPort
   name?: string
   source?: string
+  initialDirty?: boolean
+  temporaryProjectRecovery?: TemporaryProjectRecovery
+  initialTemporaryStorage?: TemporaryStorageStatusDto
 }>
 
 export interface WorkspaceApplication {
   getSnapshot(): WorkspaceSnapshotDto
   openWorkspace(): Promise<WorkspaceSnapshotDto>
+  cachePendingSource(source: string): TemporaryStorageStatusDto
+  expireTemporaryProject(expectedExpiresAt: number): WorkspaceSnapshotDto
   updateWorkspaceSource(source: string): Promise<WorkspaceSnapshotDto>
   replaceWorkspaceProject(
     input: ReplaceWorkspaceProjectInput,
@@ -414,6 +428,9 @@ export function createWorkspaceApplication(
     name: input.name,
     source: input.source,
   })
+  if (input.initialDirty === true) {
+    document = updateDocumentSource(document, document.source)
+  }
   let projection: WorkspaceProjectionDto | undefined
   let currentParseResult: ParseResultDto | undefined
   let diagnostics: readonly DiagnosticDto[] = Object.freeze([])
@@ -421,6 +438,41 @@ export function createWorkspaceApplication(
   let selectedGraphNodeId: string | undefined
   let currentJob = 0
   let activeCancellation: CancellationController | undefined
+  let temporaryStorage: TemporaryStorageStatusDto =
+    input.initialTemporaryStorage ??
+    Object.freeze({
+      type: input.temporaryProjectRecovery ? 'ready' : 'disabled',
+    })
+
+  const toTemporaryStorageStatus = (
+    result: TemporaryProjectStoreResult,
+  ): TemporaryStorageStatusDto =>
+    result.type === 'stored'
+      ? Object.freeze({
+          type: 'stored',
+          savedAt: result.savedAt,
+          expiresAt: result.expiresAt,
+        })
+      : Object.freeze({ type: 'unavailable' })
+
+  const storeTemporaryProject = (
+    source = document.source,
+    dirty = documentIsDirty(document),
+  ): TemporaryStorageStatusDto => {
+    if (!input.temporaryProjectRecovery) {
+      temporaryStorage = Object.freeze({ type: 'disabled' })
+      return temporaryStorage
+    }
+
+    temporaryStorage = toTemporaryStorageStatus(
+      input.temporaryProjectRecovery.storeTemporaryProject({
+        name: document.name,
+        source,
+        dirty,
+      }),
+    )
+    return temporaryStorage
+  }
 
   const getSnapshot = (): WorkspaceSnapshotDto =>
     Object.freeze({
@@ -428,6 +480,7 @@ export function createWorkspaceApplication(
       ...(projection === undefined ? {} : { projection }),
       diagnostics,
       status,
+      temporaryStorage,
       ...(selectedGraphNodeId === undefined ? {} : { selectedGraphNodeId }),
     })
 
@@ -761,8 +814,27 @@ export function createWorkspaceApplication(
   return Object.freeze({
     getSnapshot,
     openWorkspace: rebuildCurrentProjection,
+    cachePendingSource(source: string) {
+      return storeTemporaryProject(source, true)
+    },
+    expireTemporaryProject(expectedExpiresAt: number) {
+      if (
+        temporaryStorage.type !== 'stored' ||
+        temporaryStorage.expiresAt !== expectedExpiresAt ||
+        !input.temporaryProjectRecovery
+      ) {
+        return getSnapshot()
+      }
+
+      const result = input.temporaryProjectRecovery.clearTemporaryProject()
+      temporaryStorage = Object.freeze({
+        type: result.type === 'cleared' ? 'ready' : 'unavailable',
+      })
+      return getSnapshot()
+    },
     async updateWorkspaceSource(source: string) {
       document = updateDocumentSource(document, source)
+      storeTemporaryProject()
       return rebuildCurrentProjection()
     },
     async replaceWorkspaceProject(
@@ -779,6 +851,7 @@ export function createWorkspaceApplication(
         name: replacement.name,
         source: replacement.source,
       })
+      storeTemporaryProject()
       const snapshot = await rebuildCurrentProjection()
       return Object.freeze({ type: 'replaced', snapshot })
     },
@@ -827,6 +900,7 @@ export function createWorkspaceApplication(
         plan.caretAffinity,
       )
       document = updateDocumentSource(document, nextSource)
+      storeTemporaryProject()
       const editRevision = document.revision
       const snapshot = await rebuildCurrentProjection(selectionOffset)
 
@@ -891,6 +965,7 @@ export function createWorkspaceApplication(
     },
     markProjectDownloaded(ticket: ProjectDownloadTicketDto) {
       document = markProjectDownloaded(document, ticket)
+      storeTemporaryProject()
       return getSnapshot()
     },
     markProjectDownloadFailed(ticket: ProjectDownloadTicketDto, message: string) {

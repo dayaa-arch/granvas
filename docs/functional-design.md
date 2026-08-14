@@ -2,7 +2,7 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-11
+> Updated: 2026-08-14
 > Related: `docs/product-requirements.md`, `docs/GRANVAS_SPEC_v0.1.md`, `docs/adr/`
 
 ## 1. 設計目的
@@ -22,8 +22,10 @@ flowchart LR
     Workspace --> Notation["Notation Context"]
     Workspace --> Graph["Graph Context"]
     Workspace --> Transfer["Transfer Context"]
+    Workspace --> Recovery["Document Temporary Recovery"]
     Graph --> Worker["Dagre Web Worker Adapter"]
     Transfer --> FileAPI["Browser File / Blob / Canvas APIs"]
+    Recovery --> LocalStorage["Browser localStorage / 24h TTL"]
     FileAPI --> UserFile["User-owned files"]
 ```
 
@@ -97,6 +99,7 @@ v0.1にserver-side component、database、authentication、remote APIは存在�
 - visible text、accessible name、tooltip、dialog、`aria-live`、diagnostic、transfer / graph edit errorを日本語化する。
 - Notation token、Node Type、Explicit ID、format名、製品名は翻訳しない。
 - `Saved / Unsaved`は自動保存と誤解させないよう`ダウンロード済み / 未ダウンロード`と表現する。
+- `.granvas`の`ダウンロード済み / 未ダウンロード`とは別に、`24時間一時保存`の成功・利用不可を表示する。
 - `certainty`は`確信度`、`neutral / tentative / confirmed / rejected`は`指定なし / 未確定 / 確定 / 棄却`とする。
 - Domain / Applicationが返すmachine-readable codeを維持し、presentationがcodeを日本語表示文へ変換する。
 - runtime locale switchと多言語化frameworkはv0.1に導入しない。
@@ -363,6 +366,18 @@ sequenceDiagram
 6. Browser adapterがdownloadを開始する。
 7. `.granvas`だけがclean baselineを更新する。visual formatの成功・失敗はdirty stateを変えない。
 
+### 6.5 Temporary Browser Recovery
+
+1. bootstrapがDocument Applicationのrecovery serviceへ現在時刻付きでloadを要求する。
+2. validかつ期限内ならProject name / Text / dirty情報をdefault Projectより優先する。
+3. expired / corrupt / unknown schemaなら値を削除し、default Projectを開く。
+4. Workspaceが復元Textを通常どおりparse → Graph → layoutし、派生状態を再生成する。
+5. Editorのpending sourceをprojection debounce前に保存し、Graph編集、Import、`.granvas` Download完了でもsnapshotを同期する。
+6. write成功ごとに`expiresAt`を24時間先へ更新する。
+7. storage failureは一時保存利用不可として表示し、Project変更自体は成功させる。
+
+保存payloadはschema version、name、source、dirty、`savedAt`、`expiresAt`だけを含む。Graph、座標、projection、diagnostics、selection、Undo履歴は含めない。
+
 ## 7. Component Ownership
 
 | Component | Owner | Dependency |
@@ -384,6 +399,7 @@ sequenceDiagram
 | `ProjectFilePickerPort` | `transfer/application/ports` | `transfer/infrastructure/BrowserProjectFilePickerAdapter` |
 | `FileDownloadPort` | `transfer/application/ports` | `transfer/infrastructure/BrowserFileDownloadAdapter` |
 | `GraphExportPort` | `transfer/application/ports` | `transfer/infrastructure/CompositeGraphExportAdapter` |
+| `TemporaryProjectStoragePort` | `document/application/ports` | `document/infrastructure/browser/BrowserLocalStorageTemporaryProjectAdapter` |
 
 具象は`src/app/bootstrap/createApplication.ts`で生成・注入する。
 

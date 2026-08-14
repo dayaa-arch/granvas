@@ -2,7 +2,7 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-11
+> Updated: 2026-08-14
 > Source of Truth: `docs/ideas/initial-requirements.md`
 
 ## 1. プロダクトビジョン
@@ -63,6 +63,7 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 - `.granvas` / SVG / PNG / PDFから選択するDownload。
 - `.granvas`をImportし、保存時点から編集を再開できること。
 - 未ダウンロード変更のdirty表示と、破棄操作・離脱時の警告。
+- active Textの24時間一時保存と、reload / 同一browser再訪時の復元。
 - Vercel上で利用でき、ローカルでも起動できるOSS Webアプリ。
 - visible text、accessible name、通知、error、初期サンプルを含む日本語UI。
 - 実装済みの使い方と現在の制約を説明する、GitHub Pages上の日本語公式利用ガイド。
@@ -71,7 +72,7 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 
 - 自由作図、Node座標の保存、手動配置。ドラッグは意味の操作としてのみ扱う。
 - Graph上での通常文の編集。通常文はText paneでのみ編集する。
-- localStorage / IndexedDBへの自動永続化。
+- 期限なしのbrowser永続化、複数Project履歴、browser間同期。
 - 複数Project管理、folder、検索、backlink。
 - アカウント、認証、クラウド同期、共同編集、backend API。
 - AI生成、plugin、mobile app、desktop app。
@@ -179,6 +180,18 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 - 公式利用ガイドは未実装機能を利用可能と表示せず、対応実装とrelease状態を明示する。
 - 公式利用ガイドはtracking、analytics、remote font、cookie、backendを使用しない。
 
+### US-09: 誤reloadから作業を復元する
+
+ユーザーとして、Download前に誤ってreloadまたはbrowserを閉じても、短時間であれば同じTextから作業を再開したい。
+
+受け入れ条件:
+
+- Text変更とGraph編集を、同一originのbrowser storageへTextだけ一時保存する。
+- 最終保存から24時間未満のProjectを起動時に復元する。
+- 24時間以上経過した値、壊れた値、未知schemaは削除して初期Projectを表示する。
+- 一時保存は`.granvas` Download済みを意味せず、dirty lifecycleを変更しない。
+- storageが利用できなくても編集・Import・Downloadを継続できる。
+
 ## 7. 機能要件
 
 | ID | 要件 |
@@ -206,6 +219,8 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | FR-021 | 製品UIのvisible text、accessible name、通知、diagnostic、errorを日本語で提供する |
 | FR-022 | 日本語の公式利用ガイドをGitHub Pagesへ静的公開し、実装済みの利用方法と現在の制約を説明する |
 | FR-023 | Vercel productionのstatic SPAと公式Docs完全版からv0.1 Release Candidateを利用できる |
+| FR-024 | active Projectのname / Text / dirty情報を同一browserへ24時間だけ一時保存し、reload時に復元する |
+| FR-025 | 一時保存のinvalid / expired / unavailableを安全に処理し、GraphをTextから再生成する |
 
 ## 8. 非機能要件
 
@@ -226,6 +241,8 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | NFR-013 | 公式利用ガイドへtracking、analytics、remote font、cookie、runtime backend requestを追加しない |
 | NFR-014 | Parser p95 50ms、layout p95 200ms、SourceEditPlan p95 20msのrelease benchmarkを満たす |
 | NFR-015 | WCAG 2.2 A / AA自動検査、keyboard-only E2E、runtime outbound 0、security header監査をrelease gateにする |
+| NFR-016 | 一時保存payloadをversioned schemaとして検証し、Graph・座標・projection・Undo履歴を含めない |
+| NFR-017 | browser storage failureがsource mutationをrollbackせず、既存input / projection performance budgetを維持する |
 
 ## 9. 成功の定義
 

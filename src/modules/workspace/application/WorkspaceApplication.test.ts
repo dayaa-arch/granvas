@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  createTemporaryProjectRecovery,
+  type TemporaryProjectStoragePort,
+} from '@/modules/document'
+
+import {
   type CancellationSignal,
   type GraphLayoutInputDto,
   type GraphLayoutPort,
@@ -618,6 +623,161 @@ describe('Workspace Application', () => {
       name: 'WorkspaceApplicationError',
       code: 'projection-mapping-failed',
       message: 'mapping failed',
+    })
+  })
+
+  it('keeps recovered dirty state and caches pending Text before projection', () => {
+    let value: string | null = null
+    const storage: TemporaryProjectStoragePort = {
+      read: () => value,
+      write: (next) => {
+        value = next
+      },
+      remove: () => {
+        value = null
+      },
+    }
+    const recovery = createTemporaryProjectRecovery({
+      storage,
+      now: () => 10_000,
+    })
+    const workspace = createWorkspaceApplication({
+      graphLayout: immediateLayoutPort(),
+      name: 'recovered',
+      source: '[idea] Before',
+      initialDirty: true,
+      temporaryProjectRecovery: recovery,
+      initialTemporaryStorage: { type: 'ready' },
+    })
+
+    expect(workspace.getSnapshot().document).toMatchObject({
+      name: 'recovered',
+      source: '[idea] Before',
+      revision: 1,
+      cleanBaselineRevision: 0,
+      status: { type: 'dirty' },
+    })
+
+    expect(workspace.cachePendingSource('[idea] Last keystroke')).toEqual({
+      type: 'stored',
+      savedAt: 10_000,
+      expiresAt: 10_000 + 24 * 60 * 60 * 1000,
+    })
+    expect(workspace.getSnapshot().document.source).toBe('[idea] Before')
+    expect(JSON.parse(value!)).toMatchObject({
+      name: 'recovered',
+      source: '[idea] Last keystroke',
+      dirty: true,
+    })
+  })
+
+  it('synchronizes replacement and download baseline without rolling back on storage failure', async () => {
+    let writes = 0
+    const recovery = createTemporaryProjectRecovery({
+      storage: {
+        read: () => null,
+        write: () => {
+          writes += 1
+          if (writes === 3) throw new Error('quota')
+        },
+        remove: () => undefined,
+      },
+      now: () => 20_000,
+    })
+    const workspace = createWorkspaceApplication({
+      graphLayout: immediateLayoutPort(),
+      source: '[idea] Initial',
+      temporaryProjectRecovery: recovery,
+    })
+
+    await workspace.updateWorkspaceSource('[idea] Dirty')
+    const replaced = await workspace.replaceWorkspaceProject({
+      name: 'imported',
+      source: '[idea] Imported',
+      confirmed: true,
+    })
+    expect(replaced.type).toBe('replaced')
+    expect(replaced.snapshot.document.status).toEqual({ type: 'clean' })
+
+    await workspace.updateWorkspaceSource('[idea] Still editable')
+    expect(workspace.getSnapshot()).toMatchObject({
+      document: {
+        source: '[idea] Still editable',
+        status: { type: 'dirty' },
+      },
+      temporaryStorage: { type: 'unavailable' },
+    })
+
+    const started = workspace.beginProjectDownload()
+    const downloaded = workspace.markProjectDownloaded(started.ticket)
+    expect(downloaded.document.status).toEqual({ type: 'clean' })
+    expect(downloaded.temporaryStorage.type).toBe('stored')
+  })
+
+  it('expires only the temporary record represented by the current status', () => {
+    let removals = 0
+    let currentTime = 30_000
+    const recovery = createTemporaryProjectRecovery({
+      storage: {
+        read: () => null,
+        write: () => undefined,
+        remove: () => {
+          removals += 1
+        },
+      },
+      now: () => currentTime,
+    })
+    const workspace = createWorkspaceApplication({
+      graphLayout: immediateLayoutPort(),
+      temporaryProjectRecovery: recovery,
+    })
+
+    const first = workspace.cachePendingSource('first')
+    if (first.type !== 'stored') throw new Error('Expected stored state.')
+    currentTime += 1
+    const second = workspace.cachePendingSource('second')
+    if (second.type !== 'stored') throw new Error('Expected stored state.')
+
+    workspace.expireTemporaryProject(first.expiresAt)
+    expect(removals).toBe(0)
+    workspace.expireTemporaryProject(second.expiresAt)
+    expect(removals).toBe(1)
+    expect(workspace.getSnapshot().temporaryStorage).toEqual({ type: 'ready' })
+  })
+
+  it('does not overwrite recovery data for rejected edits or failed downloads', async () => {
+    const values: string[] = []
+    const recovery = createTemporaryProjectRecovery({
+      storage: {
+        read: () => null,
+        write: (value) => values.push(value),
+        remove: () => undefined,
+      },
+      now: () => 40_000 + values.length,
+    })
+    const workspace = createWorkspaceApplication({
+      graphLayout: immediateLayoutPort(),
+      source: '[idea] Stable',
+      temporaryProjectRecovery: recovery,
+    })
+    await workspace.openWorkspace()
+
+    const rejected = await workspace.applyGraphEdit({
+      type: 'set-node-label',
+      graphNodeId: 'missing',
+      label: 'No change',
+    })
+    expect(rejected.type).toBe('rejected')
+    expect(values).toHaveLength(0)
+
+    await workspace.updateWorkspaceSource('[idea] Dirty')
+    expect(values).toHaveLength(1)
+    const started = workspace.beginProjectDownload()
+    workspace.markProjectDownloadFailed(started.ticket, 'download blocked')
+    expect(values).toHaveLength(1)
+    expect(JSON.parse(values[0]!)).toMatchObject({
+      source: '[idea] Dirty',
+      dirty: true,
     })
   })
 })

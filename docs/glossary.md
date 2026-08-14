@@ -1,14 +1,14 @@
 # Granvas ユビキタス言語
 
 > Status: Release Candidate
-> Updated: 2026-08-11
+> Updated: 2026-08-14
 
 ## 1. 言語規則
 
 - Product UIは日本語を標準とし、ユーザー操作を`プロジェクトを読み込む`と`ダウンロード`で表現する。
 - Codeでは、domain conceptに英語名を使用する。
 - `Node`、`Relation`、`Group`、`Layout`はNotationとGraphで意味が異なる場合があるため、必要に応じ`Parsed`、`Graph`、`Positioned`を付ける。
-- `Save` / `保存済み`は自動保存と誤解されるため、v0.1のUIでは`.granvasのダウンロード`、`ダウンロード済み / 未ダウンロード`を使う。
+- `Save` / `保存済み`は恒久保存と誤解されるため、`.granvas`の状態は`ダウンロード済み / 未ダウンロード`、browser復旧は`24時間一時保存`と明確に分ける。
 - Graph上の操作は`編集`と呼び、`移動`や`配置`とは呼ばない。座標を保存しないため、位置の操作という語は誤解を生む。
 - `Certainty`は`確信度`と訳す。`ステータス`や`状態`は`DirtyState`と衝突するため使わない。
 
@@ -29,6 +29,9 @@
 | 公式利用ガイド | Official Documentation | `docs-site` | 日本語UIの使い方と現在の制約を説明するGitHub Pages site |
 | 公開プレビュー | Public Preview | — | 正式release前の公式Docs公開状態。対応実装と未完了機能を併記する |
 | 完全版 | Complete Edition | — | Phase 8 / 9の実績とproduction URLに一致するDocs edition 1.0の公開状態 |
+| 24時間一時保存 | Temporary Browser Recovery | `TemporaryProjectRecovery` | active Textを同一originへ最終保存から24時間だけ保持する復旧補助。恒久保存ではない |
+| 一時復元 | Temporary Restore | `TemporaryProjectLoadResult` | 有効期限内の一時保存からProject name / Text / dirty情報を起動時に復元すること |
+| 失効時刻 | Expiration Time | `expiresAt` | 一時保存を復元可能とみなす上限のUnix epoch milliseconds |
 
 ## 2.1 UI Translation Terms
 
