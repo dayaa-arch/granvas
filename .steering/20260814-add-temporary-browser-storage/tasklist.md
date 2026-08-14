@@ -1,7 +1,7 @@
 # 短期ブラウザ保存 タスクリスト
 
 > 作成日: 2026-08-14
-> ステータス: 実装・CI検証完了
+> ステータス: 完了
 > Issue: [#34](https://github.com/dayaa-arch/granvas/issues/34)
 > PR: [#35](https://github.com/dayaa-arch/granvas/pull/35)
 
@@ -63,8 +63,8 @@
 - [x] tasklist、roadmap、specification、README、official Docsを実績へ同期する。
 - [x] 意図した変更だけをcommit / pushする。
 - [x] PRへ要求、設計、検証、privacy / TTL判断、残課題を記載する。
-- [ ] local / CIがgreenの場合だけPRをmainへmergeする。
-- [ ] Issue close、branch削除、main同期を確認する。
+- [x] local / CIがgreenの場合だけPRをmainへmergeする。
+- [x] Issue close、branch削除、main同期を確認する。
 
 ## 完了条件
 
