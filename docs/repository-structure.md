@@ -2,7 +2,7 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-14
+> Updated: 2026-08-15
 
 ## 1. 基本方針
 
@@ -105,6 +105,7 @@ granvas/
 │   └── performance/
 ├── AGENTS.md
 ├── CONTRIBUTING.md
+├── .gitignore
 ├── LICENSE
 ├── README.md
 ├── SECURITY.md
@@ -120,6 +121,8 @@ granvas/
 ### 3.0 Release / CI
 
 - `.github/workflows/quality.yml`はquality gateだけを実行し、deploymentやcredentialを持たない。
+- Vercel production deliveryはrepository workflowではなく、Vercel ProjectのGit Integrationが`main` pushから実行する。
+- `.vercel/`はlocal Project metadataであり、`.gitignore`でcommit対象外にする。
 - `examples/`は公開してよい`.granvas` fixtureだけを置く。
 - `LICENSE`、`CONTRIBUTING.md`、`SECURITY.md`はOSS配布contractとしてrootに置く。
 

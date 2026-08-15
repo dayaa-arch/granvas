@@ -10,7 +10,7 @@
 - Frontend: React + TypeScript + Vite
 - Hosting: Vercel
 - Persistence: 24-hour browser recovery + User-managed Import / Download
-- Date: 2026-08-14
+- Date: 2026-08-15
 
 ---
 
@@ -32,6 +32,7 @@ v0.1 の開発では、本書を実装判断の基準とする。仕様変更が
 | 2026-08-11 | Phase 8のvisual exportを具体化。certaintyを含む共通sceneからSVG / Canvas PNG / single-page PDFを生成し、PDFには`pdf-lib`でCanvas PNGを埋め込む。 | [ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md) |
 | 2026-08-11 | Phase 9のrelease契約を具体化。productはv0.1 Release Candidate、公式Docsはedition 1.0完全版とし、MIT、quality-only Actions、Vercel production、release evidenceを追加する。 | [ADR-0006](adr/0006-promote-official-documentation-to-complete-edition.md) |
 | 2026-08-14 | active Textを同一browserへ最終保存から24時間だけ一時保存し、reload / 再訪時に復元するPhase 14を追加。`.granvas`を恒久保存として維持し、Graph・座標・派生状態は保存しない。 | [ADR-0007](adr/0007-temporary-browser-project-recovery.md) |
+| 2026-08-15 | Vercel Git IntegrationでProduction Branchを`main`へ接続し、review済みmainのpushを自動でProduction DeploymentするPhase 15を追加。GitHub Actionsはquality-only、credentialなしを維持する。 | [ADR-0008](adr/0008-automatic-vercel-production-delivery.md) |
 
 Phase の名称・順序・進捗は `docs/development-roadmap.md` を正本とする。
 
@@ -1496,7 +1497,7 @@ Release state: 完全版
 - Phase 8 / 9の完了機能、Vercel production URL、MIT / SECURITY / CONTRIBUTING、quality gateを全pageから確認できるようにする。
 - main branchの`docs-site/`をsource of truthとし、review済みmainから生成したartifactを`gh-pages` branch rootへ公開する。
 - Pages artifactはproject base path`/granvas/`を使用し、rootへ`.nojekyll`を含める。
-- `.github/workflows/quality.yml`は検証だけを行い、custom Pages / Vercel deployment jobを追加しない。
+- `.github/workflows/quality.yml`は検証だけを行い、custom Pages / Vercel deployment jobを追加しない。ProductはVercel Git Integrationが`main` pushから自動公開する。
 - product applicationのVercel static hostingとofficial DocsのGitHub Pages hostingを分離する。
 - 画面構成、Notation、確信度、Text / Graph navigation、Graph authoring、Project Download / Import、keyboard、diagnostics、FAQ、現在の制約を日本語で説明する。
 - screenshotは日本語UIのproduction buildから取得し、altと本文を伴う。
@@ -2348,6 +2349,8 @@ Official Docs: GitHub Pages (`gh-pages` branch root)
 
 Vercel 固有 SDK は application / domain に導入しない。v0.1 は静的 SPA として build し、server function を使用しない。
 
+Vercel ProjectはGitHub repository `dayaa-arch/granvas`へnative Git Integrationで接続し、Production Branchを`main`とする。review済みPRのmergeによる`main` pushをVercelが検知してProduction Deploymentを作成する。GitHub Actionsはquality verification専用とし、Vercel token、deployment job、repository write permissionを持たない。根拠は[ADR-0008](adr/0008-automatic-vercel-production-delivery.md)。
+
 ## Future Authentication Decision
 
 将来認証を実装する場合は **Supabase Auth** を採用する。これは provider の先行決定だけであり、v0.1 では Supabase dependency、認証コード、環境変数、database、cloud sync を含めない。
@@ -3142,7 +3145,7 @@ AbortSignal
 
 Phaseの名称、順序、進捗、履歴対応は`docs/development-roadmap.md`を正本とする。Milestoneは複数Phaseを束ねるrelease checkpointであり、Phase番号とは別に管理する。
 
-Phase番号は採番順であり実行順ではない。実行順は **0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 10 → 11 → 12 → 13 → 8 → 9** とする。Phase 10〜13は2026-08-11のscope変更（§0.1）で追加され、Phase 8〜9より先に実行する。
+Phase番号は採番順であり実行順ではない。実行順は **0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 10 → 11 → 12 → 13 → 8 → 9 → 14 → 15** とする。Phase 10〜13は2026-08-11のscope変更（§0.1）で追加され、Phase 8〜9より先に実行する。
 
 ## Phase 0: Documentation Baseline
 
@@ -3295,6 +3298,17 @@ Status: Complete — Issue #34 / PR #35
 - reload復元、期限切れ・破損recordの安全な破棄
 - `.granvas` dirty lifecycleと独立した一時保存表示
 - storage failureのnon-blocking fallback
+
+## Phase 15: Automatic Vercel Delivery
+
+Status: In Progress — Issue #37
+
+- existing Vercel Projectと`dayaa-arch/granvas`のGit Integration
+- Production Branch `main`
+- `main` pushからのautomatic Production Deployment
+- GitHub Actions quality-only / deployment credentialなしの維持
+- current Phase 14 artifactのProduction公開
+- merge commitをsourceとする自動deployment、alias、live recoveryの検証
 
 ---
 

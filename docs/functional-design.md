@@ -2,7 +2,7 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-14
+> Updated: 2026-08-15
 > Related: `docs/product-requirements.md`, `docs/GRANVAS_SPEC_v0.1.md`, `docs/adr/`
 
 ## 1. 設計目的
@@ -30,6 +30,8 @@ flowchart LR
 ```
 
 v0.1にserver-side component、database、authentication、remote APIは存在しない。Vercelはstatic assetのhostingだけを担当する。
+
+Production deliveryはVercel ProjectのGit Integrationが担当する。GitHub Actionsのquality gateがgreenなPRを`main`へmergeすると、Vercelがそのpushを検知してstatic artifactをbuildし、`granvas.vercel.app`へ自動公開する。GitHub ActionsへVercel credentialやdeployment jobを追加しない。
 
 公式利用ガイドはproduct runtimeから独立した静的siteとしてGitHub Pagesへ公開する。product applicationのstate、file、projectionへ接続せず、tracking、analytics、remote font、backend requestを持たない。
 
@@ -445,3 +447,26 @@ flowchart LR
 - semantic HTML、skip link、heading、alt、focus indicator、responsive layoutを備える。
 - `.github/workflows/quality.yml`は検証だけを行い、custom Pages workflowを追加せずGitHub Pagesのlegacy branch sourceを使う。
 - product applicationのVercel static hostingは変更しない。
+
+## 12. Product Production Delivery
+
+```mermaid
+sequenceDiagram
+    participant PR as Pull Request
+    participant CI as GitHub Actions
+    participant Main as GitHub main
+    participant V as Vercel Git Integration
+    participant P as Production URL
+    PR->>CI: quality verification
+    CI-->>PR: green
+    PR->>Main: merge
+    Main-->>V: push event
+    V->>V: bun run build
+    V->>P: READY deploymentをalias
+```
+
+- Production Branchは`main`。
+- GitHub Actionsはdeploymentを実行しない。
+- Vercelはexisting `vercel.json`のbuild / output / rewrite / header contractを使う。
+- merge後はsource commit、deployment state、production alias、live recoveryを確認する。
+- application ContextとruntimeはGit Integrationを参照しない。

@@ -1,7 +1,7 @@
 # Granvas 開発ガイドライン
 
 > Status: Release Candidate
-> Updated: 2026-08-14
+> Updated: 2026-08-15
 
 ## 1. 開発の基準
 
@@ -257,6 +257,10 @@ Common
 - architecture boundary違反、document/code不整合、data loss riskをblockerとする。
 - public releaseはMIT `LICENSE`、`CONTRIBUTING.md`、`SECURITY.md`、canonical exampleを必須とする。
 - CIはfrozen Bun installとlocal同等のquality commandを実行し、credential / write permissionを持たない。
+- Vercel Git IntegrationのProduction Branchは`main`とし、greenなPRをmergeしたpushからProduction Deploymentを自動作成する。
+- GitHub ActionsへVercel deployment job、token、organization ID、project IDを追加しない。
+- merge後はdeployment source commit、`READY`、production alias、live direct access / reloadを確認する。
+- `.vercel/`をcommitしない。
 
 ## 16. Commands
 
@@ -282,3 +286,4 @@ bun run docs:verify
 - [ ] 永続文書、ADR、steering tasklistを更新した。
 - [ ] UI copy変更時はvisible textとaccessible nameを日本語で確認した。
 - [ ] official Docs変更時はlocal build、responsive、keyboard、公開後live URLを確認した。
+- [ ] productionへ影響するmain merge後はVercel deploymentとlive URLを確認した。
