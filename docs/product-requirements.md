@@ -2,7 +2,7 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-14
+> Updated: 2026-08-15
 > Source of Truth: `docs/ideas/initial-requirements.md`
 
 ## 1. プロダクトビジョン
@@ -221,6 +221,7 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | FR-023 | Vercel productionのstatic SPAと公式Docs完全版からv0.1 Release Candidateを利用できる |
 | FR-024 | active Projectのname / Text / dirty情報を同一browserへ24時間だけ一時保存し、reload時に復元する |
 | FR-025 | 一時保存のinvalid / expired / unavailableを安全に処理し、GraphをTextから再生成する |
+| FR-026 | Vercel Git Integrationがreview済み`main`のpushをProductionへ自動deployする |
 
 ## 8. 非機能要件
 
@@ -243,6 +244,7 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | NFR-015 | WCAG 2.2 A / AA自動検査、keyboard-only E2E、runtime outbound 0、security header監査をrelease gateにする |
 | NFR-016 | 一時保存payloadをversioned schemaとして検証し、Graph・座標・projection・Undo履歴を含めない |
 | NFR-017 | browser storage failureがsource mutationをrollbackせず、既存input / projection performance budgetを維持する |
+| NFR-018 | deployment credentialをGitHub Actionsへ置かず、production deploymentをsource commit / state / alias / live verificationで追跡する |
 
 ## 9. 成功の定義
 
@@ -261,6 +263,7 @@ v0.1の成功は、ユーザーがCanonical Demo相当の文章を自然に入�
 - source codeを公開し、ローカル起動手順をREADMEへ記載する。
 - MIT licenseで公開し、rootへ`LICENSE`、`CONTRIBUTING.md`、`SECURITY.md`を配置する。
 - production hostingはVercelを使用する。
+- Vercel ProjectをGitHub repositoryへ接続し、Production Branch `main`へのpushを自動でProduction Deploymentする。
 - 公式利用ガイドはGitHub Pagesのproject siteとして公開し、product applicationのVercel hostingと分離する。
 - GitHub Actionsは品質検証だけを行い、Vercel / Pages deployment credentialやwrite permissionを持たない。
 - v0.1では課金、広告、telemetry、利用者アカウントを導入しない。

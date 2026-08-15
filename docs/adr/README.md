@@ -21,6 +21,7 @@ Granvas の設計上の意思決定のうち、後から「なぜこうなって
 | [0005](0005-pdf-generation-with-pdf-lib.md) | PDF generation with pdf-lib | Accepted | 2026-08-11 |
 | [0006](0006-promote-official-documentation-to-complete-edition.md) | Promote official documentation to complete edition | Accepted | 2026-08-11 |
 | [0007](0007-temporary-browser-project-recovery.md) | Temporary browser project recovery | Accepted | 2026-08-14 |
+| [0008](0008-automatic-vercel-production-delivery.md) | Automatic Vercel production delivery from main | Accepted | 2026-08-15 |
 
 ## 起票が必要と分かっている論点
 

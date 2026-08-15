@@ -44,9 +44,9 @@ Most of the individual syntax pieces have precedents — Mermaid, D2, nomnoml, a
 - Editable project Import and Download using `.granvas` files.
 - Full-graph SVG, PNG, and PDF downloads.
 - Dirty-state indicators and warnings before discarding undownloaded changes.
-- Static deployment on Vercel with no server functions.
+- Static deployment on Vercel with no server functions. Vercel Git Integration automatically deploys reviewed `main` updates to Production.
 
-The following are deliberately outside v0.1: free-form drawing, manual node positioning and coordinate persistence, browser auto-save, multi-document workspaces, accounts, cloud sync, collaboration, AI features, plugins, and mobile or desktop apps.
+The following are deliberately outside v0.1: free-form drawing, manual node positioning and coordinate persistence, unlimited browser persistence, multi-document workspaces, accounts, cloud sync, collaboration, AI features, plugins, and mobile or desktop apps.
 
 Dragging a node changes what it *means* — its parent, or which group it belongs to — not where it sits. The layout engine still decides position, and no coordinates are ever written to your `.granvas` file. See [ADR-0001](docs/adr/0001-semantic-node-drag-without-coordinate-persistence.md) for why.
 
@@ -164,6 +164,8 @@ Context internals are private. External code consumes each context through `src/
 | End-to-end tests | Playwright: Chromium, Firefox, and WebKit |
 | Hosting | Vercel static deployment |
 
+Production delivery uses Vercel's native Git Integration. A reviewed pull request merged into `main` triggers a Production Deployment without storing Vercel credentials in GitHub Actions. The quality workflow remains verification-only.
+
 ## Getting started
 
 ### Prerequisites
@@ -263,6 +265,8 @@ Granvas is released under the [MIT License](LICENSE). Production dependency lice
 - [x] Phase 13 — Japanese UI & Official Documentation: Japanese UI and the official GitHub Pages guide are published.
 - [x] Phase 8 — Visual Export: SVG/PNG/PDF full-graph export and three-browser verification.
 - [x] Phase 9 — Release Hardening: performance, accessibility, security, OSS, CI, and Vercel production.
+- [x] Phase 14 — Temporary Browser Recovery: active Text is recoverable from the same browser for 24 hours.
+- [ ] Phase 15 — Automatic Vercel Delivery: reviewed `main` merges automatically reach Production.
 
 Phase numbers are assignment order, not execution order. Phases 10–13 were added on 2026-08-11 and run before Phases 8–9; the list above is in execution order.
 

@@ -1,7 +1,7 @@
 # Granvas ユビキタス言語
 
 > Status: Release Candidate
-> Updated: 2026-08-14
+> Updated: 2026-08-15
 
 ## 1. 言語規則
 
@@ -138,6 +138,9 @@
 | Term | Definition |
 | --- | --- |
 | Vercel | v0.1のstatic Web hosting。server functionは使用しない |
+| Vercel Git Integration | GitHubの`main` pushを検知し、Vercel Projectの権限でProduction Deploymentを作成する外部delivery連携 |
+| Production Branch | Vercelがproduction targetとして扱うGit branch。Granvasでは`main` |
+| Production Deployment | review済み`main` commitからbuildされ、`granvas.vercel.app` aliasが指すstatic artifact |
 | Release Candidate | v0.1 Definition of Doneと公開検証を満たした正式release直前のproduct状態 |
 | Docs edition 1.0 | 公式利用ガイドのedition。product v1.0を意味しない |
 | Supabase Auth | 将来認証を実装する場合に採用するprovider。v0.1には含めない |

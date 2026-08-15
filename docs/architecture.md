@@ -2,7 +2,7 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-14
+> Updated: 2026-08-15
 > Related: `docs/adr/`
 
 ## 1. Architecture Summary
@@ -44,6 +44,8 @@ PDF生成は[ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md)に従い、Canva
 
 - production artifactはViteの静的buildとする。
 - Vercelはasset配信とsecurity header設定だけを担当する。
+- Vercel ProjectはGitHub repository `dayaa-arch/granvas`へnative Git Integrationで接続し、Production Branchを`main`とする。
+- review済みPRの`main` mergeをVercelが検知し、Production Deploymentを自動作成する。
 - API Route、Serverless Function、Edge Function、database connectionを作成しない。
 - SPAのdirect access / reloadがindex entryへ解決されるようVercel routingを設定する。
 - production asset load後のoutbound requestは0とする。
@@ -63,7 +65,8 @@ PDF生成は[ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md)に従い、Canva
 
 - `.github/workflows/quality.yml`はpull request / main pushでfrozen Bun install、typecheck、lint、unit / component、app / Docs build、audit、three-browser E2E、performanceを検証する。
 - deployment job、repository write permission、Vercel / Pages credentialを含めない。
-- Vercel productionとPagesはreview済みmainを承認済み手動操作で公開する。
+- Vercel productionはVercel Git Integrationがreview済み`main`から自動公開する。GitHub Pagesはreview済み`main`から生成したartifactを従来どおり明示的に公開する。
+- merge後はVercel deploymentのsource commit、`READY`、production alias、live smokeを確認する。
 
 ## 4. Bounded Context
 
@@ -309,6 +312,7 @@ ADRは`docs/adr/`に置き、`docs/adr/README.md`を索引とする。
 - [ADR-0005](adr/0005-pdf-generation-with-pdf-lib.md) PDF generation with pdf-lib。
 - [ADR-0006](adr/0006-promote-official-documentation-to-complete-edition.md) Promote official documentation to complete edition。
 - [ADR-0007](adr/0007-temporary-browser-project-recovery.md) Temporary browser project recovery。
+- [ADR-0008](adr/0008-automatic-vercel-production-delivery.md) Automatic Vercel production delivery from main。
 
 未起票:
 

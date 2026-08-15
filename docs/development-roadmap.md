@@ -2,15 +2,15 @@
 
 > Status: Release Candidate
 > Target: v0.1
-> Updated: 2026-08-14
+> Updated: 2026-08-15
 > Phase Source of Truth: この文書
 
 ## 1. 目的と用語
 
 Granvas v0.1の仮説「文章を書く行為と、思考構造を見る行為を一つの連続した体験にできるか」を、検証可能な実装単位へ分割する。
 
-- **Milestone**: 複数Phaseを束ねるrelease-level checkpoint。M0〜M7で表す。
-- **Phase**: 原則として1つのsteering、Issue、PRで完結する実装・検証単位。Phase 0〜14で表す。
+- **Milestone**: 複数Phaseを束ねるrelease-level checkpoint。M0〜M9で表す。
+- **Phase**: 原則として1つのsteering、Issue、PRで完結する実装・検証単位。Phase 0〜15で表す。
 - **Task**: Phase内の具体的な作業項目。初回実装タスクリストの番号を独立したPhase番号として解釈しない。
 
 Phaseの名称、順序、進捗はこの文書を正本とする。完了済みsteering、Issue、PRは履歴であるため改名せず、本書の対応表から追跡する。
@@ -29,6 +29,7 @@ flowchart LR
     M5 --> M6["M6 Visual Export<br/>Phase 8"]
     M6 --> M7["M7 Vercel Release Candidate<br/>Phase 9"]
     M7 --> M8["M8 Temporary Browser Recovery<br/>Phase 14"]
+    M8 --> M9["M9 Automatic Vercel Delivery<br/>Phase 15"]
 ```
 
 | Milestone | 対象Phase | Exit |
@@ -42,6 +43,7 @@ flowchart LR
 | M6 Visual Export | Phase 8 | SVG / PNG / PDFへfull Graphを出力可能 |
 | M7 Vercel Release Candidate | Phase 9 | DoD、OSS、品質、production検証をすべて完了 |
 | M8 Temporary Browser Recovery | Phase 14 | active Textを同一browserへ24時間だけ保存・復元可能 |
+| M9 Automatic Vercel Delivery | Phase 15 | review済みmainがVercel Productionへ自動反映される |
 
 ## 3. Phase Status / History
 
@@ -62,8 +64,9 @@ flowchart LR
 | 8 | Visual Export | 完了 | 13 | `.steering/20260811-phase-8-visual-export/` | [Issue #29](https://github.com/dayaa-arch/granvas/issues/29) / [PR #30](https://github.com/dayaa-arch/granvas/pull/30) |
 | 9 | Release Hardening | 完了 | 14 | `.steering/20260811-phase-9-release-hardening/` | [Issue #31](https://github.com/dayaa-arch/granvas/issues/31) / [PR #32](https://github.com/dayaa-arch/granvas/pull/32) |
 | 14 | Temporary Browser Recovery | 完了 | 15 | `.steering/20260814-add-temporary-browser-storage/` | [Issue #34](https://github.com/dayaa-arch/granvas/issues/34) / [PR #35](https://github.com/dayaa-arch/granvas/pull/35) |
+| 15 | Automatic Vercel Delivery | 進行中 | 16 | `.steering/20260815-phase-15-automatic-vercel-delivery/` | [Issue #37](https://github.com/dayaa-arch/granvas/issues/37) / [PR #38](https://github.com/dayaa-arch/granvas/pull/38) |
 
-**Phase 9 Release Hardeningまで完了**し、Granvas v0.1 Release CandidateをVercel productionへ公開した。GitHub Actions、OSS release files、performance / accessibility / security gate、v0.1 Definition of Done、公式Docs edition 1.0完全版を証拠付きで閉じた。
+**Phase 14 Temporary Browser Recoveryまで完了**し、Phase 15でreview済み`main`をVercel Productionへ自動反映するdelivery contractを構築中である。
 
 ### 3.1 Scope Change: 2026-08-11
 
@@ -381,7 +384,30 @@ Exit Criteria:
 - [x] `.granvas` dirty lifecycle、outbound 0、performance budgetを維持する。
 - [x] localの全quality gateがgreenである。CIはPRで確認する。
 
-## 20. Deferred Work
+## 20. Phase 15: Automatic Vercel Delivery
+
+Goal: review済みPRの`main` mergeをVercel Productionへ自動反映し、repositoryの正本とlive artifactの乖離を防ぐ。
+
+決定の根拠は[ADR-0008](adr/0008-automatic-vercel-production-delivery.md)。
+
+Deliverables:
+
+- [ ] existing Vercel Projectと`dayaa-arch/granvas` GitHub repositoryのnative Git Integration。
+- [ ] Production Branch `main`。
+- [ ] Phase 14を含むcurrent review済み`main`のProduction公開。
+- [ ] GitHub Actions quality-only / deployment credentialなしの維持。
+- [ ] merge commitをsourceとするautomatic Production Deployment。
+- [ ] deployment `READY`、production alias、direct access / reload、24時間一時保存、CSP、runtime outbound 0のlive verification。
+- [ ] ADR、統合仕様、永続文書、README、steeringの同期。
+
+Exit Criteria:
+
+- [ ] `main` merge後に追加の手動操作なしでProduction Deploymentが開始される。
+- [ ] `granvas.vercel.app`が対象merge commitのartifactを配信する。
+- [ ] GitHub ActionsとrepositoryにVercel credential / deployment jobを追加していない。
+- [ ] local / CI / production verificationがgreenである。
+
+## 21. Deferred Work
 
 - Node座標の永続化と自由配置（[ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md)により意図的に非対応。変更する場合はsuperseding ADRを起こす）。
 - 兄弟Nodeの並び替えドラッグ（Phase 12の対象外。将来のauthoring拡張で再検討する）。
@@ -396,7 +422,7 @@ Exit Criteria:
 
 認証実装を開始する場合のproviderはSupabase Authに決定済みだが、roadmapへの追加はv0.1完了後に別steering / ADRで行う。
 
-## 21. Phase運用規則
+## 22. Phase運用規則
 
 - 新しいPhase名と番号は、実装開始前にこの文書へ記載する。
 - Phase番号は採番順とし、再利用しない。実行順は§3のstatus表で管理する。
