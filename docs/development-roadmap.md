@@ -64,9 +64,9 @@ flowchart LR
 | 8 | Visual Export | 完了 | 13 | `.steering/20260811-phase-8-visual-export/` | [Issue #29](https://github.com/dayaa-arch/granvas/issues/29) / [PR #30](https://github.com/dayaa-arch/granvas/pull/30) |
 | 9 | Release Hardening | 完了 | 14 | `.steering/20260811-phase-9-release-hardening/` | [Issue #31](https://github.com/dayaa-arch/granvas/issues/31) / [PR #32](https://github.com/dayaa-arch/granvas/pull/32) |
 | 14 | Temporary Browser Recovery | 完了 | 15 | `.steering/20260814-add-temporary-browser-storage/` | [Issue #34](https://github.com/dayaa-arch/granvas/issues/34) / [PR #35](https://github.com/dayaa-arch/granvas/pull/35) |
-| 15 | Automatic Vercel Delivery | 進行中 | 16 | `.steering/20260815-phase-15-automatic-vercel-delivery/` | [Issue #37](https://github.com/dayaa-arch/granvas/issues/37) / [PR #38](https://github.com/dayaa-arch/granvas/pull/38) |
+| 15 | Automatic Vercel Delivery | 完了 | 16 | `.steering/20260815-phase-15-automatic-vercel-delivery/` | [Issue #37](https://github.com/dayaa-arch/granvas/issues/37) / [PR #38](https://github.com/dayaa-arch/granvas/pull/38) |
 
-**Phase 14 Temporary Browser Recoveryまで完了**し、Phase 15でreview済み`main`をVercel Productionへ自動反映するdelivery contractを構築中である。
+**Phase 15 Automatic Vercel Deliveryまで完了**し、review済み`main`をVercel Productionへ自動反映するdelivery contractとlive検証を閉じた。
 
 ### 3.1 Scope Change: 2026-08-11
 
@@ -392,20 +392,20 @@ Goal: review済みPRの`main` mergeをVercel Productionへ自動反映し、repo
 
 Deliverables:
 
-- [ ] existing Vercel Projectと`dayaa-arch/granvas` GitHub repositoryのnative Git Integration。
-- [ ] Production Branch `main`。
-- [ ] Phase 14を含むcurrent review済み`main`のProduction公開。
-- [ ] GitHub Actions quality-only / deployment credentialなしの維持。
-- [ ] merge commitをsourceとするautomatic Production Deployment。
-- [ ] deployment `READY`、production alias、direct access / reload、24時間一時保存、CSP、runtime outbound 0のlive verification。
-- [ ] ADR、統合仕様、永続文書、README、steeringの同期。
+- [x] existing Vercel Projectと`dayaa-arch/granvas` GitHub repositoryのnative Git Integration。
+- [x] Production Branch `main`。
+- [x] Phase 14を含むcurrent review済み`main`のProduction公開。
+- [x] GitHub Actions quality-only / deployment credentialなしの維持。
+- [x] merge commitをsourceとするautomatic Production Deployment。
+- [x] deployment `READY`、production alias、direct access / reload、24時間一時保存、CSP、runtime outbound 0のlive verification。
+- [x] ADR、統合仕様、永続文書、README、steeringの同期。
 
 Exit Criteria:
 
-- [ ] `main` merge後に追加の手動操作なしでProduction Deploymentが開始される。
-- [ ] `granvas.vercel.app`が対象merge commitのartifactを配信する。
-- [ ] GitHub ActionsとrepositoryにVercel credential / deployment jobを追加していない。
-- [ ] local / CI / production verificationがgreenである。
+- [x] `main` merge後に追加の手動操作なしでProduction Deploymentが開始される。
+- [x] `granvas.vercel.app`が対象merge commitのartifactを配信する。
+- [x] GitHub ActionsとrepositoryにVercel credential / deployment jobを追加していない。
+- [x] local / CI / production verificationがgreenである。
 
 ## 21. Deferred Work
 

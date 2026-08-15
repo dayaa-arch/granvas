@@ -116,4 +116,6 @@ flowchart LR
 
 live browserではTextを編集した直後に`一時保存済み（24時間）`とlocalStorage key `granvas:temporary-project:v1`を確認し、beforeunloadを承認してreloadした後も同じTextと`24時間の一時保存から作業を復元しました。`という通知を確認した。console error / warningは0件で、network requestは同一originの静的assetだけだった。HTTP 200、SPA reload、`connect-src 'none'`を含むCSP、`nosniff`、`no-referrer`も維持している。
 
-本作業PRのmerge commitからGit Integrationが新しいProduction Deploymentを自動作成することは、merge後の最終検証として記録する。
+PR #38を`main`へmergeした結果、merge commit `ba72fd7daac25c7d3d16a9fa9a4d914079803516`をsourceとするProduction Deployment `dpl_3iWKMJhf6psHF5Td8b99W9Qb71WX`が追加のdeploy操作なしに自動作成された。deploymentは`source: git`、branch `main`、`READY` / `PROMOTED`となり、約5秒で`granvas.vercel.app` aliasへ反映された。
+
+自動deployment後のlive browserでも、Text編集、`一時保存済み（24時間）`、localStorage record、reload後のText / Graph復元と復元通知を再確認した。console error / warningは0件、unexpected non-static requestは0件である。これによりGit Integration設定、current main公開、automatic delivery、live recoveryの全受け入れ条件を満たした。
