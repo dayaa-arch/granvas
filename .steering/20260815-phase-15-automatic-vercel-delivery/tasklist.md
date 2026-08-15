@@ -3,7 +3,7 @@
 > 作成日: 2026-08-15
 > ステータス: 進行中
 > Issue: [#37](https://github.com/dayaa-arch/granvas/issues/37)
-> PR: 実装後に作成
+> PR: [#38](https://github.com/dayaa-arch/granvas/pull/38)
 
 ## 1. 準備・仕様
 
@@ -43,8 +43,8 @@
 ## 5. GitHub完了処理
 
 - [ ] tasklist、roadmap、specification、ADR、READMEを実績へ同期する。
-- [ ] 意図した変更だけをcommit / pushする。
-- [ ] PRへ要求、設計、検証、credential方針、rollback、残課題を記載する。
+- [x] 意図した変更だけをcommit / pushする。
+- [x] PRへ要求、設計、検証、credential方針、rollback、残課題を記載する。
 - [ ] PRの全quality gateがgreenの場合だけ`main`へmergeする。
 - [ ] merge commitをsourceとするProduction Deploymentが自動作成されることを確認する。
 - [ ] 自動deployment後のlive smoke / reload / recoveryを再確認する。
