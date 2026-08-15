@@ -1,7 +1,7 @@
 # Phase 15 Automatic Vercel Delivery タスクリスト
 
 > 作成日: 2026-08-15
-> ステータス: 進行中
+> ステータス: 完了
 > Issue: [#37](https://github.com/dayaa-arch/granvas/issues/37)
 > PR: [#38](https://github.com/dayaa-arch/granvas/pull/38)
 
@@ -42,18 +42,18 @@
 
 ## 5. GitHub完了処理
 
-- [ ] tasklist、roadmap、specification、ADR、READMEを実績へ同期する。
+- [x] tasklist、roadmap、specification、ADR、READMEを実績へ同期する。
 - [x] 意図した変更だけをcommit / pushする。
 - [x] PRへ要求、設計、検証、credential方針、rollback、残課題を記載する。
-- [ ] PRの全quality gateがgreenの場合だけ`main`へmergeする。
-- [ ] merge commitをsourceとするProduction Deploymentが自動作成されることを確認する。
-- [ ] 自動deployment後のlive smoke / reload / recoveryを再確認する。
-- [ ] Issue close、branch削除、main同期を確認する。
+- [x] PRの全quality gateがgreenの場合だけ`main`へmergeする。
+- [x] merge commitをsourceとするProduction Deploymentが自動作成されることを確認する。
+- [x] 自動deployment後のlive smoke / reload / recoveryを再確認する。
+- [x] Issue close、branch削除、main同期を確認する。
 
 ## 完了条件
 
-- [ ] requirements.mdの受け入れ条件をすべて満たす。
-- [ ] 現在のPhase 14がproductionで利用できる。
-- [ ] 今後の`main` mergeが追加の手動操作なしにVercel Productionへ反映される。
-- [ ] GitHub ActionsへVercel credentialを保存していない。
-- [ ] local / CI / production verificationがすべてgreenである。
+- [x] requirements.mdの受け入れ条件をすべて満たす。
+- [x] 現在のPhase 14がproductionで利用できる。
+- [x] 今後の`main` mergeが追加の手動操作なしにVercel Productionへ反映される。
+- [x] GitHub ActionsへVercel credentialを保存していない。
+- [x] local / CI / production verificationがすべてgreenである。

@@ -266,7 +266,7 @@ Granvas is released under the [MIT License](LICENSE). Production dependency lice
 - [x] Phase 8 — Visual Export: SVG/PNG/PDF full-graph export and three-browser verification.
 - [x] Phase 9 — Release Hardening: performance, accessibility, security, OSS, CI, and Vercel production.
 - [x] Phase 14 — Temporary Browser Recovery: active Text is recoverable from the same browser for 24 hours.
-- [ ] Phase 15 — Automatic Vercel Delivery: reviewed `main` merges automatically reach Production.
+- [x] Phase 15 — Automatic Vercel Delivery: reviewed `main` merges automatically reach Production.
 
 Phase numbers are assignment order, not execution order. Phases 10–13 were added on 2026-08-11 and run before Phases 8–9; the list above is in execution order.
 

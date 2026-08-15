@@ -29,8 +29,8 @@ maintainerとして、greenなPRを`main`へマージしたら、追加の手動
 - [x] live UIに`24時間一時保存`が表示され、Text入力直後のreloadで内容を復元する。
 - [x] Vercel ProjectのGit repositoryが`dayaa-arch/granvas`へ接続されている。
 - [x] Production Branchが`main`である。
-- [ ] 本作業のPRを`main`へマージした結果、新しいProduction Deploymentが自動で開始される。
-- [ ] 自動deploymentが`READY`となり、production aliasがそのdeploymentを指す。
+- [x] 本作業のPRを`main`へマージした結果、新しいProduction Deploymentが自動で開始される。
+- [x] 自動deploymentが`READY`となり、production aliasがそのdeploymentを指す。
 - [x] GitHub ActionsへVercel credential、deployment job、repository write permissionを追加していない。
 - [x] typecheck、lint、unit / component、build、release verification、3-browser E2Eがgreenである。
 - [x] productionでdirect access / reload、CSP、asset load後のoutbound request 0を確認する。
