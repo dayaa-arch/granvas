@@ -1,7 +1,7 @@
 # Granvas 開発ガイドライン
 
 > Status: Release Candidate
-> Updated: 2026-08-15
+> Updated: 2026-08-16
 
 ## 1. 開発の基準
 
@@ -159,6 +159,8 @@ Common
 - Text入力直後のreloadで失わないよう、projection debounce前のpending sourceを保存する。
 - 一時保存は`.granvas` clean baselineを変更しない。
 - browser performance testで同期serialization / writeがinput paint budgetを超えないことを確認する。
+- 通常起動の固定keyと、`新しいGranvas`から開いたtabのUUID付きkeyを区別し、複数tabのreload testで相互上書きがないことを保証する。
+- URL fragmentはuntrusted inputとしてUUID allowlistで検証し、fragment文字列をstorage keyへ直接使用しない。
 
 ## 9. React / Styling
 
@@ -190,6 +192,7 @@ Common
 - secretをsource code、Vite public env、client bundleへ置かない。
 - v0.1にSupabase dependencyやcredentialを追加しない。
 - dependency追加時にlicenseとknown vulnerabilityを確認する。
+- 新しいtab / windowを開く場合は`noopener,noreferrer`を指定し、Project sourceやnameをURLへ含めない。
 
 ## 11. Accessibility
 

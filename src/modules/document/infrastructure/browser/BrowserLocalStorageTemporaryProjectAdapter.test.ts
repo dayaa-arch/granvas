@@ -35,4 +35,25 @@ describe('BrowserLocalStorageTemporaryProjectAdapter', () => {
     expect(() => adapter.write('value')).toThrowError('Blocked')
     expect(() => adapter.remove()).toThrowError('Blocked')
   })
+
+  it('isolates every operation when bootstrap supplies a Project slot key', () => {
+    const storage = {
+      getItem: vi.fn(() => null),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    }
+    const isolatedKey = `${TEMPORARY_PROJECT_STORAGE_KEY}:550e8400-e29b-41d4-a716-446655440000`
+    const adapter = new BrowserLocalStorageTemporaryProjectAdapter(
+      () => storage,
+      isolatedKey,
+    )
+
+    adapter.read()
+    adapter.write('value')
+    adapter.remove()
+
+    expect(storage.getItem).toHaveBeenCalledWith(isolatedKey)
+    expect(storage.setItem).toHaveBeenCalledWith(isolatedKey, 'value')
+    expect(storage.removeItem).toHaveBeenCalledWith(isolatedKey)
+  })
 })

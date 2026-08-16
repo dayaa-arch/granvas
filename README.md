@@ -8,7 +8,7 @@ Granvas is an open-source visual thinking editor available as a v0.1 Release Can
 ブラウザーでは[Granvas v0.1 Release Candidate](https://granvas.vercel.app)を利用できます。日本語での使い方は、[Granvas 1.0 公式ドキュメント — 完全版](https://dayaa-arch.github.io/granvas/)で案内します。Docs edition 1.0とproduct version v0.1.0は別のversion軸です。
 
 > [!IMPORTANT]
-> **Release Candidate:** Phases 0–13, including Visual Export and Release Hardening, are complete for the v0.1 scope. The static Vercel app supports Japanese text editing, live graph projection, certainty markers, Text/Graph navigation, Graph-side authoring, `.granvas` Import/Download, and viewport-independent SVG/PNG/PDF Download. This is not a product v1.0 declaration.
+> **Release Candidate:** Phases 0–16 are complete for the v0.1 scope. The static Vercel app supports Japanese text editing, live graph projection, certainty markers, Text/Graph navigation, Graph-side authoring, isolated new-tab Projects, `.granvas` Import/Download, and viewport-independent SVG/PNG/PDF Download. This is not a product v1.0 declaration.
 
 ## Why Granvas?
 
@@ -41,12 +41,13 @@ Most of the individual syntax pieces have precedents — Mermaid, D2, nomnoml, a
 - Graph Node → Text navigation and Text cursor → Graph highlighting.
 - Graph-side editing: rename Node labels and Types, change certainty, create Nodes and Edges, add Group membership, delete with an impact preview, and drag to re-parent or detach. Every action rewrites the text as a minimal diff and undoes in one step.
 - Pan, zoom, and fit-to-view controls.
+- A **新しいGranvas** Top Bar action that opens an empty `untitled` Project in a separate tab without replacing the current work.
 - Editable project Import and Download using `.granvas` files.
 - Full-graph SVG, PNG, and PDF downloads.
 - Dirty-state indicators and warnings before discarding undownloaded changes.
 - Static deployment on Vercel with no server functions. Vercel Git Integration automatically deploys reviewed `main` updates to Production.
 
-The following are deliberately outside v0.1: free-form drawing, manual node positioning and coordinate persistence, unlimited browser persistence, multi-document workspaces, accounts, cloud sync, collaboration, AI features, plugins, and mobile or desktop apps.
+The following are deliberately outside v0.1: free-form drawing, manual node positioning and coordinate persistence, unlimited browser persistence, Project-list-based multi-document workspaces, same-Project tab synchronization, accounts, cloud sync, collaboration, AI features, plugins, and mobile or desktop apps.
 
 Dragging a node changes what it *means* — its parent, or which group it belongs to — not where it sits. The layout engine still decides position, and no coordinates are ever written to your `.granvas` file. See [ADR-0001](docs/adr/0001-semantic-node-drag-without-coordinate-persistence.md) for why.
 
@@ -109,7 +110,7 @@ See the [Granvas v0.1 specification](docs/GRANVAS_SPEC_v0.1.md) for the complete
 
 ## User-owned file workflow
 
-Granvas keeps the active Text in the same browser for up to 24 hours so an accidental reload can be recovered. This is a temporary recovery cache, not durable project ownership.
+Granvas keeps the active Text in the same browser for up to 24 hours so an accidental reload can be recovered. Tabs opened with **新しいGranvas** receive isolated recovery slots and do not overwrite each other. This is a temporary recovery cache, not durable project ownership.
 
 | Format | Purpose | Editable in Granvas |
 | --- | --- | --- |
@@ -267,6 +268,7 @@ Granvas is released under the [MIT License](LICENSE). Production dependency lice
 - [x] Phase 9 — Release Hardening: performance, accessibility, security, OSS, CI, and Vercel production.
 - [x] Phase 14 — Temporary Browser Recovery: active Text is recoverable from the same browser for 24 hours.
 - [x] Phase 15 — Automatic Vercel Delivery: reviewed `main` merges automatically reach Production.
+- [x] Phase 16 — New Granvas Tab: start an isolated empty Granvas in a new browser tab.
 
 Phase numbers are assignment order, not execution order. Phases 10–13 were added on 2026-08-11 and run before Phases 8–9; the list above is in execution order.
 

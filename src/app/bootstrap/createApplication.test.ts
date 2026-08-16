@@ -7,6 +7,14 @@ import {
   TEMPORARY_PROJECT_TTL_MS,
   type TemporaryProjectStoragePort,
 } from '@/modules/document'
+import type { GranvasProjectLaunch } from '@/app/projectLaunch'
+
+const isolatedProjectLaunch = Object.freeze({
+  type: 'isolated-project',
+  slotId: '550e8400-e29b-41d4-a716-446655440000',
+  canonicalHash: '#project=550e8400-e29b-41d4-a716-446655440000',
+  initialProject: Object.freeze({ name: 'untitled', source: '' }),
+}) satisfies Extract<GranvasProjectLaunch, { type: 'isolated-project' }>
 
 describe('createApplication', () => {
   it('creates the deterministic application metadata', () => {
@@ -81,6 +89,53 @@ describe('createApplication', () => {
     expect(application.workspace.getSnapshot()).toMatchObject({
       document: { name: 'untitled', status: { type: 'clean' } },
       temporaryStorage: { type: 'unavailable' },
+    })
+  })
+
+  it('starts an isolated Project empty and clean when its slot has no recovery', () => {
+    const application = createApplication({
+      projectLaunch: isolatedProjectLaunch,
+      temporaryProjectStorage: {
+        read: () => null,
+        write: () => undefined,
+        remove: () => undefined,
+      },
+    })
+
+    expect(application.temporaryProjectLoad).toEqual({ type: 'empty' })
+    expect(application.workspace.getSnapshot()).toMatchObject({
+      document: { name: 'untitled', source: '', status: { type: 'clean' } },
+      temporaryStorage: { type: 'ready' },
+    })
+  })
+
+  it('prefers recovery from an isolated slot over its empty initial Project', () => {
+    const savedAt = 1_000
+    const application = createApplication({
+      projectLaunch: isolatedProjectLaunch,
+      now: () => savedAt + 1,
+      temporaryProjectStorage: {
+        read: () =>
+          JSON.stringify({
+            schemaVersion: TEMPORARY_PROJECT_SCHEMA_VERSION,
+            name: 'isolated',
+            source: '[idea] Restored isolated Project',
+            dirty: true,
+            savedAt,
+            expiresAt: savedAt + TEMPORARY_PROJECT_TTL_MS,
+          }),
+        write: () => undefined,
+        remove: () => undefined,
+      },
+    })
+
+    expect(application.workspace.getSnapshot()).toMatchObject({
+      document: {
+        name: 'isolated',
+        source: '[idea] Restored isolated Project',
+        status: { type: 'dirty' },
+      },
+      temporaryStorage: { type: 'stored' },
     })
   })
 })

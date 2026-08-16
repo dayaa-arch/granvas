@@ -1,11 +1,11 @@
 # Granvas ユビキタス言語
 
 > Status: Release Candidate
-> Updated: 2026-08-15
+> Updated: 2026-08-16
 
 ## 1. 言語規則
 
-- Product UIは日本語を標準とし、ユーザー操作を`プロジェクトを読み込む`と`ダウンロード`で表現する。
+- Product UIは日本語を標準とし、ユーザー操作を`新しいGranvas`、`プロジェクトを読み込む`、`ダウンロード`で表現する。
 - Codeでは、domain conceptに英語名を使用する。
 - `Node`、`Relation`、`Group`、`Layout`はNotationとGraphで意味が異なる場合があるため、必要に応じ`Parsed`、`Graph`、`Positioned`を付ける。
 - `Save` / `保存済み`は恒久保存と誤解されるため、`.granvas`の状態は`ダウンロード済み / 未ダウンロード`、browser復旧は`24時間一時保存`と明確に分ける。
@@ -18,6 +18,8 @@
 | --- | --- | --- | --- |
 | Granvas | Granvas | `Granvas` | Textから思考Graphを投影するWeb editor |
 | Project | Project | `GranvasDocument` | 現在編集中の単一sourceとlifecycle |
+| 新しいGranvas | New Granvas | `GranvasProjectLaunch` | 現在Projectを保持し、空の`untitled` Projectを新しいbrowser tabで開始する操作 |
+| Project slot | Project Slot | `slotId` | 新規tab固有の24時間一時保存を識別するvalidated UUID。Project一覧や恒久IDではない |
 | 正本 | Source of Truth | `DocumentSource` | 意味構造を再生成できる唯一のText |
 | 投影 | Projection | `WorkspaceProjectionDto` | Textから導出されたGraph / SourceMap / Diagnosticsの同一revision集合 |
 | プロジェクトを読み込む | Import Project | `ImportProject` | `.granvas`をactive Projectとして読み込む操作 |
@@ -29,7 +31,7 @@
 | 公式利用ガイド | Official Documentation | `docs-site` | 日本語UIの使い方と現在の制約を説明するGitHub Pages site |
 | 公開プレビュー | Public Preview | — | 正式release前の公式Docs公開状態。対応実装と未完了機能を併記する |
 | 完全版 | Complete Edition | — | Phase 8 / 9の実績とproduction URLに一致するDocs edition 1.0の公開状態 |
-| 24時間一時保存 | Temporary Browser Recovery | `TemporaryProjectRecovery` | active Textを同一originへ最終保存から24時間だけ保持する復旧補助。恒久保存ではない |
+| 24時間一時保存 | Temporary Browser Recovery | `TemporaryProjectRecovery` | active Textを同一originへ最終保存から24時間だけ保持する復旧補助。新規tabはProject slotごとに分離され、恒久保存ではない |
 | 一時復元 | Temporary Restore | `TemporaryProjectLoadResult` | 有効期限内の一時保存からProject name / Text / dirty情報を起動時に復元すること |
 | 失効時刻 | Expiration Time | `expiresAt` | 一時保存を復元可能とみなす上限のUnix epoch milliseconds |
 

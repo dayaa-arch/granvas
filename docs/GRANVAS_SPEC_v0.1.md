@@ -10,7 +10,7 @@
 - Frontend: React + TypeScript + Vite
 - Hosting: Vercel
 - Persistence: 24-hour browser recovery + User-managed Import / Download
-- Date: 2026-08-15
+- Date: 2026-08-16
 
 ---
 
@@ -33,6 +33,7 @@ v0.1 の開発では、本書を実装判断の基準とする。仕様変更が
 | 2026-08-11 | Phase 9のrelease契約を具体化。productはv0.1 Release Candidate、公式Docsはedition 1.0完全版とし、MIT、quality-only Actions、Vercel production、release evidenceを追加する。 | [ADR-0006](adr/0006-promote-official-documentation-to-complete-edition.md) |
 | 2026-08-14 | active Textを同一browserへ最終保存から24時間だけ一時保存し、reload / 再訪時に復元するPhase 14を追加。`.granvas`を恒久保存として維持し、Graph・座標・派生状態は保存しない。 | [ADR-0007](adr/0007-temporary-browser-project-recovery.md) |
 | 2026-08-15 | Vercel Git IntegrationでProduction Branchを`main`へ接続し、review済みmainのpushを自動でProduction DeploymentするPhase 15を追加。GitHub Actionsはquality-only、credentialなしを維持する。 | [ADR-0008](adr/0008-automatic-vercel-production-delivery.md) |
+| 2026-08-16 | Top Barから空のGranvasを新規tabで開始するPhase 16を追加。新規tabごとに24時間一時保存keyを分離し、既存固定keyの後方互換を維持する。 | [ADR-0009](adr/0009-isolated-new-tab-project-launch.md) |
 
 Phase の名称・順序・進捗は `docs/development-roadmap.md` を正本とする。
 
@@ -111,6 +112,7 @@ v0.1 は `Text ⇄ Graph` の双方向編集を含む。ただしこれは正本
 - 構文ハイライト
 - 非破壊的な diagnostics 表示
 - `.granvas` プロジェクトの Import
+- Top Barから現在Projectを保持したまま、空の`untitled` Projectを新しいbrowser tabで開始
 - `.granvas` / SVG / PNG / PDF を選択できる Download
 - 未ダウンロード変更の状態表示と離脱警告
 - active Textの24時間一時保存とreload / 同一browser再訪時の復元
@@ -128,6 +130,7 @@ v0.1 は `Text ⇄ Graph` の双方向編集を含む。ただしこれは正本
 - ノード色・形・サイズ・座標を指定する記法
 - Map / Outline / Kanban / Timeline など複数ビュー
 - 複数ドキュメント管理 UI
+- Project一覧、recent history、同一Project slotを開いた複数tab間の競合解決・同期
 - 期限なしのbrowser永続化、複数Project履歴、browser間同期
 - クラウド同期
 - アカウント / 認証
@@ -259,6 +262,14 @@ ID を使い、離れた場所に記述したノードを接続できる。
 3. ドロップするとテキストの行位置と indent が書き換わる。
 4. 新しい構造で自動レイアウトが再実行される。
 5. 座標はどこにも保存されない。
+
+## UC-11: 新しいメモを別tabで始める
+
+1. ユーザーがTop Bar右側の`新しいGranvas`を実行する。
+2. 現在のProjectを保持したまま、空の`untitled` Projectが新しいtabで開く。
+3. 新規tabに一意なProject slotが割り当てられる。
+4. 複数の新規tabは、それぞれのTextを独立した24時間一時保存へ書く。
+5. 新規tabをreloadすると同じslotから復元し、元tabのTextは変化しない。
 
 ---
 
@@ -1240,8 +1251,11 @@ Divider はドラッグで変更可能。
 
 - Granvas logo / name
 - `思考を書く。構造が見える。`
+- `新しいGranvas`
 - `プロジェクトを読み込む`
 - `ダウンロード`
+
+`新しいGranvas`はpointer / keyboardで実行でき、新しいtabで開くことをaccessible nameへ含める。current URLのfragmentを`#new`へ置換して`noopener,noreferrer`付きで開き、現在tabのWorkspaceを変更しない。
 
 v0.1 では account / cloud / share UI は持たない。
 
@@ -1397,7 +1411,7 @@ v0.1 は、24時間のbrowser内一時復旧と、ユーザーが明示的に所
 
 ### 7.1.1 Temporary Browser Record
 
-versioned keyは`granvas:temporary-project:v1`とし、payloadを次に限定する。
+通常起動のversioned keyは`granvas:temporary-project:v1`とする。`新しいGranvas`から開いたtabは、validated UUIDを持つProject slotごとに`granvas:temporary-project:v1:<slot-id>`を使用する。payloadはいずれも次に限定する。
 
 ```ts
 type TemporaryProjectRecord = Readonly<{
@@ -1418,14 +1432,17 @@ type TemporaryProjectRecord = Readonly<{
 - expired、corrupt JSON、unknown schema、不正field、clock tamperは復元せず削除する。
 - read / write / remove、quota、security policyのfailureはProject操作を失敗させず、一時保存利用不可として表示する。
 - 開いたtabは期限timerで削除を試みる。閉じたbrowserでは次回起動時にexpired recordを削除する。
+- `#new`は`crypto.randomUUID()`でslotを生成し、`history.replaceState`で`#project=<slot-id>`へ正規化する。reloadでは同じslotを再利用する。
+- slot IDはUUID allowlistで検証し、fragmentを任意のstorage keyとして使用しない。Project source / nameはURLへ含めない。
+- fragmentなしURLは既存固定keyと初期サンプルを維持し、migrationなしで後方互換を保つ。
 
 
 
 ## 7.2 Current Document
 
-v0.1 は **single active document** とする。
+v0.1 は **browser tabごとにsingle active document** とする。
 
-ドキュメント一覧 / folder 管理は実装しない。
+`新しいGranvas`は複数tabを開けるが、ドキュメント一覧 / recent history / folder / tab間同期は実装しない。
 
 ## 7.3 Dirty State
 
@@ -1437,6 +1454,7 @@ Workspace は `clean` / `dirty` / `exporting` / `error` を持つ。
 - `.granvas` Download の開始に成功した revision は baseline となり `clean`。
 - SVG / PNG / PDF Download は再編集可能な保存ではないため dirty state を変更しない。
 - dirty な状態で Import / New Project を実行する場合は、現在の Project が失われることを confirmation dialog で確認する。cancel 時は何も変更しない。
+- `新しいGranvas`は現在Projectを置換しないため、現在tabがdirtyでもconfirmationを表示しない。
 - dirty な状態で tab close / reload / route leave が発生する場合は browser の `beforeunload` warning を利用する。
 - 一時保存成功はdirty stateとclean baselineを変更しない。
 - Download / Import の失敗は `error` として表示し、現在の source と clean baseline を変更しない。
@@ -1583,6 +1601,7 @@ Granvas 固有の domain concept を `shared` へ逃がさない。
 - React Flow
 - Dagre
 - localStorage（Document Infrastructureの`TemporaryProjectStoragePort`実装だけで使用可）
+- URL / History API / `window.open`（App composition rootだけで使用可）
 - DOM
 - browser File API
 
@@ -1623,6 +1642,7 @@ granvas/
 │   ├── app/
 │   │   ├── bootstrap/
 │   │   ├── providers/
+│   │   ├── projectLaunch.ts
 │   │   ├── App.tsx
 │   │   └── main.tsx
 │   │
@@ -2389,6 +2409,26 @@ v0.1 では Redux / Zustand 等の global state library を導入しない。
 
 # 15. Main Runtime Flow
 
+## 15.0 New Granvas Launch Flow
+
+```text
+Top Bar: 新しいGranvas
+   ↓
+current URL + #new
+   ↓ window.open(_blank, noopener,noreferrer)
+new browser tab
+   ↓
+App launch resolver
+   ├─ crypto.randomUUID() + UUID allowlist
+   ├─ history.replaceState(#project=<slot-id>)
+   ├─ empty Text / untitled / clean
+   └─ temporary key: granvas:temporary-project:v1:<slot-id>
+   ↓
+createApplication → Workspace open
+```
+
+fragmentなし起動は既存の固定keyと初期サンプルを使用する。`#project=<slot-id>`のreloadでは、同slotのvalidな一時保存を空Projectより優先する。
+
 
 
 ## 15.1 Typing Flow
@@ -3071,6 +3111,17 @@ Graph編集を実行 → Undo
 → TextとGraphが1手で編集前へ戻る
 ```
 
+Scenario 11:
+
+```text
+元tabでTextを編集
+→ Top Barの「新しいGranvas」をkeyboardまたはpointerで実行
+→ noopener付き新規tabが空のuntitled / clean / Node 0件で開く
+→ 複数の新規tabへ別々のTextを入力
+→ 各tabをreloadして自身のTextだけを復元
+→ 元tabと既存固定keyは変化しない
+```
+
 ---
 
 
@@ -3145,7 +3196,7 @@ AbortSignal
 
 Phaseの名称、順序、進捗、履歴対応は`docs/development-roadmap.md`を正本とする。Milestoneは複数Phaseを束ねるrelease checkpointであり、Phase番号とは別に管理する。
 
-Phase番号は採番順であり実行順ではない。実行順は **0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 10 → 11 → 12 → 13 → 8 → 9 → 14 → 15** とする。Phase 10〜13は2026-08-11のscope変更（§0.1）で追加され、Phase 8〜9より先に実行する。
+Phase番号は採番順であり実行順ではない。実行順は **0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 10 → 11 → 12 → 13 → 8 → 9 → 14 → 15 → 16** とする。Phase 10〜13は2026-08-11のscope変更（§0.1）で追加され、Phase 8〜9より先に実行する。
 
 ## Phase 0: Documentation Baseline
 
@@ -3310,6 +3361,17 @@ Status: Complete — Issue #37 / PR #38
 - current Phase 14 artifactのProduction公開
 - merge commitをsourceとする自動deployment、alias、live recoveryの検証
 
+## Phase 16: New Granvas Tab
+
+Status: Under Review — Issue #40 / PR #41
+
+- Top Bar右側の`新しいGranvas`操作
+- 空Text / `untitled` / cleanの新規tab起動
+- validated UUIDを使うcanonical Project fragment
+- 新規tabごとの24時間一時保存key分離
+- 既存固定keyの後方互換
+- pointer / keyboard / multi-tab reloadのthree-browser E2E
+
 ---
 
 
@@ -3358,6 +3420,9 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [x] Graph編集を復元Textから同じ意味Graphへ再投影できる
 - [x] 24時間以上経過した値、破損値、未知schemaを復元しない
 - [x] 一時保存が`.granvas`のdirty lifecycleを変更しない
+- [x] Top Barから現在Projectを保持したまま、空のGranvasを新しいtabで開始できる
+- [x] 新規tabごとの24時間一時保存が分離され、既存固定keyの復元互換性を維持する
+- [x] 新規tabが`noopener`で開き、不正fragmentを任意のstorage keyとして使用しない
 
 
 
@@ -3379,6 +3444,7 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - [x] Graph からテキスト全文を再生成する経路が存在しない
 - [x] browser storage具象がDocument Infrastructureへ隔離され、Application portから注入される
 - [x] 一時保存payloadにGraph・座標・projection・Undo履歴が含まれない
+- [x] URL / History API / `window.open`がApp composition rootに閉じ、Domain / Application public contractへ漏れていない
 
 
 
@@ -3420,6 +3486,7 @@ v0.1 は以下をすべて満たしたとき release candidate とする。
 - Outline view
 - Timeline view
 - multi-document workspace
+- Project一覧、recent history、同一Project slotを開いたtab間の競合解決・同期
 - workspace folder
 - backlinks
 - search
@@ -3573,6 +3640,7 @@ Granvas = User-owned-file Text Editor
         + Automatic Layout
         + Editable Graph Projection（座標は非永続）
         + Project Import / Multi-format Download
+        + Isolated New-tab Project Launch
         + Vercel Static Hosting
         + Japanese Official Documentation / GitHub Pages
 ```
