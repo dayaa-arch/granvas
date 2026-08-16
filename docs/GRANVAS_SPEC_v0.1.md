@@ -3363,7 +3363,7 @@ Status: Complete — Issue #37 / PR #38
 
 ## Phase 16: New Granvas Tab
 
-Status: Under Review — Issue #40 / PR #41
+Status: Complete — Issue #40 / PR #41
 
 - Top Bar右側の`新しいGranvas`操作
 - 空Text / `untitled` / cleanの新規tab起動
