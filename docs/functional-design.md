@@ -2,7 +2,7 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-15
+> Updated: 2026-08-16
 > Related: `docs/product-requirements.md`, `docs/GRANVAS_SPEC_v0.1.md`, `docs/adr/`
 
 ## 1. 設計目的
@@ -39,7 +39,7 @@ Production deliveryはVercel ProjectのGit Integrationが担当する。GitHub A
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│ Granvas   思考を書く。構造が見える。 読み込む ダウンロード │
+│ Granvas   思考を書く。構造が見える。 新しい 読み込む DL  │
 ├──────────────────────────────┬───────────────────────────────┤
 │ テキスト                     │ グラフ                        │
 │                              │                               │
@@ -54,8 +54,10 @@ Production deliveryはVercel ProjectのGit Integrationが担当する。GitHub A
 
 ### 3.1 Top Bar
 
+- `新しいGranvas`: 現在Projectを保持し、空の`untitled` Projectを新しいtabで開く。
 - `プロジェクトを読み込む`: `.granvas`を選択する。
 - `ダウンロード`: file nameと `.granvas` / SVG / PNG / PDFを選択するdialogを開く。
+- `新しいGranvas`は新しいtabで開くことをaccessible nameで示し、`noopener,noreferrer`を適用する。
 - account / cloud / share UIは表示しない。
 
 ### 3.2 Text Editor
@@ -113,6 +115,7 @@ Production deliveryはVercel ProjectのGit Integrationが担当する。GitHub A
 責務:
 
 - single active document。
+- single active documentはbrowser tab単位とし、Project一覧やtab間同期を持たない。
 - source、revision、clean baseline、dirty state。
 - source更新とProject置換。
 
@@ -380,6 +383,18 @@ sequenceDiagram
 
 保存payloadはschema version、name、source、dirty、`savedAt`、`expiresAt`だけを含む。Graph、座標、projection、diagnostics、selection、Undo履歴は含めない。
 
+storage keyは通常起動の`granvas:temporary-project:v1`を後方互換として維持する。`新しいGranvas`から開いたtabはvalidated UUIDを持つ`granvas:temporary-project:v1:<slot-id>`を使用し、tabごとに復元recordを分離する。
+
+### 6.6 New Granvas Tab
+
+1. Appが現在URLのfragmentを`#new`へ置換し、`noopener,noreferrer`付きで新しいtabを開く。
+2. 新規tabのbootstrapが`#new`を検出し、`crypto.randomUUID()`でProject slot IDを生成する。
+3. `history.replaceState`で`#project=<slot-id>`へ正規化する。
+4. 同slotのvalidな一時保存があれば復元し、無ければ空Text / `untitled` / cleanでWorkspaceを開く。
+5. 編集後はslot固有keyへ24時間一時保存し、元tabと別の新規tabのrecordを変更しない。
+
+fragment解釈、UUID allowlist、canonical hash生成は`src/app/projectLaunch.ts`のpure resolverが担当する。browser objectはApp composition rootからのみ参照する。
+
 ## 7. Component Ownership
 
 | Component | Owner | Dependency |
@@ -390,6 +405,7 @@ sequenceDiagram
 | `WorkspaceSplitPane` | Workspace presentation | shared presentation |
 | `StatusBar` | Workspace presentation | Workspace ViewModel |
 | `App` | app composition root | 各moduleのpublic presentation API |
+| `ProjectLaunch` | app composition root | fragment解釈、初期Project / recovery key選択 |
 
 各moduleのpresentation同士は内部importしない。`App.tsx`が公開componentとcallbackを合成する。
 

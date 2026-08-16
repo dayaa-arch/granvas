@@ -2,12 +2,12 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-15
+> Updated: 2026-08-16
 > Related: `docs/adr/`
 
 ## 1. Architecture Summary
 
-Granvas v0.1は、Vercelで配信するclient-onlyのReact SPAである。Domain-Driven Design、Layered Architecture、Modular Monolithを採用し、TextからGraphへのprojection、24時間のbrowser内一時復旧、ユーザー所有fileによる恒久保存をbrowser内で完結させる。
+Granvas v0.1は、Vercelで配信するclient-onlyのReact SPAである。Domain-Driven Design、Layered Architecture、Modular Monolithを採用し、TextからGraphへのprojection、tabごとに分離できる24時間のbrowser内一時復旧、ユーザー所有fileによる恒久保存をbrowser内で完結させる。
 
 日本語の公式利用ガイドはproduct SPAとは別の静的artifactとしてGitHub Pagesへ配信する。公式Docsはproduct runtimeやContextへ接続せず、Vercel hosting方針を変更しない。
 
@@ -199,12 +199,21 @@ Graph側の操作をTextへ書き戻す経路の設計。根拠は[ADR-0002](adr
 
 ### 10.0 Temporary Browser Recovery
 
-- versioned key`granvas:temporary-project:v1`へProject name、Text source、dirty flag、保存時刻、失効時刻だけをJSON保存する。
+- 通常起動はversioned key`granvas:temporary-project:v1`、`新しいGranvas`から開いたtabは`granvas:temporary-project:v1:<validated-uuid>`へProject name、Text source、dirty flag、保存時刻、失効時刻だけをJSON保存する。
 - TTLは最後のwrite成功から24時間。expired / corrupt / unknown schemaは復元せず削除する。
 - Graph、座標、projection、diagnostics、selection、Undo履歴、runtime revisionは保存しない。
 - Application serviceがschema / TTL / failure normalization、Infrastructure adapterがlocalStorage I/O、Workspaceが保存timingを担当する。
 - browser storage failureは一時保存状態へ反映し、Document / projection / Import / Downloadを失敗させない。
 - 一時保存は`.granvas` clean baselineを変更しない。
+- App composition rootがURL fragmentをvalidated Project slotへ変換し、Document Infrastructure adapterのkeyを注入する。Domain / ApplicationはURL、History API、UUID、storage key namespaceを知らない。
+
+### 10.0.1 New-tab Project Launch
+
+- `#new`は一度だけUUID slotを生成し、`#project=<uuid>`へ`history.replaceState`で正規化する。
+- isolated tabは空Text / `untitled` / cleanを初期値とし、同slotのvalid recordがあればそれを優先する。
+- fragmentなし起動は既存sampleと固定keyを維持する。
+- slot IDはUUID allowlistで検証し、source / nameをURLへ含めない。
+- 新規tabは`noopener,noreferrer`で開き、元tabのWorkspaceを変更しない。
 
 
 ### 10.1 `.granvas`
@@ -231,6 +240,7 @@ Graph側の操作をTextへ書き戻す経路の設計。根拠は[ADR-0002](adr
 - telemetry、remote API、cloud storageなし。
 - active Textは同一originのlocalStorageへ最大24時間だけ保存し、networkへ送信しない。
 - browser storageのJSONをuntrusted inputとしてschema / TTL検証する。
+- Project launch fragmentをuntrusted inputとしてUUID allowlistで検証し、任意のlocalStorage keyへ変換しない。
 - notationを実行しない。`eval`とdynamic code executionを禁止する。
 - source由来文字列に`dangerouslySetInnerHTML`を使用しない。
 - file nameはpath separator、control character、予約文字を除去する。
@@ -313,6 +323,7 @@ ADRは`docs/adr/`に置き、`docs/adr/README.md`を索引とする。
 - [ADR-0006](adr/0006-promote-official-documentation-to-complete-edition.md) Promote official documentation to complete edition。
 - [ADR-0007](adr/0007-temporary-browser-project-recovery.md) Temporary browser project recovery。
 - [ADR-0008](adr/0008-automatic-vercel-production-delivery.md) Automatic Vercel production delivery from main。
+- [ADR-0009](adr/0009-isolated-new-tab-project-launch.md) Isolated new-tab project launch。
 
 未起票:
 

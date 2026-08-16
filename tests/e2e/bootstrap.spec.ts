@@ -39,6 +39,121 @@ test('boots the canonical Text and Graph workspace', async ({ page }) => {
   await expect(page.getByLabel('ワークスペースの状態')).toContainText('診断 0件')
 })
 
+test('opens isolated empty Granvas tabs without changing the current Project', async ({
+  page,
+  context,
+}) => {
+  await page.goto('/')
+  const editor = page.getByRole('textbox', { name: 'Granvas テキストエディタ' })
+  const originalSource = '[idea @original] 元のタブを保持する'
+  await editor.fill(originalSource)
+  await expect
+    .poll(() =>
+      page.evaluate((key) => {
+        const value = localStorage.getItem(key)
+        return value === null ? null : JSON.parse(value).source
+      }, temporaryProjectKey),
+    )
+    .toBe(originalSource)
+
+  const openNewGranvas = async (withKeyboard = false) => {
+    const newPagePromise = context.waitForEvent('page')
+    const button = page.getByRole('button', {
+      name: '新しいGranvasを新しいタブで開く',
+    })
+    if (withKeyboard) {
+      await button.focus()
+      await page.keyboard.press('Enter')
+    } else {
+      await button.click()
+    }
+    const newPage = await newPagePromise
+    await newPage.waitForLoadState('domcontentloaded')
+    await expect(newPage.getByLabel('ワークスペースの状態')).toContainText(
+      '更新済み',
+    )
+    return newPage
+  }
+
+  const first = await openNewGranvas(true)
+  const second = await openNewGranvas()
+  const firstHash = new URL(first.url()).hash
+  const secondHash = new URL(second.url()).hash
+  expect(firstHash).toMatch(
+    /^#project=[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+  )
+  expect(secondHash).toMatch(/^#project=/)
+  expect(secondHash).not.toBe(firstHash)
+  expect(await first.evaluate(() => window.opener === null)).toBe(true)
+  expect(await second.evaluate(() => window.opener === null)).toBe(true)
+
+  for (const newPage of [first, second]) {
+    await expect(newPage.getByLabel('ワークスペースの状態')).toContainText(
+      'ダウンロード済み',
+    )
+    await expect(newPage.getByLabel('ワークスペースの状態')).toContainText(
+      'Node 0件',
+    )
+  }
+
+  await first.getByRole('button', { name: 'ダウンロード' }).click()
+  await expect(first.getByRole('textbox', { name: 'ファイル名' })).toHaveValue(
+    'untitled',
+  )
+  const emptyDownloadPromise = first.waitForEvent('download')
+  await first
+    .getByRole('dialog')
+    .getByRole('button', { name: 'ダウンロード', exact: true })
+    .click()
+  const emptyDownload = await emptyDownloadPromise
+  expect(emptyDownload.suggestedFilename()).toBe('untitled.granvas')
+  expect(await downloadBytes(emptyDownload)).toHaveLength(0)
+
+  const firstSource = '[idea @first] 1つ目の新規タブ'
+  const secondSource = '[idea @second] 2つ目の新規タブ'
+  await first
+    .getByRole('textbox', { name: 'Granvas テキストエディタ' })
+    .fill(firstSource)
+  await second
+    .getByRole('textbox', { name: 'Granvas テキストエディタ' })
+    .fill(secondSource)
+
+  const firstKey = `${temporaryProjectKey}:${firstHash.slice('#project='.length)}`
+  const secondKey = `${temporaryProjectKey}:${secondHash.slice('#project='.length)}`
+  await expect
+    .poll(() =>
+      first.evaluate((key) => {
+        const value = localStorage.getItem(key)
+        return value === null ? null : JSON.parse(value).source
+      }, firstKey),
+    )
+    .toBe(firstSource)
+  await expect
+    .poll(() =>
+      second.evaluate((key) => {
+        const value = localStorage.getItem(key)
+        return value === null ? null : JSON.parse(value).source
+      }, secondKey),
+    )
+    .toBe(secondSource)
+
+  expect(
+    await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!).source, temporaryProjectKey),
+  ).toBe(originalSource)
+  await expect(editor).toHaveText(originalSource)
+
+  first.on('dialog', (dialog) => dialog.accept())
+  second.on('dialog', (dialog) => dialog.accept())
+  await first.reload()
+  await second.reload()
+  await expect(
+    first.getByRole('textbox', { name: 'Granvas テキストエディタ' }),
+  ).toHaveText(firstSource)
+  await expect(
+    second.getByRole('textbox', { name: 'Granvas テキストエディタ' }),
+  ).toHaveText(secondSource)
+})
+
 test('restores the last Text immediately after reload without treating it as downloaded', async ({
   page,
 }) => {

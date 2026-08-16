@@ -24,6 +24,7 @@ import {
   graphEditErrorMessageJa,
   transferErrorMessageJa,
 } from '@/app/presentationMessages'
+import { createNewGranvasUrl } from '@/app/projectLaunch'
 
 import './App.css'
 
@@ -334,6 +335,14 @@ function App({ application }: AppProps) {
     requestAnimationFrame(() => downloadButtonRef.current?.focus())
   }
 
+  const handleNewGranvas = () => {
+    window.open(
+      createNewGranvasUrl(window.location.href),
+      '_blank',
+      'noopener,noreferrer',
+    )
+  }
+
   const handleImport = async () => {
     await flushEditorSource()
     const result = await transfer.importProjectFile()
@@ -480,6 +489,15 @@ function App({ application }: AppProps) {
           </div>
         </div>
         <div className="topbar__actions" aria-label="プロジェクト操作">
+          <button
+            className="button button--quiet"
+            type="button"
+            aria-label="新しいGranvasを新しいタブで開く"
+            onClick={handleNewGranvas}
+          >
+            <span aria-hidden="true">＋</span>
+            新しいGranvas
+          </button>
           <button className="button button--quiet" type="button" onClick={() => void handleImport()}>
             <span aria-hidden="true">↥</span>
             プロジェクトを読み込む

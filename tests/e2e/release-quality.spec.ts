@@ -51,9 +51,14 @@ test('reaches pane, project, Graph editing, and dialog flows without pointer inp
   page,
 }) => {
   await page.goto('/')
+  const newGranvasButton = page.getByRole('button', {
+    name: '新しいGranvasを新しいタブで開く',
+  })
   const importButton = page.getByRole('button', { name: 'プロジェクトを読み込む' })
   const downloadButton = page.getByRole('button', { name: 'ダウンロード' })
 
+  await newGranvasButton.focus()
+  await expect(newGranvasButton).toBeFocused()
   await importButton.focus()
   await expect(importButton).toBeFocused()
   await downloadButton.focus()

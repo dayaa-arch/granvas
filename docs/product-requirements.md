@@ -2,7 +2,7 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-15
+> Updated: 2026-08-16
 > Source of Truth: `docs/ideas/initial-requirements.md`
 
 ## 1. プロダクトビジョン
@@ -62,6 +62,8 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 - `.granvas` ProjectのImport。
 - `.granvas` / SVG / PNG / PDFから選択するDownload。
 - `.granvas`をImportし、保存時点から編集を再開できること。
+- Top Barから空の`untitled` Projectを新しいbrowser tabで開始できること。
+- 新規tabごとに24時間一時保存を分離し、現在tabと他の新規tabを上書きしないこと。
 - 未ダウンロード変更のdirty表示と、破棄操作・離脱時の警告。
 - active Textの24時間一時保存と、reload / 同一browser再訪時の復元。
 - Vercel上で利用でき、ローカルでも起動できるOSS Webアプリ。
@@ -74,6 +76,7 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 - Graph上での通常文の編集。通常文はText paneでのみ編集する。
 - 期限なしのbrowser永続化、複数Project履歴、browser間同期。
 - 複数Project管理、folder、検索、backlink。
+- Project一覧、recent history、同一Projectを開いた複数tab間の競合解決・同期。
 - アカウント、認証、クラウド同期、共同編集、backend API。
 - AI生成、plugin、mobile app、desktop app。
 - 完全なMarkdown互換。
@@ -192,6 +195,19 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 - 一時保存は`.granvas` Download済みを意味せず、dirty lifecycleを変更しない。
 - storageが利用できなくても編集・Import・Downloadを継続できる。
 
+### US-10: 新しいメモを別tabで始める
+
+ユーザーとして、現在のメモを残したまま、新しい空のGranvasを別tabで始めたい。
+
+受け入れ条件:
+
+- Top Bar右側の`新しいGranvas`をpointerまたはkeyboardで実行できる。
+- 新規tabは空のText、name `untitled`、clean state、Node 0件で開始する。
+- 元tabのText、dirty state、selection、viewport、24時間一時保存を変更しない。
+- 新規tabごとに推測困難なProject slotを割り当て、各tabの24時間一時保存を分離する。
+- 新規tabのreloadでは同じslotから復元し、通常URLの既存復元keyとの互換性を維持する。
+- 新規tabから`window.opener`へアクセスできない。
+
 ## 7. 機能要件
 
 | ID | 要件 |
@@ -222,6 +238,8 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | FR-024 | active Projectのname / Text / dirty情報を同一browserへ24時間だけ一時保存し、reload時に復元する |
 | FR-025 | 一時保存のinvalid / expired / unavailableを安全に処理し、GraphをTextから再生成する |
 | FR-026 | Vercel Git Integrationがreview済み`main`のpushをProductionへ自動deployする |
+| FR-027 | Top Barから空の`untitled` Projectを`noopener`付きの新しいbrowser tabで開始する |
+| FR-028 | URL fragmentのvalidated Project slotと一時保存keyを対応させ、新規tab間の24時間復元を分離する |
 
 ## 8. 非機能要件
 
@@ -245,6 +263,7 @@ Granvas は、文章とグラフを「同じ思考の異なる表現」として
 | NFR-016 | 一時保存payloadをversioned schemaとして検証し、Graph・座標・projection・Undo履歴を含めない |
 | NFR-017 | browser storage failureがsource mutationをrollbackせず、既存input / projection performance budgetを維持する |
 | NFR-018 | deployment credentialをGitHub Actionsへ置かず、production deploymentをsource commit / state / alias / live verificationで追跡する |
+| NFR-019 | Project slot IDをUUID allowlistで検証し、source / nameをURLへ含めず、fragmentを任意のstorage keyとして使用しない |
 
 ## 9. 成功の定義
 

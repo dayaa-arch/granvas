@@ -2,7 +2,7 @@
 
 > Status: Release Candidate
 > Target: v0.1  
-> Updated: 2026-08-15
+> Updated: 2026-08-16
 
 ## 1. 基本方針
 
@@ -52,6 +52,7 @@ granvas/
 │   │   ├── bootstrap/
 │   │   │   └── createApplication.ts
 │   │   ├── providers/
+│   │   ├── projectLaunch.ts
 │   │   ├── App.tsx
 │   │   └── main.tsx
 │   ├── modules/
@@ -132,6 +133,7 @@ granvas/
 - public presentation componentsのUI composition root。
 - route、global provider、top-level Error Boundary。
 - business ruleを置かない。
+- `projectLaunch.ts`はbrowser URL fragmentをframework-neutralなlaunch設定へ変換し、default / isolated Projectのbootstrap入力を決定する。UUID形式以外をstorage keyへ使用しない。
 
 ### 3.2 `src/modules/document`
 

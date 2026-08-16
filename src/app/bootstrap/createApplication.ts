@@ -14,11 +14,16 @@ import {
   type TemporaryProjectLoadResult,
   type TemporaryProjectStoragePort,
 } from '@/modules/document'
-import { BrowserLocalStorageTemporaryProjectAdapter } from '@/modules/document/infrastructure/browser/BrowserLocalStorageTemporaryProjectAdapter'
+import {
+  BrowserLocalStorageTemporaryProjectAdapter,
+  TEMPORARY_PROJECT_STORAGE_KEY,
+} from '@/modules/document/infrastructure/browser/BrowserLocalStorageTemporaryProjectAdapter'
+import type { GranvasProjectLaunch } from '@/app/projectLaunch'
 
 export type CreateApplicationInput = Readonly<{
   temporaryProjectStorage?: TemporaryProjectStoragePort
   now?: () => number
+  projectLaunch?: Extract<GranvasProjectLaunch, { type: 'isolated-project' }>
 }>
 
 export type GranvasApplication = Readonly<{
@@ -47,7 +52,12 @@ export function createApplication(
   const temporaryProjectRecovery = createTemporaryProjectRecovery({
     storage:
       input.temporaryProjectStorage ??
-      new BrowserLocalStorageTemporaryProjectAdapter(() => window.localStorage),
+      new BrowserLocalStorageTemporaryProjectAdapter(
+        () => window.localStorage,
+        input.projectLaunch === undefined
+          ? undefined
+          : `${TEMPORARY_PROJECT_STORAGE_KEY}:${input.projectLaunch.slotId}`,
+      ),
     ...(input.now === undefined ? {} : { now: input.now }),
   })
   const temporaryProjectLoad = temporaryProjectRecovery.loadTemporaryProject()
@@ -68,8 +78,11 @@ export function createApplication(
     }),
     workspace: createWorkspaceApplication({
       graphLayout,
-      name: recoveredProject?.name,
-      source: recoveredProject?.source ?? DEFAULT_PROJECT_SOURCE,
+      name: recoveredProject?.name ?? input.projectLaunch?.initialProject.name,
+      source:
+        recoveredProject?.source ??
+        input.projectLaunch?.initialProject.source ??
+        DEFAULT_PROJECT_SOURCE,
       initialDirty: recoveredProject?.dirty,
       temporaryProjectRecovery,
       initialTemporaryStorage:

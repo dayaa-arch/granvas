@@ -88,7 +88,7 @@
           <div class="notice__icon" aria-hidden="true">1.0</div>
           <div>
             <h2 id="version-note-title">このドキュメントの位置づけ</h2>
-            <p>これは「Granvas 1.0 公式ドキュメント — 完全版」です。説明対象はPhase 8 / 9までを完了したGranvas v0.1 Release Candidateです。ドキュメントのedition 1.0は製品version 1.0を意味せず、製品versionはv0.1.0です。</p>
+            <p>これは「Granvas 1.0 公式ドキュメント — 完全版」です。説明対象はPhase 16までを完了したGranvas v0.1 Release Candidateです。ドキュメントのedition 1.0は製品version 1.0を意味せず、製品versionはv0.1.0です。</p>
           </div>
         </section>
 
@@ -108,7 +108,7 @@ bun install &amp;&amp; bun run dev</code></pre>
 
         <section id="workspace" class="doc-section" aria-labelledby="workspace-title">
           <div class="section-heading"><span>02</span><div><p>WORKSPACE</p><h2 id="workspace-title">画面の見方</h2></div></div>
-          <p class="section-lead">左のテキストが正本、右のグラフが現在の投影です。中央の区切りをドラッグするか、矢印キーで表示幅を調整できます。</p>
+          <p class="section-lead">左のテキストが正本、右のグラフが現在の投影です。中央の区切りをドラッグするか、矢印キーで表示幅を調整できます。別のメモを始めるときは、右上の「新しいGranvas」で空のProjectを新しいタブに開けます。</p>
           <figure class="product-shot">
             <img src="./images/workspace-overview.png" alt="左に日本語のテキストエディター、右に対応する思考グラフを表示したGranvasのワークスペース" width="1440" height="900" />
             <figcaption><span>実際の日本語UI</span>テキストの宣言とグラフのNodeが同じ意味構造を表します。</figcaption>
@@ -117,6 +117,7 @@ bun install &amp;&amp; bun run dev</code></pre>
             <article><span class="feature-grid__num">A</span><h3>テキスト</h3><p>文章とGranvas Notationを同じエディターで編集します。通常の文章はそのまま残ります。</p></article>
             <article><span class="feature-grid__num">B</span><h3>グラフ</h3><p>Node、Relation、Groupを自動配置します。座標は保存せず、意味だけを扱います。</p></article>
             <article><span class="feature-grid__num">C</span><h3>状態バー</h3><p>ダウンロード状態、リビジョン、Node / Relation / 診断の件数を確認できます。</p></article>
+            <article><span class="feature-grid__num">D</span><h3>新しいGranvas</h3><p>現在のProjectを残したまま、空の<code>untitled</code>を新しいタブで始めます。</p></article>
           </div>
           <h3>テキストとグラフを行き来する</h3>
           <ul class="check-list">
@@ -182,7 +183,7 @@ bun install &amp;&amp; bun run dev</code></pre>
 
         <section id="projects" class="doc-section" aria-labelledby="projects-title">
           <div class="section-heading"><span>06</span><div><p>PROJECTS &amp; EXPORT</p><h2 id="projects-title">プロジェクトを手元に残す</h2></div></div>
-          <p class="section-lead">誤った再読み込みに備え、active Textは同じブラウザーへ最終更新から24時間だけ一時保存されます。恒久的に残すには<code>.granvas</code>をダウンロードしてください。</p>
+          <p class="section-lead">誤った再読み込みに備え、active Textは同じブラウザーへ最終更新から24時間だけ一時保存されます。「新しいGranvas」で開いたタブは一時保存先も分離され、別タブのTextを上書きしません。恒久的に残すには<code>.granvas</code>をダウンロードしてください。</p>
           <figure class="product-shot product-shot--compact">
             <img src="./images/download-dialog.png" alt=".granvas、SVG、PNG、PDFを選択できる日本語のダウンロードダイアログ" width="1440" height="900" />
             <figcaption><span>ダウンロード</span>再編集用と共有用の形式を選びます。</figcaption>
@@ -201,6 +202,7 @@ bun install &amp;&amp; bun run dev</code></pre>
           <div class="section-heading"><span>07</span><div><p>KEYBOARD &amp; ACCESSIBILITY</p><h2 id="keyboard-title">キーボードで操作する</h2></div></div>
           <div class="shortcut-grid">
             <article><kbd>Tab</kbd><p>ペイン区切り、グラフのNode / Relation、ボタンへ順番に移動</p></article>
+            <article><kbd>Enter</kbd><kbd>Space</kbd><p>「新しいGranvas」で空のProjectを新しいタブに開く</p></article>
             <article><kbd>Enter</kbd><kbd>Space</kbd><p>フォーカス中のNodeを選択</p></article>
             <article><kbd>F2</kbd><p>Nodeのラベルを編集</p></article>
             <article><kbd>Shift</kbd><span>+</span><kbd>F2</kbd><p>NodeのTypeを編集</p></article>
@@ -221,6 +223,7 @@ bun install &amp;&amp; bun run dev</code></pre>
             <details><summary>入力途中のエラーでグラフは消えますか</summary><div><p>正常に解釈できたNodeやRelationは残ります。問題のある宣言だけが投影から省略され、修正すると再び反映されます。</p></div></details>
             <details><summary>グラフでNodeを動かした位置は保存されますか</summary><div><p>保存されません。ドラッグは座標ではなく、親子関係やGroup所属を変える操作です。表示位置は意味構造から毎回計算します。</p></div></details>
             <details><summary>ブラウザーを閉じても作業は残りますか</summary><div><p>同じブラウザー・同じサイトでは、最終更新から24時間だけTextを一時復元できます。private browsing、storage消去、quotaやbrowser policyでは失われるため、必要なProjectは<code>.granvas</code>としてダウンロードしてください。「未ダウンロード」の表示が目印です。</p></div></details>
+            <details><summary>別のメモを始めるにはどうしますか</summary><div><p>右上の「新しいGranvas」を選ぶと、現在のProjectを変更せず、空の<code>untitled</code>が新しいタブで開きます。この操作から開いたタブごとに24時間一時保存が分離されます。</p></div></details>
             <details><summary>診断がある状態でもSVG / PNG / PDFを書き出せますか</summary><div><p>書き出せます。各visual formatには正常に解釈できた現在のグラフだけが含まれます。正本全体を残すには<code>.granvas</code>もダウンロードしてください。</p></div></details>
           </div>
         </section>

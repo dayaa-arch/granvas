@@ -2,15 +2,15 @@
 
 > Status: Release Candidate
 > Target: v0.1
-> Updated: 2026-08-15
+> Updated: 2026-08-16
 > Phase Source of Truth: この文書
 
 ## 1. 目的と用語
 
 Granvas v0.1の仮説「文章を書く行為と、思考構造を見る行為を一つの連続した体験にできるか」を、検証可能な実装単位へ分割する。
 
-- **Milestone**: 複数Phaseを束ねるrelease-level checkpoint。M0〜M9で表す。
-- **Phase**: 原則として1つのsteering、Issue、PRで完結する実装・検証単位。Phase 0〜15で表す。
+- **Milestone**: 複数Phaseを束ねるrelease-level checkpoint。M0〜M10で表す。
+- **Phase**: 原則として1つのsteering、Issue、PRで完結する実装・検証単位。Phase 0〜16で表す。
 - **Task**: Phase内の具体的な作業項目。初回実装タスクリストの番号を独立したPhase番号として解釈しない。
 
 Phaseの名称、順序、進捗はこの文書を正本とする。完了済みsteering、Issue、PRは履歴であるため改名せず、本書の対応表から追跡する。
@@ -30,6 +30,7 @@ flowchart LR
     M6 --> M7["M7 Vercel Release Candidate<br/>Phase 9"]
     M7 --> M8["M8 Temporary Browser Recovery<br/>Phase 14"]
     M8 --> M9["M9 Automatic Vercel Delivery<br/>Phase 15"]
+    M9 --> M10["M10 New Granvas Tab<br/>Phase 16"]
 ```
 
 | Milestone | 対象Phase | Exit |
@@ -44,6 +45,7 @@ flowchart LR
 | M7 Vercel Release Candidate | Phase 9 | DoD、OSS、品質、production検証をすべて完了 |
 | M8 Temporary Browser Recovery | Phase 14 | active Textを同一browserへ24時間だけ保存・復元可能 |
 | M9 Automatic Vercel Delivery | Phase 15 | review済みmainがVercel Productionへ自動反映される |
+| M10 New Granvas Tab | Phase 16 | 現在Projectを保持したまま、分離された新規tabで空のGranvasを開始できる |
 
 ## 3. Phase Status / History
 
@@ -65,8 +67,9 @@ flowchart LR
 | 9 | Release Hardening | 完了 | 14 | `.steering/20260811-phase-9-release-hardening/` | [Issue #31](https://github.com/dayaa-arch/granvas/issues/31) / [PR #32](https://github.com/dayaa-arch/granvas/pull/32) |
 | 14 | Temporary Browser Recovery | 完了 | 15 | `.steering/20260814-add-temporary-browser-storage/` | [Issue #34](https://github.com/dayaa-arch/granvas/issues/34) / [PR #35](https://github.com/dayaa-arch/granvas/pull/35) |
 | 15 | Automatic Vercel Delivery | 完了 | 16 | `.steering/20260815-phase-15-automatic-vercel-delivery/` | [Issue #37](https://github.com/dayaa-arch/granvas/issues/37) / [PR #38](https://github.com/dayaa-arch/granvas/pull/38) |
+| 16 | New Granvas Tab | 実装中 | 17 | `.steering/20260816-add-new-granvas-tab/` | [Issue #40](https://github.com/dayaa-arch/granvas/issues/40) |
 
-**Phase 15 Automatic Vercel Deliveryまで完了**し、review済み`main`をVercel Productionへ自動反映するdelivery contractとlive検証を閉じた。
+**Phase 16 New Granvas Tabを実装・local検証済み**とし、PR / CI / Productionの完了確認を残している。
 
 ### 3.1 Scope Change: 2026-08-11
 
@@ -407,12 +410,36 @@ Exit Criteria:
 - [x] GitHub ActionsとrepositoryにVercel credential / deployment jobを追加していない。
 - [x] local / CI / production verificationがgreenである。
 
-## 21. Deferred Work
+## 21. Phase 16: New Granvas Tab
+
+Goal: 現在のProjectを保持したまま、空のGranvasを分離された新規browser tabで開始できるようにする。
+
+決定の根拠は[ADR-0009](adr/0009-isolated-new-tab-project-launch.md)。
+
+Deliverables:
+
+- [x] Top Bar右側の`新しいGranvas`操作と日本語accessible name。
+- [x] `noopener,noreferrer`付きの新規tab起動。
+- [x] 空Text / `untitled` / clean / Node 0件の初期Project。
+- [x] `#new`からvalidated UUIDを持つ`#project=<slot-id>`へのcanonical launch resolver。
+- [x] 新規tabごとの24時間一時保存key分離と、既存固定keyの後方互換。
+- [x] pointer / keyboard / popup / multi-tab reloadの3-browser E2E。
+- [x] 仕様、README、公式利用ガイド、実画面screenshotの同期。
+
+Exit Criteria:
+
+- [x] 新規tabを開いても元tabのText、dirty state、24時間一時保存が変化しない。
+- [x] 複数の新規tabが異なるTextをreload後も自身のslotから復元する。
+- [x] 不正fragmentを任意のstorage keyとして使用しない。
+- [x] `window.opener`が`null`である。
+- [ ] local / CI / production verificationがgreenである。
+
+## 22. Deferred Work
 
 - Node座標の永続化と自由配置（[ADR-0001](adr/0001-semantic-node-drag-without-coordinate-persistence.md)により意図的に非対応。変更する場合はsuperseding ADRを起こす）。
 - 兄弟Nodeの並び替えドラッグ（Phase 12の対象外。将来のauthoring拡張で再検討する）。
 - Group membershipの「移動」（既定は追加。仕様§4.6が複数所属を許容するため）。
-- multi-document workspace、folder、search、backlink。
+- Project一覧を持つmulti-document workspace、recent history、folder、search、backlink、同一slotのtab間競合解決。
 - account / authentication implementation。
 - cloud sync / collaboration。
 - AI / plugin / mobile / desktop app。
@@ -422,7 +449,7 @@ Exit Criteria:
 
 認証実装を開始する場合のproviderはSupabase Authに決定済みだが、roadmapへの追加はv0.1完了後に別steering / ADRで行う。
 
-## 22. Phase運用規則
+## 23. Phase運用規則
 
 - 新しいPhase名と番号は、実装開始前にこの文書へ記載する。
 - Phase番号は採番順とし、再利用しない。実行順は§3のstatus表で管理する。
