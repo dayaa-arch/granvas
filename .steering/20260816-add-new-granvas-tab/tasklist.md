@@ -1,8 +1,9 @@
 # 新しいGranvasを新規タブで始める機能 タスクリスト
 
 > 作成日: 2026-08-16
-> ステータス: 実装中
+> ステータス: レビュー中
 > Issue: [#40](https://github.com/dayaa-arch/granvas/issues/40)
+> PR: [#41](https://github.com/dayaa-arch/granvas/pull/41)
 
 ## 1. 準備・仕様
 
@@ -61,8 +62,8 @@
 ## 7. GitHub完了処理
 
 - [x] tasklist、roadmap、specification、README、official Docsを実績へ同期する。
-- [ ] 意図した変更だけをcommit / pushする。
-- [ ] PRへ要求、設計、検証、multi-tab isolation判断、残課題を記載する。
+- [x] 意図した変更だけをcommit / pushする。
+- [x] PRへ要求、設計、検証、multi-tab isolation判断、残課題を記載する。
 - [ ] local / CIがgreenの場合だけPRを`main`へmergeする。
 - [ ] Issue close、branch削除、`main`同期、Vercel Production反映を確認する。
 

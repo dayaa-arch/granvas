@@ -3,6 +3,7 @@
 > 作成日: 2026-08-16
 > ステータス: 承認済み
 > Issue: [#40](https://github.com/dayaa-arch/granvas/issues/40)
+> PR: [#41](https://github.com/dayaa-arch/granvas/pull/41)
 > Related: `requirements.md`
 
 ## 1. 実装方針

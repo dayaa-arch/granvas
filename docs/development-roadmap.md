@@ -67,7 +67,7 @@ flowchart LR
 | 9 | Release Hardening | 完了 | 14 | `.steering/20260811-phase-9-release-hardening/` | [Issue #31](https://github.com/dayaa-arch/granvas/issues/31) / [PR #32](https://github.com/dayaa-arch/granvas/pull/32) |
 | 14 | Temporary Browser Recovery | 完了 | 15 | `.steering/20260814-add-temporary-browser-storage/` | [Issue #34](https://github.com/dayaa-arch/granvas/issues/34) / [PR #35](https://github.com/dayaa-arch/granvas/pull/35) |
 | 15 | Automatic Vercel Delivery | 完了 | 16 | `.steering/20260815-phase-15-automatic-vercel-delivery/` | [Issue #37](https://github.com/dayaa-arch/granvas/issues/37) / [PR #38](https://github.com/dayaa-arch/granvas/pull/38) |
-| 16 | New Granvas Tab | 実装中 | 17 | `.steering/20260816-add-new-granvas-tab/` | [Issue #40](https://github.com/dayaa-arch/granvas/issues/40) |
+| 16 | New Granvas Tab | レビュー中 | 17 | `.steering/20260816-add-new-granvas-tab/` | [Issue #40](https://github.com/dayaa-arch/granvas/issues/40) / [PR #41](https://github.com/dayaa-arch/granvas/pull/41) |
 
 **Phase 16 New Granvas Tabを実装・local検証済み**とし、PR / CI / Productionの完了確認を残している。
 
